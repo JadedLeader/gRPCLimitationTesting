@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcTestingLimitationsClient.proto";
+
+
+service Unary { 
+
+	rpc UnaryResponse (DataRequest) returns (DataResponse);
+
+}
+
+message DataRequest
+{ 
+	string RequestId = 1;
+	string RequestType = 2; 
+	string RequestTimestamp = 3; 
+	string DataSize = 4;
+	bool ConnectionAlive = 5;
+
+}
+
+message DataResponse
+{ 
+	string RequestId = 1; 
+	string RequestType = 2;
+    bool ConnectionAlive = 3;
+	string ResponseTimestamp = 4;
+}

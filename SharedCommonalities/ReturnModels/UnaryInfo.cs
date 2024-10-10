@@ -1,0 +1,21 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace SharedCommonalities.ReturnModels
+{
+    public class UnaryInfo
+    {
+
+        public DateTime? TimeOfRequest { get; set; }
+        public TimeSpan? Delay { get; set; }
+        public string? TypeOfData { get; set; }
+        public int? LengthOfData { get; set; }
+
+        private string TypeOfRequest = "Unary";
+
+
+    }
+}

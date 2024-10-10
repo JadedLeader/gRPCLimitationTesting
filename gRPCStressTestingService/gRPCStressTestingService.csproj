@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Protobuf Include="Protos\greet.proto" GrpcServices="Server" />
+	  <protobuf Include="Protos\UnaryLatency.proto" GrpcServices="Server" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.23.1" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.57.0" />
+    <PackageReference Include="Grpc.AspNetCore.Server" Version="2.57.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+    <Folder Include="DbContexts\" />
+    <Folder Include="Worker\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DelayCalculationWorkerService\DelayCalculationWorkerService.csproj" />
+    <ProjectReference Include="..\SharedCommonalities\SharedCommonalities.csproj" />
+  </ItemGroup>
+
+</Project>
