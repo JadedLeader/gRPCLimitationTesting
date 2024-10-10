@@ -10,6 +10,7 @@ namespace DelayCalculationWorkerService.Service
 {
     public class DelayCalculations
     {
+     
         private readonly IRequestResponseTimeStorage _requestResponseTimeStorage;
         public DelayCalculations(IRequestResponseTimeStorage requestResponseTimeStorage)
         {
@@ -38,7 +39,7 @@ namespace DelayCalculationWorkerService.Service
 
                     var unaryRequest = new UnaryInfo()
                     {
-                        Delay = calculation,
+                        Delay = calculation.Duration(),
                         LengthOfData = 0,
                         TypeOfData = ""
 
@@ -53,5 +54,20 @@ namespace DelayCalculationWorkerService.Service
 
             var delayCalculations = _requestResponseTimeStorage.ReturnDelayCalculations();
         }
+
+        private int LengthOfRequest(UnaryInfo info)
+        {
+
+            var temp = info.LengthOfData.Value.
+
+            if (info.LengthOfData == null)
+            {
+                Console.WriteLine($"There was no string data passed along with this request");
+            }
+
+            return info.LengthOfDa
+        }
+
+
     }
 }

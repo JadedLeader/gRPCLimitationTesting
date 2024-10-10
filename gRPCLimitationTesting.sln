@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SharedCommonalities", "Shar
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrpcTestingLimitationsClient", "GrpcTestingLimitationsClient\GrpcTestingLimitationsClient.csproj", "{DB24A8FD-98B2-4B46-BB2D-DDB9E138A66A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DelayCalculationWorkerService", "DelayCalculationWorkerService\DelayCalculationWorkerService.csproj", "{734B1531-AA4C-41DA-B8F9-5FD0DE713198}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DelayCalculationWorkerService", "DelayCalculationWorkerService\DelayCalculationWorkerService.csproj", "{734B1531-AA4C-41DA-B8F9-5FD0DE713198}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DbManagerWorkerService", "DbManagerWorkerService\DbManagerWorkerService.csproj", "{195F5A8B-EC96-49E7-AF65-7AEEE26D5707}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{734B1531-AA4C-41DA-B8F9-5FD0DE713198}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{734B1531-AA4C-41DA-B8F9-5FD0DE713198}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{734B1531-AA4C-41DA-B8F9-5FD0DE713198}.Release|Any CPU.Build.0 = Release|Any CPU
+		{195F5A8B-EC96-49E7-AF65-7AEEE26D5707}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{195F5A8B-EC96-49E7-AF65-7AEEE26D5707}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{195F5A8B-EC96-49E7-AF65-7AEEE26D5707}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{195F5A8B-EC96-49E7-AF65-7AEEE26D5707}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

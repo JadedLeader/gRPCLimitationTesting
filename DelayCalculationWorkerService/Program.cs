@@ -6,11 +6,10 @@ namespace DelayCalculationWorkerService
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = Host.CreateApplicationBuilder(args);
             
-
             builder.Services.AddHostedService<DelayWorker>();
             builder.Services.AddSingleton<DelayCalculations>();
             builder.Services.AddSingleton<IRequestResponseTimeStorage, RequestResponseTimeStorage>();

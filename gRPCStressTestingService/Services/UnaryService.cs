@@ -18,6 +18,9 @@ namespace gRPCStressTestingService.Services
             _RequestResponseTimeStorage = requestResponseTimeStorage;
         }
 
+        //things to do for tomorrow -> make endpoint to delete all entries from db
+        //remove old db from dict 
+
         public async Task<DataResponse> UnaryResponse(DataRequest request, ServerCallContext context)
         {
 
@@ -30,7 +33,7 @@ namespace gRPCStressTestingService.Services
                 ConnectionAlive = false,
                 RequestId = request.RequestId,
                 RequestType = request.RequestType,
-                ResponseTimestamp = preciseTime       
+                ResponseTimestamp = preciseTime
             };
 
             string? guidFromMetaData = context.RequestHeaders.GetValue("request-id");
@@ -54,8 +57,8 @@ namespace gRPCStressTestingService.Services
             var responseUnaryInfo = new UnaryInfo()
             {
                 Delay = null,
-                LengthOfData = null,
-                TypeOfData = null,
+                LengthOfData = LengthOfRequest(request),
+                TypeOfData = "Text",
                 TimeOfRequest = Convert.ToDateTime(dataReturn.ResponseTimestamp)
             };
 

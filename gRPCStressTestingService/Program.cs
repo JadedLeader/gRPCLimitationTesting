@@ -5,7 +5,13 @@ using SharedCommonalities.Interfaces.TimeStorage;
 using SharedCommonalities.TimeStorage;
 using DelayCalculationWorkerService;
 using DelayCalculationWorkerService.Service;
-
+using Microsoft.EntityFrameworkCore;
+using DbManagerWorkerService;
+using DbManagerWorkerService.Services;
+using DbManagerWorkerService.Interfaces;
+using DbManagerWorkerService.DbContexts;
+using DbManagerWorkerService.Interfaces.DataContext;
+using DbManagerWorkerService.Repos;
 
 namespace gRPCStressTestingService
 {
@@ -30,10 +36,14 @@ namespace gRPCStressTestingService
 
             builder.Services.AddScoped<IUnaryService, UnaryService>();
             builder.Services.AddScoped<UnaryImplementation>();
-            builder.Services.AddSingleton<IRequestResponseTimeStorage,RequestResponseTimeStorage>();
+            builder.Services.AddSingleton<IRequestResponseTimeStorage, RequestResponseTimeStorage>();
+            builder.Services.AddSingleton<DelayCalculations>(); 
+            builder.Services.AddHostedService<DbManagerWorker>();
+            builder.Services.AddTransient<IDataContexts, DataContexts>();
+            builder.Services.AddSingleton<ICommunicationDelayRepo, CommunicationDelayRepo>();
+            builder.Services.AddSingleton<ICommunicationDelayService, CommunicationDelayService>();
 
             builder.Services.AddHostedService<DelayWorker>();
-            builder.Services.AddSingleton<DelayCalculations>();
 
             var app = builder.Build();
             
