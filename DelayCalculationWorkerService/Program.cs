@@ -12,7 +12,7 @@ namespace DelayCalculationWorkerService
             
             builder.Services.AddHostedService<DelayWorker>();
             builder.Services.AddSingleton<DelayCalculations>();
-            builder.Services.AddSingleton<IRequestResponseTimeStorage, RequestResponseTimeStorage>();
+            builder.Services.AddSingleton<RequestResponseTimeStorage>();
 
             var host = builder.Build();
             host.Run();

@@ -11,12 +11,12 @@ namespace gRPCStressTestingService.Implementations
     {
 
         private readonly IUnaryService _unaryService;
-        private readonly IRequestResponseTimeStorage _requestResponseTimeStorage;
+       
 
-        public UnaryImplementation(IUnaryService unaryService, IRequestResponseTimeStorage requestResponseTimeStorage)
+        public UnaryImplementation(IUnaryService unaryService)
         {
             _unaryService = unaryService;
-            _requestResponseTimeStorage = requestResponseTimeStorage;
+            
         }
 
         public override Task<DataResponse> UnaryResponse(DataRequest request, ServerCallContext context)
@@ -30,6 +30,11 @@ namespace gRPCStressTestingService.Implementations
 
             return calling;
 
+        }
+
+        public override Task<BatchDataResponse> BatchUnaryResponse(BatchDataRequest request, ServerCallContext context)
+        {
+            return base.BatchUnaryResponse(request, context);
         }
 
     }

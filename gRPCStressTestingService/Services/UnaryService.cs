@@ -12,10 +12,10 @@ namespace gRPCStressTestingService.Services
     public class UnaryService  : IUnaryService
     {
 
-        private readonly IRequestResponseTimeStorage _RequestResponseTimeStorage;
-        public UnaryService(IRequestResponseTimeStorage requestResponseTimeStorage)
+        
+        public UnaryService()
         {
-            _RequestResponseTimeStorage = requestResponseTimeStorage;
+            
         }
 
         //things to do for tomorrow -> make endpoint to delete all entries from db
@@ -62,17 +62,22 @@ namespace gRPCStressTestingService.Services
                 TimeOfRequest = Convert.ToDateTime(dataReturn.ResponseTimestamp)
             };
 
-            _RequestResponseTimeStorage.AddRequestToList(guidFromMetaData, requestUnaryInfo);
+            RequestResponseTimeStorage.AddRequestToList(guidFromMetaData, requestUnaryInfo);
 
-            _RequestResponseTimeStorage.AddResponseToList(dataReturn.RequestId, responseUnaryInfo);
+            RequestResponseTimeStorage.AddResponseToList(dataReturn.RequestId, responseUnaryInfo);
 
             Console.WriteLine($"This is the client request");
             Console.WriteLine($"{dataReturn.RequestId} : {request.RequestTimestamp}");
 
-            var numOfResponses = _RequestResponseTimeStorage.ReturnServerResponse();
+            var numOfResponses = RequestResponseTimeStorage.ReturnServerResponse();
 
             return dataReturn;
                
+        }
+
+        public async Task<BatchDataResponse> BatchUnaryResponse(BatchDataRequest request, ServerCallContext context)
+        {
+            throw new NotImplementedException();
         }
 
         private int LengthOfRequest(DataRequest dataRequest)

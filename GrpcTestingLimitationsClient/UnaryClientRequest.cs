@@ -7,13 +7,59 @@ using System.Text;
 using System.Threading.Tasks;
 using SharedCommonalities.TimeStorage;
 using Grpc.Core;
+using Grpc.Net.Client;
+using System.Net;
+using SharedCommonalities.UsefulFeatures;
+using System.Net.Http.Headers;
 
 namespace GrpcTestingLimitationsClient
 {
     public class UnaryClientRequest
     {
-        public UnaryClientRequest(RequestResponseTimeStorage requestResponseTimeStorage)
+
+
+        public UnaryClientRequest()
         {
+            
+        }
+
+        private async Task<List<Unary.UnaryClient>> CreatingClients(GrpcChannel channel, int amountOfClients)
+        {
+            Console.WriteLine($"generating clients... ");
+
+            int i = 0;
+
+            List<Unary.UnaryClient> clients = new List<Unary.UnaryClient>();
+
+            var numberOfClients = 0;
+
+            while (amountOfClients > i)
+            {
+                var client = new Unary.UnaryClient(channel);
+
+                clients.Add(client);
+
+                numberOfClients = Settings.IncrementActiveClients();
+
+                i++;
+            }
+
+            Console.WriteLine($"amount of client channels open: {numberOfClients} ");
+
+            return clients;
+        }
+
+        public async Task MultipleClientsUnaryRequest(GrpcChannel channel,int instances, string fileSize, int amountOfClients)
+        {
+            
+
+            var listOfClients = await CreatingClients(channel, amountOfClients);
+
+            foreach(var client in listOfClients)
+            { 
+                await ClientUnaryRequestBatch(client, instances, "small");
+            }
+
             
         }
 
@@ -35,6 +81,7 @@ namespace GrpcTestingLimitationsClient
             metaData.Add("request-id", guid);
             metaData.Add("timestamp", preciseTime);
 
+            
             var reply = await client.UnaryResponseAsync(
 
                 new DataRequest()
@@ -57,13 +104,23 @@ namespace GrpcTestingLimitationsClient
         {
 
             int i = 0;
-            while(instances > i)
+            while(instances >= i)
             {
                 await ClientUnaryRequest(client, fileSize);
 
                 Console.WriteLine($"{i}");
                 i++;
             }
+
+            Console.WriteLine($"client request batch is finished, releasing client");
+
+            DisposeClient(client);
+            
+            var numberOfActiveClients = Settings.DecrementActiveClients();
+
+            Console.WriteLine($"Number of active clients now -> {numberOfActiveClients}");
+
+
         }
 
         private string FileSize(string fileSize)
@@ -82,13 +139,15 @@ namespace GrpcTestingLimitationsClient
                 case "large":
                     fileReturn = "C:\\Users\\joshy\\source\\repos\\gRPCLimitationTesting\\GrpcTestingLimitationsClient\\DataSizes\\text_100MB.txt";
                     break;
-
-
             }
 
             return fileReturn;
-}
-            
+        }     
+
+        private void DisposeClient(Unary.UnaryClient client)
+        {
+            client = null;
+        }
 
     }
 }

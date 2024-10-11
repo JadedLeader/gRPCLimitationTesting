@@ -13,7 +13,7 @@ namespace SharedCommonalities.Interfaces.TimeStorage
 
         public void AddRequestToList(string requestKey, UnaryInfo unaryRequestInfo);
 
-        public void AddResponseToList(string responseKey, UnaryInfo unaryResponseInfo);
+        public  void AddResponseToList(string responseKey, UnaryInfo unaryResponseInfo);
 
         public Dictionary<string, UnaryInfo> ReturnClientRequests();
 
@@ -25,6 +25,8 @@ namespace SharedCommonalities.Interfaces.TimeStorage
         public Dictionary<string, UnaryInfo> ReturnDelayCalculations();
 
         public void AddFinalTimeToDict(string guid, UnaryInfo calculatedTime);
+
+        public void RemoveDelayCalulcationFromDict(string guid);
 
 
     }

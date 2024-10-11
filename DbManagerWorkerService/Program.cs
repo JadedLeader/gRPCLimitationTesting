@@ -18,9 +18,9 @@ namespace DbManagerWorkerService
             builder.Services.AddHostedService<DbManagerWorker>();
 
             builder.Services.AddTransient<IDataContexts, DataContexts>();
-            builder.Services.AddSingleton<IRequestResponseTimeStorage, RequestResponseTimeStorage>();
             builder.Services.AddSingleton<ICommunicationDelayRepo, CommunicationDelayRepo>();
             builder.Services.AddSingleton<ICommunicationDelayService, CommunicationDelayService>();
+            builder.Services.AddSingleton<RequestResponseTimeStorage>();
 
             var connectionString = builder.Configuration.GetConnectionString("DbConnection");
             builder.Services.AddDbContext<DataContexts>(options =>

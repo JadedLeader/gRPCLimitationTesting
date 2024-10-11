@@ -5,5 +5,7 @@
 
         public Task AddingDelayCalculationsToDb();
 
+        public Task EmptyTable();
+
     }
 }

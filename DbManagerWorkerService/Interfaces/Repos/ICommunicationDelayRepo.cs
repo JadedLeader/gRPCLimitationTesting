@@ -7,5 +7,7 @@ namespace DbManagerWorkerService.Repos
 
         public Task AddToDb(CommunicationDelay delay);
 
+        public Task EmptyTable();
+
     }
 }

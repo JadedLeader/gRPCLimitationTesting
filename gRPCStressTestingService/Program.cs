@@ -36,12 +36,12 @@ namespace gRPCStressTestingService
 
             builder.Services.AddScoped<IUnaryService, UnaryService>();
             builder.Services.AddScoped<UnaryImplementation>();
-            builder.Services.AddSingleton<IRequestResponseTimeStorage, RequestResponseTimeStorage>();
             builder.Services.AddSingleton<DelayCalculations>(); 
             builder.Services.AddHostedService<DbManagerWorker>();
             builder.Services.AddTransient<IDataContexts, DataContexts>();
             builder.Services.AddSingleton<ICommunicationDelayRepo, CommunicationDelayRepo>();
             builder.Services.AddSingleton<ICommunicationDelayService, CommunicationDelayService>();
+            builder.Services.AddSingleton<RequestResponseTimeStorage>();
 
             builder.Services.AddHostedService<DelayWorker>();
 

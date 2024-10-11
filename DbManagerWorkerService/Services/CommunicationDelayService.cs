@@ -6,19 +6,40 @@ using DbManagerWorkerService.DbModels;
 using SharedCommonalities.Interfaces.TimeStorage;
 using DbManagerWorkerService.Services;
 using DbManagerWorkerService.Interfaces;
+using SharedCommonalities.TimeStorage;
+using SharedCommonalities.ReturnModels;
 
 namespace DbManagerWorkerService.Services
 {
     public class CommunicationDelayService : ICommunicationDelayService
     {
 
-        private readonly IRequestResponseTimeStorage _requestResponseTimeStorage;
+        public Dictionary<string, UnaryInfo> _DelayCalculations = new Dictionary<string, UnaryInfo>();
 
         private readonly ICommunicationDelayRepo _communicationDelayRepo;
-        public CommunicationDelayService(IRequestResponseTimeStorage requestResponseTimeStorage, ICommunicationDelayRepo communicationDelayRepo)
+        public CommunicationDelayService( ICommunicationDelayRepo communicationDelayRepo)
         {
-            _requestResponseTimeStorage = requestResponseTimeStorage;
             _communicationDelayRepo = communicationDelayRepo;
+        }
+
+        private void RemoveFromDict(string guid)
+        {
+            _DelayCalculations.Remove(guid);
+        }
+
+        private void PopulatingNewDict()
+        {
+            _DelayCalculations = RequestResponseTimeStorage.ReturnDelayCalculations();
+        }
+
+        private Dictionary<string, UnaryInfo> ReturningDict()
+        {
+            return _DelayCalculations;
+        }
+
+        public async Task EmptyTable()
+        {
+           await _communicationDelayRepo.EmptyTable();
         }
 
         public async Task AddingDelayCalculationsToDb()
@@ -26,7 +47,8 @@ namespace DbManagerWorkerService.Services
             try
             {
 
-                var delayCalculationsDict = _requestResponseTimeStorage.ReturnDelayCalculations();
+                PopulatingNewDict();
+                var delayCalculationsDict = ReturningDict();
 
                 if (delayCalculationsDict.Count == 0)
                 {
@@ -35,15 +57,26 @@ namespace DbManagerWorkerService.Services
 
                 foreach (var item in delayCalculationsDict)
                 {
-                    var transportingToDb = new CommunicationDelay()
-                    {
-                        DelayGuid = item.Key,
-                        CommunicationType = item.Value.TypeOfData,
-                        DataLength = item.Value.LengthOfData.Value,
-                        Delay = item.Value.Delay.Value,
-                    };
 
-                    await _communicationDelayRepo.AddToDb(transportingToDb);
+                    if(delayCalculationsDict.ContainsKey(item.Key))
+                    {
+                        Console.WriteLine($"item keys guid value to be removed -> {item.Key}");
+
+                        Console.WriteLine($"item already exists in the dictionary, removing it now -> {item.Key}");
+                        RemoveFromDict(item.Key);
+                    }
+
+                     var transportingToDb = new CommunicationDelay()
+                     {
+                         DelayGuid = item.Key,
+                         CommunicationType = item.Value.TypeOfData,
+                         DataLength = item.Value.LengthOfData.Value,
+                         Delay = item.Value.Delay.Value,
+                     };
+
+                     await _communicationDelayRepo.AddToDb(transportingToDb);
+
+                    
 
                 }
             } 

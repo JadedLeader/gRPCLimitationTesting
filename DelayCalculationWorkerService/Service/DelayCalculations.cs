@@ -1,5 +1,6 @@
 ﻿using SharedCommonalities.Interfaces.TimeStorage;
 using SharedCommonalities.ReturnModels;
+using SharedCommonalities.TimeStorage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,21 +12,21 @@ namespace DelayCalculationWorkerService.Service
     public class DelayCalculations
     {
      
-        private readonly IRequestResponseTimeStorage _requestResponseTimeStorage;
-        public DelayCalculations(IRequestResponseTimeStorage requestResponseTimeStorage)
+        
+        public DelayCalculations()
         {
-            _requestResponseTimeStorage = requestResponseTimeStorage;
+           
         }
 
         public void CalculatingDelayFromTimeStorageDict()
         {
-            var clientRequests =_requestResponseTimeStorage.ReturnClientRequests();
+            var clientRequests = RequestResponseTimeStorage.ReturnClientRequests();
 
-            var serverResponses =_requestResponseTimeStorage.ReturnServerResponse();
+            var serverResponses =RequestResponseTimeStorage.ReturnServerResponse();
 
             if (clientRequests.Count == 0 || serverResponses.Count == 0)
             {
-                Console.WriteLine($"Nothing to calculate - dict size of final calculations {_requestResponseTimeStorage.ReturnDelayCalculations().Count()}");
+                Console.WriteLine($"Nothing to calculate - dict size of final calculations {RequestResponseTimeStorage.ReturnDelayCalculations().Count()}");
             }
 
             foreach (var timing in clientRequests)
@@ -45,27 +46,29 @@ namespace DelayCalculationWorkerService.Service
 
                     };
 
-                    _requestResponseTimeStorage.AddFinalTimeToDict(timing.Key, unaryRequest);
+                    RequestResponseTimeStorage.AddFinalTimeToDict(timing.Key, unaryRequest);
 
                     clientRequests.Remove(timing.Key);
                     serverResponses.Remove(timing.Key);
                 }
             }
 
-            var delayCalculations = _requestResponseTimeStorage.ReturnDelayCalculations();
+            var delayCalculations = RequestResponseTimeStorage.ReturnDelayCalculations();
         }
 
         private int LengthOfRequest(UnaryInfo info)
         {
 
-            var temp = info.LengthOfData.Value.
+            /*var temp = info.LengthOfData.Value.
 
             if (info.LengthOfData == null)
             {
                 Console.WriteLine($"There was no string data passed along with this request");
             }
 
-            return info.LengthOfDa
+            return info.LengthOfDa */
+
+            throw new NotImplementedException();
         }
 
 

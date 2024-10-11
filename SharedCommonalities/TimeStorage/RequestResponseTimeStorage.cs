@@ -10,29 +10,34 @@ using System.Xml;
 
 namespace SharedCommonalities.TimeStorage
 {
-    public class RequestResponseTimeStorage : IRequestResponseTimeStorage
+    public class RequestResponseTimeStorage 
     {
         //stores the client request timing, key of the GUID and string of all the other information
 
         //might adapt this to take in a custom type with the streaming type and the date time as string, leave the key as string guid
-        public Dictionary<string, UnaryInfo> _ClientRequestTiming = new Dictionary<string, UnaryInfo>();
+        public static Dictionary<string, UnaryInfo> _ClientRequestTiming = new Dictionary<string, UnaryInfo>();
 
         //largely the same as the client
-        public Dictionary<string, UnaryInfo> _ServerResponseTiming = new Dictionary<string, UnaryInfo>();
+        public static Dictionary<string, UnaryInfo> _ServerResponseTiming = new Dictionary<string, UnaryInfo>();
 
-        public Dictionary<string, UnaryInfo> _ActualDelayCalculations = new Dictionary<string, UnaryInfo>();
+        public static Dictionary<string, UnaryInfo> _ActualDelayCalculations = new Dictionary<string, UnaryInfo>();
 
         public RequestResponseTimeStorage()
         {
-            
+            Console.WriteLine("New instance of RequestResponseTimeStorage created.");
         }
 
-        public void AddFinalTimeToDict(string guid, UnaryInfo calculatedTime)
+        public static void RemoveDelayCalulcationFromDict(string guid)
+        {
+            _ClientRequestTiming.Remove(guid);
+        }
+
+        public static void AddFinalTimeToDict(string guid, UnaryInfo calculatedTime)
         {
             _ActualDelayCalculations.Add(guid, calculatedTime);
         }
 
-        public void AddRequestToList(string requestKey, UnaryInfo unaryRequestInfo)
+        public static void AddRequestToList(string requestKey, UnaryInfo unaryRequestInfo)
         {
 
            _ClientRequestTiming.Add(requestKey, unaryRequestInfo);
@@ -40,31 +45,31 @@ namespace SharedCommonalities.TimeStorage
             Console.WriteLine($"added to request list: request key {requestKey}");
         }
 
-        public void AddResponseToList(string responseKey, UnaryInfo unaryResponseInfo)
+        public static void AddResponseToList(string responseKey, UnaryInfo unaryResponseInfo)
         {
 
             _ServerResponseTiming.Add(responseKey, unaryResponseInfo);
             
         }
 
-        private void RemovingOldTimesFromDicts(string guidKey)
+        private static void RemovingOldTimesFromDicts(string guidKey)
         {
 
             _ClientRequestTiming.Remove(guidKey);
             _ServerResponseTiming.Remove(guidKey);
         }
 
-        public Dictionary<string, UnaryInfo> ReturnDelayCalculations()
+        public static Dictionary<string, UnaryInfo> ReturnDelayCalculations()
         {
             return _ActualDelayCalculations;
         }
 
-        public Dictionary<string, UnaryInfo> ReturnClientRequests()
+        public static Dictionary<string, UnaryInfo> ReturnClientRequests()
         {
             return _ClientRequestTiming; 
         }
 
-        public Dictionary<string, UnaryInfo> ReturnServerResponse()
+        public static Dictionary<string, UnaryInfo> ReturnServerResponse()
         {
             return _ServerResponseTiming;
         }
@@ -75,7 +80,7 @@ namespace SharedCommonalities.TimeStorage
         /// <param name="guid"></param>
         /// <returns>A RawTimingValue that will contain the ID of the request, the timestamp and the request type</returns>
         /// <exception cref="Exception"></exception>
-        public RawTimingValue GettingClientRequestViaGuid(string guid)
+        public static RawTimingValue GettingClientRequestViaGuid(string guid)
         {
             var clientRequest = _ClientRequestTiming.FirstOrDefault(x => x.Key == guid);    
 
@@ -100,7 +105,7 @@ namespace SharedCommonalities.TimeStorage
         /// <param name="guid"></param>
         /// <returns>A RawTimingValue type that stores the request ID, the timestamp and the request type</returns>
         /// <exception cref="Exception"></exception>
-        public RawTimingValue GettingServerResponseViaGuid(string guid)
+        public static RawTimingValue GettingServerResponseViaGuid(string guid)
         {
             var serverResponse = _ServerResponseTiming.FirstOrDefault(x => x.Key == guid);
 

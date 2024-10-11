@@ -15,7 +15,6 @@ namespace DbManagerWorkerService.Repos
 
         public async Task AddToDb(CommunicationDelay delay)
         {
-
             try
             {
                 _dataContext.CommunicationDelay.Add(delay);
@@ -26,6 +25,19 @@ namespace DbManagerWorkerService.Repos
             {
                 Console.WriteLine($"this is the inner exception -> {ex.InnerException.Message}");
             }
+        }
+
+        public async Task EmptyTable()
+        {
+            foreach(var delay in _dataContext.CommunicationDelay)
+            {
+                _dataContext.CommunicationDelay.Remove(delay);
+            }
+
+            await _dataContext.SaveChangesAsync();
+
+
+            Console.WriteLine($"table has been emptied");
         }
 
 
