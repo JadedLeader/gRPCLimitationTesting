@@ -25,6 +25,8 @@ namespace gRPCStressTestingService.Implementations
 
             if (calling == null)
             {
+
+               
                 throw new RpcException(new Status(StatusCode.NotFound, "The details for the unary response could not be found"));    
             }
 
@@ -34,7 +36,14 @@ namespace gRPCStressTestingService.Implementations
 
         public override Task<BatchDataResponse> BatchUnaryResponse(BatchDataRequest request, ServerCallContext context)
         {
-            return base.BatchUnaryResponse(request, context);
+            var callingBatch = _unaryService.BatchUnaryResponse(request, context);
+
+            if(callingBatch == null)
+            {
+                throw new RpcException(new Status(StatusCode.NotFound, "The details for the batch request could not be found"));
+            }
+
+            return callingBatch;
         }
 
     }

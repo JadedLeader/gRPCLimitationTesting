@@ -14,6 +14,8 @@ namespace DbManagerWorkerService.DbModels
 
         public string CommunicationType { get; set; }
 
+        public string RequestType { get; set; }
+
         public int DataLength { get; set; }
 
         public TimeSpan Delay { get; set; }

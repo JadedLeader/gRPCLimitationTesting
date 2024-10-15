@@ -55,6 +55,9 @@ namespace DbManagerWorkerService.Services
                     Console.WriteLine($"nothing to add to db");
                 }
 
+                //this needs to be edited for streaming requests as right now for a batch we dont care about each item in the list as they all have the same timestamp 
+                //however with a streaming request, we're going to care about every timing within that list
+
                 foreach (var item in delayCalculationsDict)
                 {
 

@@ -23,6 +23,7 @@ namespace GrpcTestingLimitationsClient
             
         }
 
+        
         private async Task<List<Unary.UnaryClient>> CreatingClients(GrpcChannel channel, int amountOfClients)
         {
             Console.WriteLine($"generating clients... ");
@@ -100,7 +101,7 @@ namespace GrpcTestingLimitationsClient
             Console.WriteLine($"{reply.RequestId} : {reply.ResponseTimestamp}");
         }
 
-        public async Task ClientUnaryRequestBatch(Unary.UnaryClient client, int instances, string fileSize)
+        public async Task ClientUnaryRequestBatch(Unary.UnaryClient? client, int? instances, string fileSize)
         {
 
             int i = 0;

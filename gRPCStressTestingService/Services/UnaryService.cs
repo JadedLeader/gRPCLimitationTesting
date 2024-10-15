@@ -18,8 +18,6 @@ namespace gRPCStressTestingService.Services
             
         }
 
-        //things to do for tomorrow -> make endpoint to delete all entries from db
-        //remove old db from dict 
 
         public async Task<DataResponse> UnaryResponse(DataRequest request, ServerCallContext context)
         {
@@ -77,7 +75,50 @@ namespace gRPCStressTestingService.Services
 
         public async Task<BatchDataResponse> BatchUnaryResponse(BatchDataRequest request, ServerCallContext context)
         {
-            throw new NotImplementedException();
+
+            var now = DateTime.UtcNow;
+            long ticks = now.Ticks;
+            string preciseTime = now.ToString("HH:mm:ss.ffffff");
+
+            var batchIdFromMetaData = context.RequestHeaders.GetValue("batch-request-id");
+            var batchTimestampFromMetaData = context.RequestHeaders.GetValue("batch-request-timestamp");
+            var batchFromMetaData = Convert.ToInt32(context.RequestHeaders.GetValue("batch-request-count"));
+            
+
+            var batchDataResponse = new BatchDataResponse()
+            {
+                BatchResponseId = batchIdFromMetaData,
+                NumberOfRequestsInBatch = batchFromMetaData,
+                ResponseTimestamp = preciseTime
+
+            };
+
+            var responseUnaryInfo = new UnaryInfo()
+            {
+                Delay = null,
+                LengthOfData = batchDataResponse.NumberOfRequestsInBatch,
+                TimeOfRequest = Convert.ToDateTime(batchDataResponse.ResponseTimestamp),
+                TypeOfData = "Batch"
+            };
+
+            var requestUnaryInfo = new UnaryInfo()
+            {
+                Delay = null,
+                LengthOfData = batchFromMetaData,
+                TimeOfRequest = Convert.ToDateTime(batchTimestampFromMetaData),
+                TypeOfData = "Batch"
+
+            };
+
+            RequestResponseTimeStorage.AddRequestToList(batchIdFromMetaData, requestUnaryInfo);
+
+            RequestResponseTimeStorage.AddResponseToList(batchDataResponse.BatchResponseId, responseUnaryInfo);
+
+
+            Console.WriteLine($"this is the client request");
+            Console.WriteLine($"{batchDataResponse.BatchResponseId} : {batchTimestampFromMetaData}");
+
+            return batchDataResponse;
         }
 
         private int LengthOfRequest(DataRequest dataRequest)

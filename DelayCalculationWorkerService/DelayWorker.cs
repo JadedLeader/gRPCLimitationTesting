@@ -25,7 +25,7 @@ namespace DelayCalculationWorkerService
                 {
                     _delayCalculations.CalculatingDelayFromTimeStorageDict();
 
-                    await Task.Delay(TimeSpan.FromMilliseconds(2), stoppingToken);
+                    await Task.Delay(TimeSpan.FromMilliseconds(1), stoppingToken);
                 } 
                 catch (Exception ex)
                 {
