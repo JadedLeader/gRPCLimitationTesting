@@ -8,5 +8,7 @@ namespace gRPCStressTestingService.Interfaces
 
         public Task<DataResponse> UnaryResponse(DataRequest request, ServerCallContext context);
 
+        public Task<BatchDataResponse> BatchUnaryResponse(BatchDataRequest request, ServerCallContext context);
+
     }
 }

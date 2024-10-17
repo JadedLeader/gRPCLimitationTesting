@@ -18,8 +18,6 @@ namespace gRPCStressTestingService.Services
             
         }
 
-        //things to do for tomorrow -> make endpoint to delete all entries from db
-        //remove old db from dict 
 
         public async Task<DataResponse> UnaryResponse(DataRequest request, ServerCallContext context)
         {
@@ -38,6 +36,7 @@ namespace gRPCStressTestingService.Services
 
             string? guidFromMetaData = context.RequestHeaders.GetValue("request-id");
             string? responseTimeFromMetaData = context.RequestHeaders.GetValue("timestamp");
+            string? typeOfDataFromMetaData = context.RequestHeaders.GetValue("request-type");
 
             if(guidFromMetaData == string.Empty || responseTimeFromMetaData == string.Empty)
             {
@@ -51,14 +50,14 @@ namespace gRPCStressTestingService.Services
                 Delay = null, 
                 LengthOfData = LengthOfRequest(request), 
                 TimeOfRequest = Convert.ToDateTime(responseTimeFromMetaData),
-                TypeOfData = "Text"
+                TypeOfData = typeOfDataFromMetaData,
             };
 
             var responseUnaryInfo = new UnaryInfo()
             {
                 Delay = null,
                 LengthOfData = LengthOfRequest(request),
-                TypeOfData = "Text",
+                TypeOfData = typeOfDataFromMetaData,
                 TimeOfRequest = Convert.ToDateTime(dataReturn.ResponseTimestamp)
             };
 
@@ -77,7 +76,53 @@ namespace gRPCStressTestingService.Services
 
         public async Task<BatchDataResponse> BatchUnaryResponse(BatchDataRequest request, ServerCallContext context)
         {
-            throw new NotImplementedException();
+
+            var now = DateTime.UtcNow;
+            long ticks = now.Ticks;
+            string preciseTime = now.ToString("HH:mm:ss.ffffff");
+
+            var batchIdFromMetaData = context.RequestHeaders.GetValue("batch-request-id");
+            var batchTimestampFromMetaData = context.RequestHeaders.GetValue("batch-request-timestamp");
+            var typeOfDataFromMetaData = context.RequestHeaders.GetValue("request-type");
+            var batchFromMetaData = Convert.ToInt32(context.RequestHeaders.GetValue("batch-request-count"));
+            
+
+            var batchDataResponse = new BatchDataResponse()
+            {
+                BatchResponseId = batchIdFromMetaData,
+                NumberOfRequestsInBatch = batchFromMetaData,
+                ResponseTimestamp = preciseTime,
+                RequestType = typeOfDataFromMetaData,
+                
+            };
+
+            var responseUnaryInfo = new UnaryInfo()
+            {
+                Delay = null,
+                LengthOfData = batchDataResponse.NumberOfRequestsInBatch,
+                TimeOfRequest = Convert.ToDateTime(batchDataResponse.ResponseTimestamp),
+                TypeOfData = typeOfDataFromMetaData,
+                
+            };
+
+            var requestUnaryInfo = new UnaryInfo()
+            {
+                Delay = null,
+                LengthOfData = batchFromMetaData,
+                TimeOfRequest = Convert.ToDateTime(batchTimestampFromMetaData),
+                TypeOfData = typeOfDataFromMetaData
+
+            };
+
+            RequestResponseTimeStorage.AddRequestToList(batchIdFromMetaData, requestUnaryInfo);
+
+            RequestResponseTimeStorage.AddResponseToList(batchDataResponse.BatchResponseId, responseUnaryInfo);
+
+
+            Console.WriteLine($"this is the client request");
+            Console.WriteLine($"{batchDataResponse.BatchResponseId} : {batchTimestampFromMetaData}");
+
+            return batchDataResponse;
         }
 
         private int LengthOfRequest(DataRequest dataRequest)

@@ -42,7 +42,7 @@ namespace DelayCalculationWorkerService.Service
                     {
                         Delay = calculation.Duration(),
                         LengthOfData = 0,
-                        TypeOfData = ""
+                        TypeOfData = timing.Value.TypeOfData
 
                     };
 

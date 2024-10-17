@@ -38,6 +38,7 @@ namespace DbManagerWorkerService.DbContexts
             commDelay.Property(ct => ct.CommunicationType).IsRequired();
             commDelay.Property(dl => dl.DataLength).IsRequired();
             commDelay.Property(d => d.Delay).IsRequired();
+            commDelay.Property(rt => rt.RequestType).IsRequired();
          
         }
 

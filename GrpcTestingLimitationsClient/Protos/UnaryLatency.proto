@@ -7,6 +7,8 @@ service Unary {
 
 	rpc UnaryResponse (DataRequest) returns (DataResponse);
 
+	rpc BatchUnaryResponse(BatchDataRequest) returns (BatchDataResponse);
+
 }
 
 message DataRequest
@@ -16,7 +18,6 @@ message DataRequest
 	string RequestTimestamp = 3; 
 	string DataSize = 4;
 	bool ConnectionAlive = 5;
-
 }
 
 message DataResponse
@@ -25,4 +26,17 @@ message DataResponse
 	string RequestType = 2;
     bool ConnectionAlive = 3;
 	string ResponseTimestamp = 4;
+}
+
+message BatchDataRequest
+{ 
+	repeated DataRequest BatchDataRequest = 1;
+}
+
+message BatchDataResponse
+{ 
+	string batchResponseId = 1; 
+	int32 numberOfRequestsInBatch = 2; 
+	string ResponseTimestamp = 3; 
+	string RequestType = 4;
 }

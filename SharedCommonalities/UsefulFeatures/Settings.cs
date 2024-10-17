@@ -18,6 +18,9 @@ namespace SharedCommonalities.UsefulFeatures
         //the idea here is to create a switch box that when off, this gets changed to false, accepting only streaming requests
         private static bool Unary = true;
 
+        //represents the current number of active channels 
+        private static int NumberOfActiveChannels { get; set; }
+
         /// <summary>
         /// Increments the active clients by 1
         /// </summary>
@@ -54,6 +57,25 @@ namespace SharedCommonalities.UsefulFeatures
 
             return false;
                
+        }
+
+        public static int IncrementActiveChannels()
+        {
+            NumberOfActiveChannels++;
+
+            return NumberOfActiveChannels;
+        }
+
+        public static int DecrementActiveChannels()
+        {
+            NumberOfActiveChannels--;
+
+            return NumberOfActiveChannels;
+        }
+
+        public static int GetNumberOfActiveChannels()
+        {
+            return NumberOfActiveChannels;
         }
 
 

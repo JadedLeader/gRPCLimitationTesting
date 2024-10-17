@@ -55,6 +55,9 @@ namespace DbManagerWorkerService.Services
                     Console.WriteLine($"nothing to add to db");
                 }
 
+                //this needs to be edited for streaming requests as right now for a batch we dont care about each item in the list as they all have the same timestamp 
+                //however with a streaming request, we're going to care about every timing within that list
+
                 foreach (var item in delayCalculationsDict)
                 {
 
@@ -66,15 +69,22 @@ namespace DbManagerWorkerService.Services
                         RemoveFromDict(item.Key);
                     }
 
-                     var transportingToDb = new CommunicationDelay()
-                     {
-                         DelayGuid = item.Key,
-                         CommunicationType = item.Value.TypeOfData,
-                         DataLength = item.Value.LengthOfData.Value,
-                         Delay = item.Value.Delay.Value,
-                     };
+                    
+                    var transportingToDb = new CommunicationDelay()
+                    {
+                        DelayGuid = item.Key,
+                        CommunicationType = item.Value.TypeOfData,
+                        DataLength = item.Value.LengthOfData.Value,
+                        Delay = item.Value.Delay.Value,
+                        RequestType = item.Value.TypeOfData
+                    };
 
-                     await _communicationDelayRepo.AddToDb(transportingToDb);
+                    if (item.Value.TypeOfData.Contains("Batch"))
+                    {
+                        transportingToDb.CommunicationType = "Batch";
+                    }
+
+                    await _communicationDelayRepo.AddToDb(transportingToDb);
 
                     
 
