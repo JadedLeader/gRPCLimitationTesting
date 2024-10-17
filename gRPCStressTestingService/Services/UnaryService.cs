@@ -36,6 +36,7 @@ namespace gRPCStressTestingService.Services
 
             string? guidFromMetaData = context.RequestHeaders.GetValue("request-id");
             string? responseTimeFromMetaData = context.RequestHeaders.GetValue("timestamp");
+            string? typeOfDataFromMetaData = context.RequestHeaders.GetValue("request-type");
 
             if(guidFromMetaData == string.Empty || responseTimeFromMetaData == string.Empty)
             {
@@ -49,14 +50,14 @@ namespace gRPCStressTestingService.Services
                 Delay = null, 
                 LengthOfData = LengthOfRequest(request), 
                 TimeOfRequest = Convert.ToDateTime(responseTimeFromMetaData),
-                TypeOfData = "Text"
+                TypeOfData = typeOfDataFromMetaData,
             };
 
             var responseUnaryInfo = new UnaryInfo()
             {
                 Delay = null,
                 LengthOfData = LengthOfRequest(request),
-                TypeOfData = "Text",
+                TypeOfData = typeOfDataFromMetaData,
                 TimeOfRequest = Convert.ToDateTime(dataReturn.ResponseTimestamp)
             };
 
@@ -82,6 +83,7 @@ namespace gRPCStressTestingService.Services
 
             var batchIdFromMetaData = context.RequestHeaders.GetValue("batch-request-id");
             var batchTimestampFromMetaData = context.RequestHeaders.GetValue("batch-request-timestamp");
+            var typeOfDataFromMetaData = context.RequestHeaders.GetValue("request-type");
             var batchFromMetaData = Convert.ToInt32(context.RequestHeaders.GetValue("batch-request-count"));
             
 
@@ -89,8 +91,9 @@ namespace gRPCStressTestingService.Services
             {
                 BatchResponseId = batchIdFromMetaData,
                 NumberOfRequestsInBatch = batchFromMetaData,
-                ResponseTimestamp = preciseTime
-
+                ResponseTimestamp = preciseTime,
+                RequestType = typeOfDataFromMetaData,
+                
             };
 
             var responseUnaryInfo = new UnaryInfo()
@@ -98,7 +101,8 @@ namespace gRPCStressTestingService.Services
                 Delay = null,
                 LengthOfData = batchDataResponse.NumberOfRequestsInBatch,
                 TimeOfRequest = Convert.ToDateTime(batchDataResponse.ResponseTimestamp),
-                TypeOfData = "Batch"
+                TypeOfData = typeOfDataFromMetaData,
+                
             };
 
             var requestUnaryInfo = new UnaryInfo()
@@ -106,7 +110,7 @@ namespace gRPCStressTestingService.Services
                 Delay = null,
                 LengthOfData = batchFromMetaData,
                 TimeOfRequest = Convert.ToDateTime(batchTimestampFromMetaData),
-                TypeOfData = "Batch"
+                TypeOfData = typeOfDataFromMetaData
 
             };
 

@@ -11,50 +11,24 @@ using Grpc.Net.Client;
 using System.Net;
 using SharedCommonalities.UsefulFeatures;
 using System.Net.Http.Headers;
+using GrpcTestingLimitationsClient.Interfaces;
 
 namespace GrpcTestingLimitationsClient
 {
     public class UnaryClientRequest
     {
 
-
-        public UnaryClientRequest()
+        private readonly IClientHelper _clientHelper;
+        public UnaryClientRequest(IClientHelper helper)
         {
-            
+            _clientHelper = helper;
         }
 
-        
-        private async Task<List<Unary.UnaryClient>> CreatingClients(GrpcChannel channel, int amountOfClients)
-        {
-            Console.WriteLine($"generating clients... ");
-
-            int i = 0;
-
-            List<Unary.UnaryClient> clients = new List<Unary.UnaryClient>();
-
-            var numberOfClients = 0;
-
-            while (amountOfClients > i)
-            {
-                var client = new Unary.UnaryClient(channel);
-
-                clients.Add(client);
-
-                numberOfClients = Settings.IncrementActiveClients();
-
-                i++;
-            }
-
-            Console.WriteLine($"amount of client channels open: {numberOfClients} ");
-
-            return clients;
-        }
 
         public async Task MultipleClientsUnaryRequest(GrpcChannel channel,int instances, string fileSize, int amountOfClients)
         {
             
-
-            var listOfClients = await CreatingClients(channel, amountOfClients);
+            var listOfClients = await  _clientHelper.CreatingClients(channel, amountOfClients);
 
             foreach(var client in listOfClients)
             { 
@@ -81,6 +55,7 @@ namespace GrpcTestingLimitationsClient
 
             metaData.Add("request-id", guid);
             metaData.Add("timestamp", preciseTime);
+            metaData.Add("request-type", "Unary");
 
             
             var reply = await client.UnaryResponseAsync(
@@ -105,7 +80,7 @@ namespace GrpcTestingLimitationsClient
         {
 
             int i = 0;
-            while(instances >= i)
+            while(instances > i)
             {
                 await ClientUnaryRequest(client, fileSize);
 

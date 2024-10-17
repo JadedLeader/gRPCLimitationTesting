@@ -38,4 +38,5 @@ message BatchDataResponse
 	string batchResponseId = 1; 
 	int32 numberOfRequestsInBatch = 2; 
 	string ResponseTimestamp = 3; 
+	string RequestType = 4;
 }
