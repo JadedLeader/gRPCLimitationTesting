@@ -1,4 +1,4 @@
-﻿using SharedCommonalities.ReturnModels;
+﻿using SharedCommonalities.ReturnModels.ReturnTypes;
 using SharedCommonalities.TimeStorage;
 using System;
 using System.Collections.Generic;

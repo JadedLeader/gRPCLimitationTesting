@@ -26,13 +26,27 @@ namespace GrpcTestingLimitationsClient.Services
 
             foreach (var client in clientGeneration)
             {
-                await RequestBatchAsync(client, fileSize, amountOfRequests);
+                await RequestBatchAsync(channel, fileSize, amountOfRequests, client);
             }
 
             Console.WriteLine($"client request batch : {channel.State} ");
         }
 
-        public async Task RequestBatchAsync(Unary.UnaryClient client, string fileSize, int amountOfRequests)
+        public async Task RequestBatchSingleClient(GrpcChannel channel, string fileSize, int amountToSend)
+        {
+
+            var freshClient = _clientHelper.CreatingSingularClient(channel);
+
+            await SendingBatchOfRequests(amountToSend, freshClient);
+        }
+
+        public async Task RequestBatchAsync(GrpcChannel channel, string fileSize, int amountOfRequests, Unary.UnaryClient freshClient)
+        {
+            await SendingBatchOfRequests(amountOfRequests, freshClient);
+
+        }
+
+        private async Task SendingBatchOfRequests(int amountOfRequests, Unary.UnaryClient freshClient)
         {
             List<DataRequest> requests = GeneratingBatchOfRequests(amountOfRequests);
 
@@ -44,16 +58,18 @@ namespace GrpcTestingLimitationsClient.Services
 
             var metaData = new Metadata();
 
-            metaData.Add("batch-request-id", metaDataId); 
+            metaData.Add("batch-request-id", metaDataId);
             metaData.Add("batch-request-timestamp", metaDataTimestamp);
             metaData.Add("batch-request-count", requests.Count.ToString());
             metaData.Add("request-type", requestTypeMetaData);
+            metaData.Add("active-clients", Settings.GetNumberOfActiveClients().ToString());
 
-            var clientRequest = await client.BatchUnaryResponseAsync(new BatchDataRequest
+            var clientRequest = await freshClient.BatchUnaryResponseAsync(new BatchDataRequest
             {
                 BatchDataRequest_ = { requests }
-            }, headers: metaData); 
+            }, headers: metaData);
 
+            Console.WriteLine($"Client count -> client side ---- {Settings.GetNumberOfActiveClients()}");
         }
 
         private List<DataRequest> GeneratingBatchOfRequests(int amountOfRequests)

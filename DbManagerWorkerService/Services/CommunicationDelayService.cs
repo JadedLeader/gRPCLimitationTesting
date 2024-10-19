@@ -7,7 +7,8 @@ using SharedCommonalities.Interfaces.TimeStorage;
 using DbManagerWorkerService.Services;
 using DbManagerWorkerService.Interfaces;
 using SharedCommonalities.TimeStorage;
-using SharedCommonalities.ReturnModels;
+using SharedCommonalities.ReturnModels.ReturnTypes;
+using SharedCommonalities.Storage;
 
 namespace DbManagerWorkerService.Services
 {
@@ -86,7 +87,10 @@ namespace DbManagerWorkerService.Services
 
                     await _communicationDelayRepo.AddToDb(transportingToDb);
 
-                    
+                  
+                    Console.WriteLine($"AMOUNT OF THINGS IN THE CLIENT STORAGE -> {ClientStorage.ReturnDictionary().Count}");
+
+
 
                 }
             } 

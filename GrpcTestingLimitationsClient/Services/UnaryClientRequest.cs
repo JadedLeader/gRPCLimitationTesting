@@ -13,7 +13,7 @@ using SharedCommonalities.UsefulFeatures;
 using System.Net.Http.Headers;
 using GrpcTestingLimitationsClient.Interfaces;
 
-namespace GrpcTestingLimitationsClient
+namespace GrpcTestingLimitationsClient.Services
 {
     public class UnaryClientRequest
     {
@@ -24,23 +24,33 @@ namespace GrpcTestingLimitationsClient
             _clientHelper = helper;
         }
 
-
-        public async Task MultipleClientsUnaryRequest(GrpcChannel channel,int instances, string fileSize, int amountOfClients)
+        //multiple clients multiple sequential requests
+        public async Task MultipleClientsUnaryRequest(GrpcChannel channel, int instances, string fileSize, int amountOfClients)
         {
-            
-            var listOfClients = await  _clientHelper.CreatingClients(channel, amountOfClients);
 
-            foreach(var client in listOfClients)
-            { 
-                await ClientUnaryRequestBatch(client, instances, "small");
+            var listOfClients = await _clientHelper.CreatingClients(channel, amountOfClients);
+
+            foreach (var client in listOfClients)
+            {
+                string clientIdentifier = Guid.NewGuid().ToString();
+
+                await ClientUnaryRequestBatch(channel, instances, "small");
             }
-
-            
         }
 
-        public async Task ClientUnaryRequest(Unary.UnaryClient client, string fileSize)
+        //single request
+        public async Task ClientUnaryRequest(GrpcChannel channel, string fileSize)
         {
 
+            var freshClient = _clientHelper.CreatingSingularClient(channel);
+
+            string clientIdentifier = Guid.NewGuid().ToString();    
+
+            await GeneratingRequest(freshClient, fileSize , clientIdentifier);
+        }
+
+        private async Task GeneratingRequest(Unary.UnaryClient client, string fileSize, string clientIdentifier)
+        {
             string filePath = FileSize(fileSize);
 
             var content = File.ReadAllText(filePath);
@@ -53,11 +63,17 @@ namespace GrpcTestingLimitationsClient
 
             var metaData = new Metadata();
 
+            var amountOfChannelsOpen = Settings.GetNumberOfActiveChannels().ToString();
+            var amountOfActiveClients = Settings.GetNumberOfActiveClients().ToString();
+
             metaData.Add("request-id", guid);
             metaData.Add("timestamp", preciseTime);
             metaData.Add("request-type", "Unary");
+            metaData.Add("open-channels", amountOfChannelsOpen);
+            metaData.Add("active-clients", amountOfActiveClients);
+            metaData.Add("client-identifier", clientIdentifier);   
 
-            
+
             var reply = await client.UnaryResponseAsync(
 
                 new DataRequest()
@@ -76,13 +92,17 @@ namespace GrpcTestingLimitationsClient
             Console.WriteLine($"{reply.RequestId} : {reply.ResponseTimestamp}");
         }
 
-        public async Task ClientUnaryRequestBatch(Unary.UnaryClient? client, int? instances, string fileSize)
+        //same client sending multiple requests sequentially
+        public async Task ClientUnaryRequestBatch(GrpcChannel channel, int? instances, string fileSize)
         {
+            var freshClient = _clientHelper.CreatingSingularClient(channel);
+
+            string clientIdentifier = Guid.NewGuid().ToString();
 
             int i = 0;
-            while(instances > i)
+            while (instances >= i)
             {
-                await ClientUnaryRequest(client, fileSize);
+                await GeneratingRequest(freshClient, fileSize, clientIdentifier);
 
                 Console.WriteLine($"{i}");
                 i++;
@@ -90,8 +110,6 @@ namespace GrpcTestingLimitationsClient
 
             Console.WriteLine($"client request batch is finished, releasing client");
 
-            DisposeClient(client);
-            
             var numberOfActiveClients = Settings.DecrementActiveClients();
 
             Console.WriteLine($"Number of active clients now -> {numberOfActiveClients}");
@@ -118,12 +136,9 @@ namespace GrpcTestingLimitationsClient
             }
 
             return fileReturn;
-        }     
-
-        private void DisposeClient(Unary.UnaryClient client)
-        {
-            client = null;
         }
+
+        
 
     }
 }

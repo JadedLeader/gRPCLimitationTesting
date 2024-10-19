@@ -33,6 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ClientManagementWorker\ClientManagementWorkerService.csproj" />
     <ProjectReference Include="..\DbManagerWorkerService\DbManagerWorkerService.csproj" />
     <ProjectReference Include="..\DelayCalculationWorkerService\DelayCalculationWorkerService.csproj" />
     <ProjectReference Include="..\GrpcTestingLimitationsClient\GrpcTestingLimitationsClient.csproj" />

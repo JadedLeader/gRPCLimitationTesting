@@ -15,5 +15,7 @@ namespace GrpcTestingLimitationsClient.Interfaces
 
         public Task<List<GrpcChannel>> GeneratingMutlipleChannels(int amountOfChannels);
 
+        public Unary.UnaryClient CreatingSingularClient(GrpcChannel channel);
+
     }
 }

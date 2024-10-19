@@ -4,7 +4,9 @@ using gRPCStressTestingService.Interfaces;
 using gRPCStressTestingService.proto;
 using SharedCommonalities.Interfaces.TimeStorage;
 using SharedCommonalities.ReturnModels;
+using SharedCommonalities.Storage;
 using SharedCommonalities.TimeStorage;
+using SharedCommonalities.UsefulFeatures;
 using System.Data;
 
 namespace gRPCStressTestingService.Services
@@ -37,6 +39,34 @@ namespace gRPCStressTestingService.Services
             string? guidFromMetaData = context.RequestHeaders.GetValue("request-id");
             string? responseTimeFromMetaData = context.RequestHeaders.GetValue("timestamp");
             string? typeOfDataFromMetaData = context.RequestHeaders.GetValue("request-type");
+            string? numOfOpenChannels = context.RequestHeaders.GetValue("open-channels");
+            string? numOfActiveClients = context.RequestHeaders.GetValue("active-clients");
+            string? client = context.RequestHeaders.GetValue("client");
+            string? clientUnique = context.RequestHeaders.GetValue("client-identifier");
+
+
+            var clientDetails = new ClientDetails()
+            {
+                RequestId = Guid.Parse(request.RequestId),
+                MessageLength = 0,
+                IsActiveClient = true
+            };
+
+            if (!ClientStorage.Clients.ContainsKey(Guid.Parse(clientUnique)))
+            {
+                var clientActivity = new ClientActivity();
+                clientActivity.AddToClientActivities(clientDetails);
+                ClientStorage.AddToClientsDict(Guid.Parse(clientUnique), clientActivity);
+            }
+            else
+            {
+                
+                var existingClientActivity = ClientStorage.Clients[Guid.Parse(clientUnique)];
+                existingClientActivity.AddToClientActivities(clientDetails);
+            }
+
+            Settings.SetNumberOfActiveChannels(Convert.ToInt32(numOfOpenChannels));
+            Settings.SetNumberOfActiveClients(Convert.ToInt32(numOfActiveClients));
 
             if(guidFromMetaData == string.Empty || responseTimeFromMetaData == string.Empty)
             {
@@ -68,7 +98,30 @@ namespace gRPCStressTestingService.Services
             Console.WriteLine($"This is the client request");
             Console.WriteLine($"{dataReturn.RequestId} : {request.RequestTimestamp}");
 
+            Console.WriteLine($"AMOUNT OF ACTIVE CHANNELS OPENED FROM SERVER -> {Settings.GetNumberOfActiveChannels()}");
+            Console.WriteLine($"AMOUNT OF ACTIVE CLIENTS -> {Settings.GetNumberOfActiveClients()}");
+
+            Console.WriteLine($"{client}");
+
             var numOfResponses = RequestResponseTimeStorage.ReturnServerResponse();
+
+
+            var thing = ClientStorage.ReturnDictionary(); 
+
+            foreach(var things in thing)
+            {
+
+                var key = things.Key;
+
+                var value = things.Value.GetClientActivities();
+
+                Console.WriteLine($"this is the client id {things.Key}");
+                
+                foreach(var val in value)
+                {
+                    Console.WriteLine($"this is the request -> {val.RequestId} : {val.IsActiveClient}");
+                }
+            }
 
             return dataReturn;
                
@@ -85,7 +138,10 @@ namespace gRPCStressTestingService.Services
             var batchTimestampFromMetaData = context.RequestHeaders.GetValue("batch-request-timestamp");
             var typeOfDataFromMetaData = context.RequestHeaders.GetValue("request-type");
             var batchFromMetaData = Convert.ToInt32(context.RequestHeaders.GetValue("batch-request-count"));
-            
+            var numOfActiveClients = Convert.ToInt32(context.RequestHeaders.GetValue("active-clients"));
+
+
+            Settings.SetNumberOfActiveClients(numOfActiveClients);
 
             var batchDataResponse = new BatchDataResponse()
             {
@@ -118,9 +174,10 @@ namespace gRPCStressTestingService.Services
 
             RequestResponseTimeStorage.AddResponseToList(batchDataResponse.BatchResponseId, responseUnaryInfo);
 
-
             Console.WriteLine($"this is the client request");
             Console.WriteLine($"{batchDataResponse.BatchResponseId} : {batchTimestampFromMetaData}");
+
+            Console.WriteLine($"this is the batch client request client count -> {Settings.GetNumberOfActiveClients()}");
 
             return batchDataResponse;
         }
