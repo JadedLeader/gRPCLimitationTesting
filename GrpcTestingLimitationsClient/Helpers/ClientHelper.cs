@@ -7,12 +7,14 @@ using System.Text;
 using System.Threading.Tasks;
 using SharedCommonalities.UsefulFeatures;
 using GrpcTestingLimitationsClient.Interfaces;
+using SharedCommonalities.TimeStorage;
+using SharedCommonalities.Storage;
+using SharedCommonalities.ReturnModels.ReturnTypes;
 
 namespace GrpcTestingLimitationsClient.Helpers
 {
     public class ClientHelper : IClientHelper
     {
-
 
         public ClientHelper()
         {
@@ -21,10 +23,9 @@ namespace GrpcTestingLimitationsClient.Helpers
 
         public async Task<List<GrpcChannel>> GeneratingMutlipleChannels(int amountOfChannels)
         {
-            int i = 0; 
+            int i = 0;
 
             List<GrpcChannel> channels = new List<GrpcChannel>();
-
            
             while(amountOfChannels > i)
             {
@@ -34,7 +35,8 @@ namespace GrpcTestingLimitationsClient.Helpers
                     MaxReceiveMessageSize = 100 * 1024 * 1024,
                 });
 
-                channels.Add(newChannel);   
+                channels.Add(newChannel);
+                
 
                 Settings.IncrementActiveChannels();
 
@@ -44,6 +46,15 @@ namespace GrpcTestingLimitationsClient.Helpers
             Console.WriteLine($"amount of Channels open : {Settings.GetNumberOfActiveChannels()}");
 
             return channels;
+        }
+
+        public Unary.UnaryClient CreatingSingularClient(GrpcChannel channel)
+        {
+            var freshClient = new Unary.UnaryClient(channel);
+
+            Settings.IncrementActiveClients();
+
+            return freshClient;
         }
 
         public async Task<List<Unary.UnaryClient>> CreatingClients(GrpcChannel channel, int amountOfClients)
@@ -58,7 +69,11 @@ namespace GrpcTestingLimitationsClient.Helpers
 
             while (amountOfClients > i)
             {
+                Guid newGuid = Guid.NewGuid();
+
                 var client = new Unary.UnaryClient(channel);
+
+                Console.WriteLine($"Guid generated for #{i} : {newGuid}");
 
                 clients.Add(client);
 
@@ -70,6 +85,10 @@ namespace GrpcTestingLimitationsClient.Helpers
             Console.WriteLine($"amount of clients open: {numberOfClients} ");
 
             return clients;
+        }
+        public async Task<bool> UnaryMessageSent (Unary.UnaryClient client)
+        {
+            throw new NotImplementedException();
         }
 
     }

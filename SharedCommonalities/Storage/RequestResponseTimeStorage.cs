@@ -1,5 +1,5 @@
 ﻿using SharedCommonalities.Interfaces.TimeStorage;
-using SharedCommonalities.ReturnModels;
+using SharedCommonalities.ReturnModels.ReturnTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;

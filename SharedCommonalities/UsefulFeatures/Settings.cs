@@ -21,6 +21,31 @@ namespace SharedCommonalities.UsefulFeatures
         //represents the current number of active channels 
         private static int NumberOfActiveChannels { get; set; }
 
+        //this is true by default so the clients will be removed by the client manager worker as they send their messages
+        private static bool RemoveClientsFromChannels = true;
+
+        /// <summary>
+        /// Changes the state of the RemoveClientsFromChannels to false
+        /// </summary>
+        public static void RemoveClientStateFalse()
+        {
+            RemoveClientsFromChannels = false;
+        }
+
+        public static void SetNumberOfActiveChannels(int numberOfChannels)
+        {
+            NumberOfActiveChannels = numberOfChannels;
+        }
+
+        /// <summary>
+        /// Returns the state of the RemoveClientsFromChannel 
+        /// </summary>
+        /// <returns></returns>
+        public static bool GetRemoveClientState()
+        {
+            return RemoveClientsFromChannels; 
+        }
+
         /// <summary>
         /// Increments the active clients by 1
         /// </summary>
@@ -76,6 +101,16 @@ namespace SharedCommonalities.UsefulFeatures
         public static int GetNumberOfActiveChannels()
         {
             return NumberOfActiveChannels;
+        }
+
+        public static int GetNumberOfActiveClients()
+        {
+            return NumberOfActiveClients;
+        }
+
+        public static void SetNumberOfActiveClients(int number)
+        {
+            NumberOfActiveClients = number;
         }
 
 

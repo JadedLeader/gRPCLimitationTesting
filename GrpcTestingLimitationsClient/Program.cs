@@ -28,7 +28,6 @@ namespace GrpcTestingLimitationsClient
                 Console.WriteLine($"this is the channels {channels.State}");
             }
 
-
             //this is currently only using the same client, we would have to generate these with the requests 
             var client = new Unary.UnaryClient(channel);
 
@@ -36,14 +35,17 @@ namespace GrpcTestingLimitationsClient
 
             var client3 = new Unary.UnaryClient(channelList[0]);
 
+
             UnaryClientRequest clientRequest = new UnaryClientRequest(helper);
             UnaryClientRequestBatch clientRequestBatch = new UnaryClientRequestBatch(helper);
 
             //this is a singular request
-            //await clientRequest.ClientUnaryRequest(client, "large");
+            await clientRequest.ClientUnaryRequest(channel, "large");
+            await clientRequest.ClientUnaryRequest(channel, "large");
+            await clientRequest.ClientUnaryRequest(channel, "large");
 
-            //multiple instances of multiple clients using the same channel
-            //await clientRequest.ClientUnaryRequestBatch(client3, 100, "large");
+            //one client with multiple sequential messages
+            //await clientRequest.ClientUnaryRequestBatch(channel, 15, "large");
 
             //await clientRequest.ClientUnaryRequestBatch(client2, 100, "small");
 
@@ -51,9 +53,11 @@ namespace GrpcTestingLimitationsClient
 
             //await clientRequest.MultipleClientsUnaryRequest(channel, 10, "large", 15);
 
-            //await clientRequestBatch.RequestBatchAsync(client, "large", 10);
+            //await clientRequestBatch.RequestBatchAsync(channel, "large", 10);
 
-            await clientRequestBatch.MutlipleClientsRequestBatch(channel, "large", 10, 10);
+            //await clientRequestBatch.RequestBatchSingleClient(channel, "large", 10);
+
+            //await clientRequestBatch.MutlipleClientsRequestBatch(channel, "large", 4, 16);
 
             Console.WriteLine($"hello");
 

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SharedCommonalities.ReturnModels
+namespace SharedCommonalities.ReturnModels.ReturnTypes
 {
     public class RawTimingValue
     {
