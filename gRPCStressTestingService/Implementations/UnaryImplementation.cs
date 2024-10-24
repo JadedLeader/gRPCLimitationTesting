@@ -4,6 +4,8 @@ using gRPCStressTestingService.Interfaces;
 using System.Runtime.InteropServices;
 using SharedCommonalities.TimeStorage;
 using SharedCommonalities.Interfaces.TimeStorage;
+using Serilog;
+using System.Dynamic;
 
 namespace gRPCStressTestingService.Implementations
 {
@@ -21,13 +23,12 @@ namespace gRPCStressTestingService.Implementations
 
         public override Task<DataResponse> UnaryResponse(DataRequest request, ServerCallContext context)
         {
+
             var calling = _unaryService.UnaryResponse(request, context);
 
             if (calling == null)
             {
-
-               
-                throw new RpcException(new Status(StatusCode.NotFound, "The details for the unary response could not be found"));    
+                Log.Error($"{@calling} was null in the unary response implementation");       
             }
 
             return calling;
@@ -40,7 +41,8 @@ namespace gRPCStressTestingService.Implementations
 
             if(callingBatch == null)
             {
-                throw new RpcException(new Status(StatusCode.NotFound, "The details for the batch request could not be found"));
+
+                Log.Error($"{@callingBatch} was null in the unary batch response implementation");
             }
 
             return callingBatch;

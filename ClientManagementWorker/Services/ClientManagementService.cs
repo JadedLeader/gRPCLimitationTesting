@@ -26,18 +26,21 @@ namespace ClientManagementWorkerService.Services
 
         private void GetClientRequestTimingDict()
         {
-            clientRequestTiming = RequestResponseTimeStorage.ReturnClientRequests();
+           // clientRequestTiming = RequestResponseTimeStorage.ReturnClientRequests();
+           throw new NotImplementedException();
         }
 
         private void GetClientStorageDict()
         {
-            clientStorage = ClientStorage.ReturnDictionary();
+            //clientStorage = ClientStorage.ReturnDictionary()
+
+            throw new NotImplementedException();
         }
 
         public async Task thing()
         {
             //ClientStorage.AddToClientsDict(Guid.NewGuid(), new ClientActivity { ActiveConnection = true, Client = ""});
-            RequestResponseTimeStorage.AddRequestToList("ebfwyvfewvf", new UnaryInfo());
+            //RequestResponseTimeStorage.AddRequestToList("ebfwyvfewvf", new UnaryInfo());
 
             GetClientRequestTimingDict();
             GetClientStorageDict();

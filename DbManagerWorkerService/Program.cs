@@ -6,6 +6,9 @@ using DbManagerWorkerService.Services;
 using DbManagerWorkerService.Interfaces.DataContext;
 using SharedCommonalities.Interfaces.TimeStorage;
 using SharedCommonalities.TimeStorage;
+using SharedCommonalities.Storage;
+using DbManagerWorkerService.Interfaces.Repos;
+using SharedCommonalities.ServicesConfig;
 
 namespace DbManagerWorkerService
 {
@@ -17,10 +20,14 @@ namespace DbManagerWorkerService
 
             builder.Services.AddHostedService<DbManagerWorker>();
 
+            ServiceConfig.AddSharedServices(builder.Services);
+
+
             builder.Services.AddTransient<IDataContexts, DataContexts>();
             builder.Services.AddSingleton<ICommunicationDelayRepo, CommunicationDelayRepo>();
             builder.Services.AddSingleton<ICommunicationDelayService, CommunicationDelayService>();
-            builder.Services.AddSingleton<RequestResponseTimeStorage>();
+
+            
 
             var connectionString = builder.Configuration.GetConnectionString("DbConnection");
             builder.Services.AddDbContext<DataContexts>(options =>
@@ -29,6 +36,8 @@ namespace DbManagerWorkerService
             });
 
             var host = builder.Build();
+
+
 
             Console.WriteLine($"host is running");
 

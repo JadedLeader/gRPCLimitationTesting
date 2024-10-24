@@ -17,5 +17,8 @@ namespace GrpcTestingLimitationsClient.Interfaces
 
         public Unary.UnaryClient CreatingSingularClient(GrpcChannel channel);
 
+        public string FileSize(string fileSize);
+
+
     }
 }

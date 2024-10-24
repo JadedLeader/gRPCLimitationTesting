@@ -3,6 +3,7 @@ using DbManagerWorkerService.Interfaces.DataContext;
 using DbManagerWorkerService.Repos;
 using DbManagerWorkerService.DbModels;
 using Microsoft.EntityFrameworkCore;
+using DbManagerWorkerService.Interfaces.Repos;
 namespace DbManagerWorkerService.Repos
 {
     public class CommunicationDelayRepo : ICommunicationDelayRepo

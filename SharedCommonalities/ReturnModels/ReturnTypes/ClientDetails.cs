@@ -11,7 +11,7 @@ namespace SharedCommonalities.ReturnModels.ReturnTypes
 
         public Guid RequestId { get; set; }
 
-        public int MessageLength { get; set; }
+        public long MessageLength { get; set; }
 
         public bool IsActiveClient { get; set; }
 

@@ -18,6 +18,11 @@ namespace GrpcTestingLimitationsClient.Services
     public class UnaryClientRequest
     {
 
+        /// <summary>
+        /// this class is used for the sending of client unary requests
+        /// handles everything do to with unary sequential requests
+        /// </summary>
+
         private readonly IClientHelper _clientHelper;
         public UnaryClientRequest(IClientHelper helper)
         {
@@ -25,6 +30,15 @@ namespace GrpcTestingLimitationsClient.Services
         }
 
         //multiple clients multiple sequential requests
+
+        /// <summary>
+        /// Creates multiple clients with mutliple sequential requests
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="instances"></param>
+        /// <param name="fileSize"></param>
+        /// <param name="amountOfClients"></param>
+        /// <returns></returns>
         public async Task MultipleClientsUnaryRequest(GrpcChannel channel, int instances, string fileSize, int amountOfClients)
         {
 
@@ -38,7 +52,12 @@ namespace GrpcTestingLimitationsClient.Services
             }
         }
 
-        //single request
+        /// <summary>
+        /// simple single request from a single client
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="fileSize"></param>
+        /// <returns></returns>
         public async Task ClientUnaryRequest(GrpcChannel channel, string fileSize)
         {
 
@@ -49,9 +68,17 @@ namespace GrpcTestingLimitationsClient.Services
             await GeneratingRequest(freshClient, fileSize , clientIdentifier);
         }
 
+        /// <summary>
+        /// determines what file is being used for the requests
+        /// alongside ghetting the time, creating metadata and then sending the request 
+        /// </summary>
+        /// <param name="client"></param>
+        /// <param name="fileSize"></param>
+        /// <param name="clientIdentifier"></param>
+        /// <returns></returns>
         private async Task GeneratingRequest(Unary.UnaryClient client, string fileSize, string clientIdentifier)
         {
-            string filePath = FileSize(fileSize);
+            string filePath = _clientHelper.FileSize(fileSize);
 
             var content = File.ReadAllText(filePath);
 
@@ -93,6 +120,13 @@ namespace GrpcTestingLimitationsClient.Services
         }
 
         //same client sending multiple requests sequentially
+        /// <summary>
+        /// singular client sending multiple requests sequentially
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="instances"></param>
+        /// <param name="fileSize"></param>
+        /// <returns></returns>
         public async Task ClientUnaryRequestBatch(GrpcChannel channel, int? instances, string fileSize)
         {
             var freshClient = _clientHelper.CreatingSingularClient(channel);
@@ -117,26 +151,7 @@ namespace GrpcTestingLimitationsClient.Services
 
         }
 
-        private string FileSize(string fileSize)
-        {
-
-            string fileReturn = "";
-
-            switch (fileSize)
-            {
-                case "small":
-                    fileReturn = "C:\\Users\\joshy\\source\\repos\\gRPCLimitationTesting\\GrpcTestingLimitationsClient\\DataSizes\\text_1MB.txt";
-                    break;
-                case "medium":
-                    fileReturn = "C:\\Users\\joshy\\source\\repos\\gRPCLimitationTesting\\GrpcTestingLimitationsClient\\DataSizes\\text_30MB.txt";
-                    break;
-                case "large":
-                    fileReturn = "C:\\Users\\joshy\\source\\repos\\gRPCLimitationTesting\\GrpcTestingLimitationsClient\\DataSizes\\text_100MB.txt";
-                    break;
-            }
-
-            return fileReturn;
-        }
+        
 
         
 

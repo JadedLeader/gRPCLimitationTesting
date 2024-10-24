@@ -8,24 +8,29 @@ using System.Threading.Tasks;
 
 namespace SharedCommonalities.Storage
 {
-    public static class ClientStorage 
+    public class ClientStorage : DictionariesAbstract<Guid, ClientActivity>
     {
 
-        public static Dictionary<Guid, ClientActivity> Clients = new Dictionary<Guid, ClientActivity>();
+        public Dictionary<Guid, ClientActivity> Clients = new Dictionary<Guid, ClientActivity>();
 
-        public static void AddToClientsDict(Guid dataToAddKey, ClientActivity dataToAddValue)
+        public ClientStorage()
         {
-            Clients.Add(dataToAddKey, dataToAddValue);
+            
         }
 
-        public static void RemoveFromClientDict(Guid dataKey)
+        public override void AddToDictionary(Dictionary<Guid, ClientActivity> dictionaryName, Guid dataToAddKey, ClientActivity dataToAddValue)
         {
-            Clients.Remove(dataKey);
+            base.AddToDictionary(dictionaryName, dataToAddKey, dataToAddValue);
         }
 
-        public static Dictionary<Guid, ClientActivity> ReturnDictionary()
+        public override void RemoveFromDictionary(Dictionary<Guid, ClientActivity> dictionaryName, Guid dataKey)
         {
-            return Clients;
+            base.RemoveFromDictionary(dictionaryName, dataKey);
+        }
+
+        public override Dictionary<Guid, ClientActivity> ReturnDictionary(Dictionary<Guid, ClientActivity> dictionaryName)
+        {
+            return base.ReturnDictionary(dictionaryName);
         }
     }
 }
