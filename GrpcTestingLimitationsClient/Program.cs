@@ -21,28 +21,28 @@ namespace GrpcTestingLimitationsClient
                 MaxReceiveMessageSize = 100 * 1024 * 1024,  
             });
 
-            var channelList = await helper.GeneratingMutlipleChannels(500);
+           /* var channelList = await helper.GeneratingMutlipleChannels(500);
                 
             foreach(var channels in channelList)
             {
                 Console.WriteLine($"this is the channels {channels.State}");
-            }
+            } */
 
             //this is currently only using the same client, we would have to generate these with the requests 
             var client = new Unary.UnaryClient(channel);
 
             var client2 = new Unary.UnaryClient(channel);
 
-            var client3 = new Unary.UnaryClient(channelList[0]);
-
+           // var client3 = new Unary.UnaryClient(channelList[0]);
 
             UnaryClientRequest clientRequest = new UnaryClientRequest(helper);
             UnaryClientRequestBatch clientRequestBatch = new UnaryClientRequestBatch(helper);
 
             //this is a singular request
-            await clientRequest.ClientUnaryRequest(channel, "large");
-            await clientRequest.ClientUnaryRequest(channel, "large");
-            await clientRequest.ClientUnaryRequest(channel, "large");
+            
+            //await clientRequest.ClientUnaryRequest(channel, "small");
+            //await clientRequest.ClientUnaryRequest(channel, "large");
+            //await clientRequest.ClientUnaryRequest(channel, "large");
 
             //one client with multiple sequential messages
             //await clientRequest.ClientUnaryRequestBatch(channel, 15, "large");
@@ -57,7 +57,10 @@ namespace GrpcTestingLimitationsClient
 
             //await clientRequestBatch.RequestBatchSingleClient(channel, "large", 10);
 
-            //await clientRequestBatch.MutlipleClientsRequestBatch(channel, "large", 4, 16);
+            await clientRequestBatch.MutlipleClientsRequestBatch(channel, "small", 2, 5);
+
+           // await clientRequest.ClientUnaryRequest(channel, "medium");
+            //await clientRequest.ClientUnaryRequest(channel, "medium");  
 
             Console.WriteLine($"hello");
 

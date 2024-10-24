@@ -13,7 +13,7 @@ namespace SharedCommonalities.TimeStorage
     public class ChannelClientStorage : DictionariesAbstract<Guid, ChannelInformation>
     {
 
-        public static Dictionary<Guid, ChannelInformation> ChannelWithClientInformation = new Dictionary<Guid, ChannelInformation>();
+        public Dictionary<Guid, ChannelInformation> ChannelWithClientInformation = new Dictionary<Guid, ChannelInformation>();
 
         public override void AddToDictionary(Dictionary<Guid, ChannelInformation> dictionaryName, Guid dataToAddKey, ChannelInformation dataToAddValue)
         {

@@ -25,6 +25,8 @@ namespace ClientManagementWorker
                 {
                     using(var scope = _serviceProvider.CreateScope())
                     {
+                      
+
                         var clientManagementScoped = scope.ServiceProvider.GetRequiredService<IClientManagementService>();
 
                         if(Settings.GetRemoveClientState())
@@ -34,7 +36,6 @@ namespace ClientManagementWorker
                             await clientManagementScoped.thing();
                         }
 
-                        Console.WriteLine(ClientStorage.ReturnDictionary().Count);
                     }
 
                     await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);

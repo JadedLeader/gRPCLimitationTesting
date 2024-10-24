@@ -1,4 +1,5 @@
 ﻿using DelayCalculationWorkerService.Service;
+using SharedCommonalities.UsefulFeatures;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +26,11 @@ namespace DelayCalculationWorkerService
                 {
                     _delayCalculations.CalculatingDelayFromTimeStorageDict();
 
-                    await Task.Delay(TimeSpan.FromMilliseconds(1), stoppingToken);
+                    Console.WriteLine("-----------------------------------------------------");
+                    Console.WriteLine($"CURRENT AMOUNT OF ACTIVE CLIENTS THIS IS SERVER SIDE -> {Settings.GetNumberOfActiveClients()}");
+                    Console.WriteLine("-----------------------------------------------------");
+
+                    await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
                 } 
                 catch (Exception ex)
                 {

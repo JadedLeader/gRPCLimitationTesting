@@ -9,18 +9,25 @@ using DbManagerWorkerService.Interfaces;
 using SharedCommonalities.TimeStorage;
 using SharedCommonalities.ReturnModels.ReturnTypes;
 using SharedCommonalities.Storage;
+using DbManagerWorkerService.Interfaces.Repos;
 
 namespace DbManagerWorkerService.Services
 {
     public class CommunicationDelayService : ICommunicationDelayService
     {
 
+        private readonly ClientStorage _storage;
+
         public Dictionary<string, UnaryInfo> _DelayCalculations = new Dictionary<string, UnaryInfo>();
 
+        private readonly RequestResponseTimeStorage _requestResponseTimeStorage;
+
         private readonly ICommunicationDelayRepo _communicationDelayRepo;
-        public CommunicationDelayService( ICommunicationDelayRepo communicationDelayRepo)
+        public CommunicationDelayService( ICommunicationDelayRepo communicationDelayRepo, ClientStorage storage, RequestResponseTimeStorage requestResponseTimeStorage)
         {
             _communicationDelayRepo = communicationDelayRepo;
+            _storage = storage;
+            _requestResponseTimeStorage = requestResponseTimeStorage;
         }
 
         private void RemoveFromDict(string guid)
@@ -28,14 +35,16 @@ namespace DbManagerWorkerService.Services
             _DelayCalculations.Remove(guid);
         }
 
-        private void PopulatingNewDict()
+        /*private void PopulatingNewDict()
         {
             _DelayCalculations = RequestResponseTimeStorage.ReturnDelayCalculations();
-        }
+        } */
 
         private Dictionary<string, UnaryInfo> ReturningDict()
         {
-            return _DelayCalculations;
+            var delayCalculationsDict = _requestResponseTimeStorage.ReturnDictionary(_requestResponseTimeStorage._ActualDelayCalculations);
+
+            return delayCalculationsDict;
         }
 
         public async Task EmptyTable()
@@ -47,8 +56,6 @@ namespace DbManagerWorkerService.Services
         {
             try
             {
-
-                PopulatingNewDict();
                 var delayCalculationsDict = ReturningDict();
 
                 if (delayCalculationsDict.Count == 0)
@@ -67,7 +74,10 @@ namespace DbManagerWorkerService.Services
                         Console.WriteLine($"item keys guid value to be removed -> {item.Key}");
 
                         Console.WriteLine($"item already exists in the dictionary, removing it now -> {item.Key}");
-                        RemoveFromDict(item.Key);
+
+                        _requestResponseTimeStorage.RemoveFromDictionary(_requestResponseTimeStorage._ActualDelayCalculations, item.Key);
+
+                       // RemoveFromDict(item.Key);
                     }
 
                     
@@ -87,8 +97,10 @@ namespace DbManagerWorkerService.Services
 
                     await _communicationDelayRepo.AddToDb(transportingToDb);
 
+                    
                   
-                    Console.WriteLine($"AMOUNT OF THINGS IN THE CLIENT STORAGE -> {ClientStorage.ReturnDictionary().Count}");
+                    Console.WriteLine($"AMOUNT OF THINGS IN THE CLIENT STORAGE -> { _storage.ReturnDictionary(_storage.Clients).Count}");
+                    Console.WriteLine($"THIS IS THE MEMORY ADRESS  FOR THE SINGLETON IN THE DELAY SERVICE -> {_storage.GetHashCode()}");
 
 
 

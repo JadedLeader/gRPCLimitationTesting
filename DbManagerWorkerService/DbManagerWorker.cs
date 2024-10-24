@@ -22,14 +22,14 @@ namespace DbManagerWorkerService
                 {
                     using(var scope = _serviceProvider.CreateScope())
                     {
-                         var communicationDelayService = scope.ServiceProvider.GetRequiredService<ICommunicationDelayService>();
+                          var communicationDelayService = scope.ServiceProvider.GetRequiredService<ICommunicationDelayService>();
 
                           await communicationDelayService.AddingDelayCalculationsToDb();
 
                           //await communicationDelayService.EmptyTable();
                     }
 
-                    await Task.Delay(TimeSpan.FromMilliseconds(5), stoppingToken);
+                    await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
 
                 }
                 catch(Exception ex)

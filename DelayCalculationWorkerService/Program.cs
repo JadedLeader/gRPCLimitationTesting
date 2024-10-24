@@ -1,6 +1,7 @@
 using DelayCalculationWorkerService.Service;
 using SharedCommonalities.Interfaces.TimeStorage;
 using SharedCommonalities.TimeStorage;
+using SharedCommonalities.ServicesConfig;
 
 namespace DelayCalculationWorkerService
 {
@@ -10,8 +11,10 @@ namespace DelayCalculationWorkerService
         {
             var builder = Host.CreateApplicationBuilder(args);
             
+            ServiceConfig.AddSharedServices(builder.Services);
+
             builder.Services.AddHostedService<DelayWorker>();
-            builder.Services.AddSingleton<DelayCalculations>();
+            
             builder.Services.AddSingleton<RequestResponseTimeStorage>();
 
             var host = builder.Build();

@@ -17,6 +17,14 @@ namespace SharedCommonalities.ReturnModels.ReturnTypes
             clientActivities.Add(details);
         }
 
+        public void AddBatchToClientActivities(List<ClientDetails> clientDetails)
+        {
+            foreach(ClientDetails clientsRequests in clientDetails)
+            {
+                clientActivities.Add(clientsRequests);
+            }
+        }
+
         public List<ClientDetails> GetClientActivities()
         {
             return clientActivities;

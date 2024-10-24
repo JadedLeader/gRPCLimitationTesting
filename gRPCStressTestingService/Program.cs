@@ -16,6 +16,9 @@ using ClientManagementWorkerService.Services;
 using ClientManagementWorker;
 using SharedCommonalities.Storage;
 using SharedCommonalities.UsefulFeatures;
+using SharedCommonalities.ServicesConfig;
+using DbManagerWorkerService.Interfaces.Repos;
+using SharedCommonalities.ObjectMapping;
 
 
 namespace gRPCStressTestingService
@@ -29,7 +32,8 @@ namespace gRPCStressTestingService
             builder.WebHost.ConfigureKestrel(serverOptions =>
             {
                 serverOptions.Listen(System.Net.IPAddress.Loopback, 5000);
-                serverOptions.Limits.MaxRequestBodySize = 100 * 1024 * 1024;
+                serverOptions.Limits.MaxRequestBodySize = int.MaxValue;
+                
 
             });
 
@@ -38,6 +42,8 @@ namespace gRPCStressTestingService
             {
                 options.MaxReceiveMessageSize = 100 * 1024 * 1024;
             });
+
+            ServiceConfig.AddSharedServices(builder.Services);
 
             builder.Services.AddScoped<IUnaryService, UnaryService>();
             builder.Services.AddScoped<UnaryImplementation>();
@@ -51,8 +57,7 @@ namespace gRPCStressTestingService
             builder.Services.AddSingleton<ICommunicationDelayRepo, CommunicationDelayRepo>();
             builder.Services.AddSingleton<ICommunicationDelayService, CommunicationDelayService>();
 
-            builder.Services.AddSingleton<RequestResponseTimeStorage>();
-
+            builder.Services.AddScoped<ObjectCreation>();
          
             builder.Services.AddHostedService<DelayWorker>();
 

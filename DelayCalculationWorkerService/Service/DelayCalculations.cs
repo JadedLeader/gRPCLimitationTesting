@@ -1,4 +1,5 @@
-﻿using SharedCommonalities.Interfaces.TimeStorage;
+﻿using Serilog;
+using SharedCommonalities.Interfaces.TimeStorage;
 using SharedCommonalities.ReturnModels.ReturnTypes;
 using SharedCommonalities.TimeStorage;
 using System;
@@ -11,49 +12,48 @@ namespace DelayCalculationWorkerService.Service
 {
     public class DelayCalculations
     {
-     
-        
-        public DelayCalculations()
+
+        private readonly RequestResponseTimeStorage _requestResponseTimeStorage;
+
+        public DelayCalculations(RequestResponseTimeStorage requestResponseTimeStorage)
         {
-           
+            _requestResponseTimeStorage = requestResponseTimeStorage;
         }
 
         public void CalculatingDelayFromTimeStorageDict()
         {
-            var clientRequests = RequestResponseTimeStorage.ReturnClientRequests();
+            var clientRequests = _requestResponseTimeStorage.ReturnDictionary(_requestResponseTimeStorage._ClientRequestTiming);
 
-            var serverResponses =RequestResponseTimeStorage.ReturnServerResponse();
-
+            var serverResponses = _requestResponseTimeStorage.ReturnDictionary(_requestResponseTimeStorage._ServerResponseTiming);
+               
             if (clientRequests.Count == 0 || serverResponses.Count == 0)
             {
-                Console.WriteLine($"Nothing to calculate - dict size of final calculations {RequestResponseTimeStorage.ReturnDelayCalculations().Count()}");
+                Console.WriteLine($"Nothing to calculate - dict size of final calculations {_requestResponseTimeStorage.ReturnDictionary(_requestResponseTimeStorage._ServerResponseTiming).Count()}");
             }
 
             foreach (var timing in clientRequests)
             {
                 if (serverResponses.TryGetValue(timing.Key, out var timingValue))
                 {
+    
+                    var calc = Convert.ToDateTime(timingValue.TimeOfRequest.Value) - Convert.ToDateTime(timing.Value.TimeOfRequest.Value);
 
-                    var calculation = Convert.ToDateTime(timing.Value.TimeOfRequest.Value) - Convert.ToDateTime(timingValue.TimeOfRequest.Value);
-
-                    Console.WriteLine($"ID {timing.Key} has delay {calculation}");
+                    Log.Information($"ID {timing.Key} has delay {calc}");
 
                     var unaryRequest = new UnaryInfo()
                     {
-                        Delay = calculation.Duration(),
+                        Delay = calc.Duration(),
                         LengthOfData = 0,
                         TypeOfData = timing.Value.TypeOfData
 
                     };
 
-                    RequestResponseTimeStorage.AddFinalTimeToDict(timing.Key, unaryRequest);
+                    _requestResponseTimeStorage.AddToDictionary(_requestResponseTimeStorage._ActualDelayCalculations, timing.Key, unaryRequest);
 
                     clientRequests.Remove(timing.Key);
                     serverResponses.Remove(timing.Key);
                 }
             }
-
-            var delayCalculations = RequestResponseTimeStorage.ReturnDelayCalculations();
         }
 
         private int LengthOfRequest(UnaryInfo info)

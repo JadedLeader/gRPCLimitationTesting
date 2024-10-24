@@ -14,12 +14,26 @@ namespace GrpcTestingLimitationsClient.Services
 {
     public class UnaryClientRequestBatch
     {
+
+        /// <summary>
+        /// this class handles all the unary batch operations 
+        /// this is where the requests are all sent at once, not sequentially
+        /// </summary>
+
         private readonly IClientHelper _clientHelper;
         public UnaryClientRequestBatch(IClientHelper helper)
         {
             _clientHelper = helper;
         }
 
+        /// <summary>
+        /// Generates multiple clients and then interates over the list of clients, sending a request batch
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="fileSize"></param>
+        /// <param name="amountOfClients"></param>
+        /// <param name="amountOfRequests"></param>
+        /// <returns></returns>
         public async Task MutlipleClientsRequestBatch(GrpcChannel channel, string fileSize, int amountOfClients, int amountOfRequests)
         {
             var clientGeneration = await _clientHelper.CreatingClients(channel,amountOfClients);
@@ -32,23 +46,33 @@ namespace GrpcTestingLimitationsClient.Services
             Console.WriteLine($"client request batch : {channel.State} ");
         }
 
+        /// <summary>
+        /// Generates a singular client
+        /// Sends a single batch of requests 
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="fileSize"></param>
+        /// <param name="amountToSend"></param>
+        /// <returns></returns>
         public async Task RequestBatchSingleClient(GrpcChannel channel, string fileSize, int amountToSend)
         {
 
             var freshClient = _clientHelper.CreatingSingularClient(channel);
 
-            await SendingBatchOfRequests(amountToSend, freshClient);
+            await SendingBatchOfRequests(amountToSend, freshClient, fileSize);
         }
 
         public async Task RequestBatchAsync(GrpcChannel channel, string fileSize, int amountOfRequests, Unary.UnaryClient freshClient)
         {
-            await SendingBatchOfRequests(amountOfRequests, freshClient);
+            await SendingBatchOfRequests(amountOfRequests, freshClient, fileSize);
 
         }
 
-        private async Task SendingBatchOfRequests(int amountOfRequests, Unary.UnaryClient freshClient)
+        private async Task SendingBatchOfRequests(int amountOfRequests, Unary.UnaryClient freshClient, string fileSize)
         {
-            List<DataRequest> requests = GeneratingBatchOfRequests(amountOfRequests);
+            List<DataRequest> requests = GeneratingBatchOfRequests(amountOfRequests, fileSize);
+
+            //int currentRequestSize = CheckingMaxRequestLimit(requests);
 
             var firstRequest = requests[0];
 
@@ -72,25 +96,40 @@ namespace GrpcTestingLimitationsClient.Services
             Console.WriteLine($"Client count -> client side ---- {Settings.GetNumberOfActiveClients()}");
         }
 
-        private List<DataRequest> GeneratingBatchOfRequests(int amountOfRequests)
+        private int CheckingMaxRequestLimit(List<DataRequest> requestList)
+        {
+            int maxRequestLimit = 0;
+
+            foreach(var clientRequest in  requestList)
+            {
+                maxRequestLimit += Convert.ToInt32(clientRequest.DataSize);
+            }
+
+            return maxRequestLimit;
+        }
+
+        private List<DataRequest> GeneratingBatchOfRequests(int amountOfRequests, string fileSize)
         {
             int i = 0;
+
+            string filePath = _clientHelper.FileSize(fileSize);
+
+            var content = File.ReadAllText(filePath);
 
             var now = DateTime.UtcNow;
             long ticks = now.Ticks;
             string preciseTime = now.ToString("HH:mm:ss.ffffff");
 
-            string requestId = Guid.NewGuid().ToString();
-
             List<DataRequest> requests = new List<DataRequest>();
 
             while(amountOfRequests > i)
             {
+                string requestId = Guid.NewGuid().ToString();
                 var newDataRequest = new DataRequest()
                 {
                     RequestId = requestId,
                     ConnectionAlive = true,
-                    DataSize = "0",
+                    DataSize = content,
                     RequestTimestamp = preciseTime,
                     RequestType = "UnaryBatch"
                     
