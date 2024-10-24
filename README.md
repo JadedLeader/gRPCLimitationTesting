@@ -10,6 +10,7 @@ Technologies:
 C#
 gRPC
 EF core
+Serilog
 
 Installation Guide:
 
