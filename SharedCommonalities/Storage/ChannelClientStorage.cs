@@ -12,7 +12,7 @@ namespace SharedCommonalities.TimeStorage
 {
     public class ChannelClientStorage : DictionariesAbstract<Guid, ChannelInformation>
     {
-       
+        //we're saying that the GUID is the channel,  channel information should hold a record of clients on the channel alongside messages sent by those clients 
         public Dictionary<Guid, ChannelInformation> ChannelWithClientInformation = new Dictionary<Guid, ChannelInformation>();
 
         public override void AddToDictionary(Dictionary<Guid, ChannelInformation> dictionaryName, Guid dataToAddKey, ChannelInformation dataToAddValue)

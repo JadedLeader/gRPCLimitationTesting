@@ -34,9 +34,11 @@ namespace DbManagerWorkerService.DbContexts
             commDelay.HasKey(k => k.Id);
 
             //props
-            commDelay.Property(dg => dg.DelayGuid).IsRequired();
+            commDelay.Property(ci => ci.ClientId).IsRequired();
+            commDelay.Property(dg => dg.MessageDelayId).IsRequired();
             commDelay.Property(ct => ct.CommunicationType).IsRequired();
-            commDelay.Property(dl => dl.DataLength).IsRequired();
+            commDelay.Property(di => di.DataIterations).IsRequired();
+            commDelay.Property(dc => dc.DataContents).IsRequired();
             commDelay.Property(d => d.Delay).IsRequired();
             commDelay.Property(rt => rt.RequestType).IsRequired();
          

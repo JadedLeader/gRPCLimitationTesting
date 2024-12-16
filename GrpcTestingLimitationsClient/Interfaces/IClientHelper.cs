@@ -19,6 +19,8 @@ namespace GrpcTestingLimitationsClient.Interfaces
 
         public string FileSize(string fileSize);
 
+        public string DataContentCalc(string fileSize);
+
 
     }
 }

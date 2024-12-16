@@ -15,6 +15,8 @@ namespace SharedCommonalities.ReturnModels.ReturnTypes
 
         public DateTime Timestamp { get; set; }
 
+        public string ClientId { get; set; }
+
         public string RequestId { get; set; }
 
     }

@@ -16,8 +16,9 @@ message DataRequest
 	string RequestId = 1;
 	string RequestType = 2; 
 	string RequestTimestamp = 3; 
-	string DataSize = 4;
-	bool ConnectionAlive = 5;
+	string DataContent = 4;
+	string DataSize = 5;
+	bool ConnectionAlive = 6;
 }
 
 message DataResponse
@@ -30,7 +31,19 @@ message DataResponse
 
 message BatchDataRequest
 { 
-	repeated DataRequest BatchDataRequest = 1;
+
+	repeated BatchDataRequestDetails BatchDataRequest = 1;
+}
+
+message BatchDataRequestDetails
+{ 
+	string OverarchingRequestId = 1;
+	string RequestId = 2;
+	string RequestType = 3; 
+	string RequestTimestamp = 4; 
+	string DataSize = 5;
+	string DataContent = 6;
+	bool ConnectionAlive = 7;
 }
 
 message BatchDataResponse

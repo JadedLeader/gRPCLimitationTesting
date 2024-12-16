@@ -25,7 +25,7 @@ namespace gRPCStressTestingService.Implementations
 
             if (databaseReset == null)
             {
-                Log.Warning($"Database resset did not work or returned null, please check");
+                Log.Warning($"Database reset did not work or returned null, please check");
             }
 
             return databaseReset;

@@ -20,6 +20,7 @@ using SharedCommonalities.UsefulFeatures;
 using SharedCommonalities.ServicesConfig;
 using DbManagerWorkerService.Interfaces.Repos;
 using SharedCommonalities.ObjectMapping;
+using gRPCStressTestingService.Interfaces.Services;
 
 
 namespace gRPCStressTestingService
@@ -58,6 +59,8 @@ namespace gRPCStressTestingService
             builder.Services.AddSingleton<ICommunicationDelayRepo, CommunicationDelayRepo>();
             builder.Services.AddSingleton<ICommunicationDelayService, CommunicationDelayService>();
 
+            builder.Services.AddScoped<IAdminService, AdminService>();
+
             builder.Services.AddScoped<ObjectCreation>();
          
             builder.Services.AddHostedService<DelayWorker>();
@@ -67,6 +70,7 @@ namespace gRPCStressTestingService
             app.UseRouting();
 
             app.MapGrpcService<UnaryImplementation>();
+            app.MapGrpcService<AdminImplementation>();
 
             // Configure the HTTP request pipeline.
             app.MapGrpcService<GreeterService>();

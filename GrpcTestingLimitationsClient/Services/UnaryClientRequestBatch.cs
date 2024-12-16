@@ -36,11 +36,13 @@ namespace GrpcTestingLimitationsClient.Services
         /// <returns></returns>
         public async Task MutlipleClientsRequestBatch(GrpcChannel channel, string fileSize, int amountOfClients, int amountOfRequests)
         {
-            var clientGeneration = await _clientHelper.CreatingClients(channel,amountOfClients);
+            var clientGeneration = await _clientHelper.CreatingClients(channel, amountOfClients);
 
             foreach (var client in clientGeneration)
             {
-                await RequestBatchAsync(channel, fileSize, amountOfRequests, client);
+                string overarchingBatchId = Guid.NewGuid().ToString();
+
+                await SendingBatchOfRequests(amountOfRequests, client, fileSize, overarchingBatchId, amountOfRequests);
             }
 
             Console.WriteLine($"client request batch : {channel.State} ");
@@ -59,34 +61,33 @@ namespace GrpcTestingLimitationsClient.Services
 
             var freshClient = _clientHelper.CreatingSingularClient(channel);
 
-            await SendingBatchOfRequests(amountToSend, freshClient, fileSize);
-        }
+            string overarchingBatchId = Guid.NewGuid().ToString();  
 
-        public async Task RequestBatchAsync(GrpcChannel channel, string fileSize, int amountOfRequests, Unary.UnaryClient freshClient)
-        {
-            await SendingBatchOfRequests(amountOfRequests, freshClient, fileSize);
+            await SendingBatchOfRequests(amountToSend, freshClient, fileSize, overarchingBatchId, amountToSend);
 
         }
 
-        private async Task SendingBatchOfRequests(int amountOfRequests, Unary.UnaryClient freshClient, string fileSize)
+        private async Task SendingBatchOfRequests(int? amountOfRequests, Unary.UnaryClient freshClient, string fileSize, string overarchingGuid, int iterations)
         {
-            List<DataRequest> requests = GeneratingBatchOfRequests(amountOfRequests, fileSize);
-
-            //int currentRequestSize = CheckingMaxRequestLimit(requests);
+            List<BatchDataRequestDetails> requests = GeneratingBatchOfRequests(amountOfRequests, fileSize, overarchingGuid, iterations);
 
             var firstRequest = requests[0];
 
-            string metaDataId = firstRequest.RequestId;
             string metaDataTimestamp = firstRequest.RequestTimestamp;
             string requestTypeMetaData = firstRequest.RequestType;
 
+            string metaDataRequestId = Guid.NewGuid().ToString();
+
             var metaData = new Metadata();
 
-            metaData.Add("batch-request-id", metaDataId);
+            metaData.Add("batch-iterations", iterations.ToString());
+            metaData.Add("overarching-id", overarchingGuid);
+            metaData.Add("batch-request-id", metaDataRequestId);
             metaData.Add("batch-request-timestamp", metaDataTimestamp);
             metaData.Add("batch-request-count", requests.Count.ToString());
             metaData.Add("request-type", requestTypeMetaData);
             metaData.Add("active-clients", Settings.GetNumberOfActiveClients().ToString());
+            metaData.Add("data-size", _clientHelper.FileSize(fileSize));
 
             var clientRequest = await freshClient.BatchUnaryResponseAsync(new BatchDataRequest
             {
@@ -108,7 +109,7 @@ namespace GrpcTestingLimitationsClient.Services
             return maxRequestLimit;
         }
 
-        private List<DataRequest> GeneratingBatchOfRequests(int amountOfRequests, string fileSize)
+        private List<BatchDataRequestDetails> GeneratingBatchOfRequests(int? amountOfRequests, string fileSize, string overarchingRequestId, int iterations)
         {
             int i = 0;
 
@@ -120,30 +121,41 @@ namespace GrpcTestingLimitationsClient.Services
             long ticks = now.Ticks;
             string preciseTime = now.ToString("HH:mm:ss.ffffff");
 
-            List<DataRequest> requests = new List<DataRequest>();
+            string dataContent = _clientHelper.DataContentCalc(fileSize);
+
+            List<BatchDataRequestDetails> requests = new List<BatchDataRequestDetails>();
 
             while(amountOfRequests > i)
             {
                 string requestId = Guid.NewGuid().ToString();
-                var newDataRequest = new DataRequest()
+                var newBatchDataRequests = new BatchDataRequestDetails()
                 {
+                    OverarchingRequestId = overarchingRequestId,
                     RequestId = requestId,
                     ConnectionAlive = true,
-                    DataSize = content,
+                    DataSize = fileSize,
+                    DataContent = dataContent,
                     RequestTimestamp = preciseTime,
                     RequestType = "UnaryBatch"
-                    
                 };
 
-                Console.WriteLine($"New request added to the batch request pool {newDataRequest.RequestId} : {newDataRequest.RequestTimestamp}");
+                Console.WriteLine($"Overarching ID : {newBatchDataRequests.OverarchingRequestId} new message added to pool with ID : {newBatchDataRequests.RequestId}");
 
-                requests.Add(newDataRequest);
+                Console.WriteLine($"DATA CONTENT : {newBatchDataRequests.DataContent}");
+
+                requests.Add(newBatchDataRequests);
 
                 i++;
             }
 
             return requests;
         }
+
+        /* public async Task RequestBatchAsync(GrpcChannel channel, string fileSize, int amountOfRequests, Unary.UnaryClient freshClient)
+        {
+            await SendingBatchOfRequests(amountOfRequests, freshClient, fileSize);
+
+        } */
 
 
     }

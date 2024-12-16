@@ -1,6 +1,7 @@
 ﻿using SharedCommonalities.ReturnModels.ReturnTypes;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,26 +12,30 @@ namespace SharedCommonalities.ObjectMapping
     {
 
 
-        public UnaryInfo MappingToUnaryInfo(DateTime? timeOfRequest, TimeSpan? delay, string? typeOfData, int? lengthOfData)
+        public UnaryInfo MappingToUnaryInfo(DateTime? timeOfRequest, TimeSpan? delay, string? typeOfData, int? lengthOfData, string? dataContents)
         {
             UnaryInfo unaryInfo = new UnaryInfo()
             {
                 TimeOfRequest = timeOfRequest,
                 Delay = delay,
                 TypeOfData = typeOfData,
-                LengthOfData = lengthOfData
+                LengthOfData = lengthOfData, 
+                DataContents = dataContents
+                
             }; 
 
             return unaryInfo;
         }
 
-        public ClientDetails MappingToClientDetails(Guid messageId, int messageLength, bool isActiveClient)
+        public ClientDetails MappingToClientDetails(Guid messageId, int messageLength, bool isActiveClient, string? dataContent)
         {
             ClientDetails clientDetails = new ClientDetails()
             {
                 messageId = messageId,
                 MessageLength = messageLength,
-                IsActiveClient = isActiveClient
+                IsActiveClient = isActiveClient,
+                DataContent = dataContent
+
             };
 
             return clientDetails;

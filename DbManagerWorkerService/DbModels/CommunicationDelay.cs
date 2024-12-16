@@ -10,13 +10,17 @@ namespace DbManagerWorkerService.DbModels
         
         public int Id { get; set; }
 
-        public string DelayGuid { get; set; }
+        public string ClientId { get; set; }
+
+        public string MessageDelayId { get; set; }
 
         public string CommunicationType { get; set; }
 
         public string RequestType { get; set; }
 
-        public int DataLength { get; set; }
+        public int DataIterations { get; set; }
+        
+        public string DataContents { get; set; }
 
         public TimeSpan Delay { get; set; }
 

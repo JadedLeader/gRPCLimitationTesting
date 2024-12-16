@@ -13,6 +13,8 @@ namespace SharedCommonalities.ReturnModels.ReturnTypes
 
         public long MessageLength { get; set; }
 
+        public string DataContent { get; set; }
+
         public bool IsActiveClient { get; set; }
 
     }

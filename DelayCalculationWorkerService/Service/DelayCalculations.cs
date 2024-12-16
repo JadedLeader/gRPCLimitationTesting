@@ -5,6 +5,7 @@ using SharedCommonalities.TimeStorage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -37,44 +38,41 @@ namespace DelayCalculationWorkerService.Service
 
             foreach (var timing in clientRequests)
             {
-                if (serverResponses.TryGetValue(timing.Key, out var timingValue))
+               
+                var verifyingServerResponseId = serverResponses.Keys.FirstOrDefault(entry => entry.ClientId == timing.Key.ClientId);
+
+                if (verifyingServerResponseId != null && serverResponses.TryGetValue(verifyingServerResponseId, out var timingValue))
                 {
     
                     var calc = Convert.ToDateTime(timingValue.TimeOfRequest.Value) - Convert.ToDateTime(timing.Value.TimeOfRequest.Value);
 
-                    Log.Information($"ID {timing.Key} has delay {calc}");
+                    Log.Information($"Client ID : {timing.Key.ClientId} with message ID { timing.Key.MessageId} had delay {calc}");
 
                     var unaryRequest = new UnaryInfo()
                     {
                         Delay = calc.Duration(),
-                        LengthOfData = 0,
-                        TypeOfData = timing.Value.TypeOfData
-
+                        LengthOfData = timingValue.LengthOfData,
+                        TypeOfData = timing.Value.TypeOfData,
+                        DataContents = timing.Value.DataContents,
                     };
 
-                    _requestResponseTimeStorage.AddToDictionary(_requestResponseTimeStorage._ActualDelayCalculations, timing.Key, unaryRequest);
+                    ClientMessageId actualDelayKeys = new ClientMessageId()
+                    {
+                        ClientId = timing.Key.ClientId,
+                        MessageId = timing.Key.MessageId,
+                    };
+
+
+                    _requestResponseTimeStorage.AddToDictionary(_requestResponseTimeStorage._ActualDelayCalculations, actualDelayKeys, unaryRequest);
 
                     clientRequests.Remove(timing.Key);
                     serverResponses.Remove(timing.Key);
+
+                    Console.WriteLine($"THIS IS THE AMOUNT OF THINGS IN THE CLIENT REQUESTS {clientRequests.Count}");
+                    Console.WriteLine($"THIS IS THE AMOUNT OF THINGS IN THE SERVER RESPONSES {serverResponses.Count}");
                 }
             }
         }
-
-        private int LengthOfRequest(UnaryInfo info)
-        {
-
-            /*var temp = info.LengthOfData.Value.
-
-            if (info.LengthOfData == null)
-            {
-                Console.WriteLine($"There was no string data passed along with this request");
-            }
-
-            return info.LengthOfDa */
-
-            throw new NotImplementedException();
-        }
-
 
     }
 }

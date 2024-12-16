@@ -4,6 +4,7 @@ using DbManagerWorkerService.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DbManagerWorkerService.Migrations
 {
     [DbContext(typeof(DataContexts))]
-    partial class DataContextsModelSnapshot : ModelSnapshot
+    [Migration("20241216155818_CreatedClientIdField")]
+    partial class CreatedClientIdField
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,11 +41,7 @@ namespace DbManagerWorkerService.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("DataContents")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("DataIterations")
+                    b.Property<int>("DataLength")
                         .HasColumnType("int");
 
                     b.Property<TimeSpan>("Delay")

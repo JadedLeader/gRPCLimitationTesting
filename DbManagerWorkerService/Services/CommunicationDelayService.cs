@@ -35,7 +35,7 @@ namespace DbManagerWorkerService.Services
             _DelayCalculations.Remove(guid);
         }
 
-        private Dictionary<string, UnaryInfo> ReturningDict()
+        private Dictionary<ClientMessageId, UnaryInfo> ReturningDict()
         {
             var delayCalculationsDict = _requestResponseTimeStorage.ReturnDictionary(_requestResponseTimeStorage._ActualDelayCalculations);
 
@@ -64,23 +64,24 @@ namespace DbManagerWorkerService.Services
                 foreach (var item in delayCalculationsDict)
                 {
 
-                    if(delayCalculationsDict.ContainsKey(item.Key))
+                    var gettingKeys = delayCalculationsDict.Keys.FirstOrDefault(keyEntry => keyEntry.ClientId == item.Key.ClientId);
+
+                    if(gettingKeys != null && delayCalculationsDict.ContainsKey(gettingKeys))
                     {
-                        Console.WriteLine($"item keys guid value to be removed -> {item.Key}");
+                        Console.WriteLine($"Existing client ID needs to be removed from the delay calculations dict, removing now -> {item.Key.ClientId}");
 
-                        Console.WriteLine($"item already exists in the dictionary, removing it now -> {item.Key}");
+                        _requestResponseTimeStorage.RemoveFromDictionary(_requestResponseTimeStorage._ActualDelayCalculations, gettingKeys);
+                    } 
 
-                        _requestResponseTimeStorage.RemoveFromDictionary(_requestResponseTimeStorage._ActualDelayCalculations, item.Key);
-                    }
-
-                    
                     var transportingToDb = new CommunicationDelay()
                     {
-                        DelayGuid = item.Key,
+                        ClientId = item.Key.ClientId,
+                        MessageDelayId = item.Key.MessageId,
                         CommunicationType = item.Value.TypeOfData,
-                        DataLength = item.Value.LengthOfData.Value,
+                        DataIterations = item.Value.LengthOfData.Value,
                         Delay = item.Value.Delay.Value,
-                        RequestType = item.Value.TypeOfData
+                        RequestType = item.Value.TypeOfData,
+                        DataContents = item.Value.DataContents,
                     };
 
                     if (item.Value.TypeOfData.Contains("Batch"))
@@ -90,13 +91,7 @@ namespace DbManagerWorkerService.Services
 
                     await _communicationDelayRepo.AddToDb(transportingToDb);
 
-                    
-                  
-                    Console.WriteLine($"AMOUNT OF THINGS IN THE CLIENT STORAGE -> { _storage.ReturnDictionary(_storage.Clients).Count}");
-                    Console.WriteLine($"THIS IS THE MEMORY ADRESS  FOR THE SINGLETON IN THE DELAY SERVICE -> {_storage.GetHashCode()}");
-
-
-
+                    var delaydick = ReturningDict();
                 }
             } 
             catch(Exception ex)

@@ -11,36 +11,44 @@ using System.Xml;
 
 namespace SharedCommonalities.TimeStorage
 {
-    public class RequestResponseTimeStorage : DictionariesAbstract<string, UnaryInfo>
+    public class RequestResponseTimeStorage : DictionariesAbstract<ClientMessageId, UnaryInfo>
     {
         //stores the client request timing, key of the GUID and string of all the other information
 
-        //might adapt this to take in a custom type with the streaming type and the date time as string, leave the key as string guid
-        public Dictionary<string, UnaryInfo> _ClientRequestTiming = new Dictionary<string, UnaryInfo>();
+        /// <summary>
+        /// Client message ID holds a string for a client id and a string for a message id
+        /// Unary info holds information about the request made
+        /// </summary>
+        public Dictionary<ClientMessageId, UnaryInfo> _ClientRequestTiming = new Dictionary<ClientMessageId, UnaryInfo>();
 
         //largely the same as the client
-        public Dictionary<string, UnaryInfo> _ServerResponseTiming = new Dictionary<string, UnaryInfo>();
+        public Dictionary<ClientMessageId, UnaryInfo> _ServerResponseTiming = new Dictionary<ClientMessageId, UnaryInfo>();
         
-        //the string here currently just states the message ID, not the overarching ID which is what we'll require to store the new record into the DB
-        //to do this we'll have to ammend the client request timing and the server response timing keys to also contain the overaching ID
-        public Dictionary<string, UnaryInfo> _ActualDelayCalculations = new Dictionary<string, UnaryInfo>();
+        /// <summary>
+        /// This is a volatile list and should only be populated once a delay calculation has been made
+        /// Once this calculation is added to the DB this requests should then be removed otherwise you get duplicate entries into the DB
+        /// ClientMessageId holds two strings, one for the client id and one for the message id
+        /// UnaryInfo holds various information about the requests itself 
+        /// </summary>
+        public Dictionary<ClientMessageId, UnaryInfo> _ActualDelayCalculations = new Dictionary<ClientMessageId, UnaryInfo>();
 
         public RequestResponseTimeStorage()
         {
-            Console.WriteLine("New instance of RequestResponseTimeStorage created.");
+           
         }
 
-        public override void AddToDictionary(Dictionary<string, UnaryInfo> dictionaryName, string dataToAddKey, UnaryInfo dataToAddValue)
+        public override void AddToDictionary(Dictionary<ClientMessageId, UnaryInfo> dictionaryName, ClientMessageId dataToAddKey, UnaryInfo dataToAddValue)
         {
+
             base.AddToDictionary(dictionaryName, dataToAddKey, dataToAddValue);
         }
 
-        public override void RemoveFromDictionary(Dictionary<string, UnaryInfo> dictionaryName, string dataKey)
+        public override void RemoveFromDictionary(Dictionary<ClientMessageId, UnaryInfo> dictionaryName,ClientMessageId dataKey)
         {
             base.RemoveFromDictionary(dictionaryName, dataKey);
         }
 
-        public override Dictionary<string, UnaryInfo> ReturnDictionary(Dictionary<string, UnaryInfo> dictionaryName)
+        public override Dictionary<ClientMessageId, UnaryInfo> ReturnDictionary(Dictionary<ClientMessageId, UnaryInfo> dictionaryName)
         {
             return base.ReturnDictionary(dictionaryName);
         }
@@ -53,16 +61,19 @@ namespace SharedCommonalities.TimeStorage
         /// <exception cref="Exception"></exception>
         public RawTimingValue GettingClientRequestViaGuid(string guid)
         {
-            var clientRequest = _ClientRequestTiming.FirstOrDefault(x => x.Key == guid);    
 
-            if(clientRequest.Key == null || clientRequest.Value == null)
+
+            var clientRequest = _ActualDelayCalculations.FirstOrDefault(entry => entry.Key.ClientId == guid);
+
+            if(clientRequest.Key.ClientId == null || clientRequest.Key.MessageId == null)
             {
                 throw new Exception($"Either a client request key or a client request value is null here");
             }
 
             var clientReturn = new RawTimingValue()
             {
-                RequestId = clientRequest.Key,
+                ClientId = clientRequest.Key.ClientId,
+                RequestId = clientRequest.Key.MessageId,
                 Timestamp = clientRequest.Value.TimeOfRequest.Value,
                 RequestType = "Unary"
             };
@@ -78,21 +89,22 @@ namespace SharedCommonalities.TimeStorage
         /// <exception cref="Exception"></exception>
         public RawTimingValue GettingServerResponseViaGuid(string guid)
         {
-            var serverResponse = _ServerResponseTiming.FirstOrDefault(x => x.Key == guid);
+            var serverResponse = _ServerResponseTiming.FirstOrDefault(entry => entry.Key.ClientId == guid);
 
-            if(serverResponse.Key == null || serverResponse.Value == null)
+            if(serverResponse.Key.ClientId == null || serverResponse.Key.MessageId == null || serverResponse.Value.TimeOfRequest.Value == null)
             {
-                throw new Exception("Either a server response key or a server response value is null here");
+                throw new Exception("Either a server response is missing a client id, message id or time value");
             }
 
             var serverReturn = new RawTimingValue()
             {
-                RequestId = serverResponse.Key,
+                ClientId= serverResponse.Key.ClientId,
+                RequestId = serverResponse.Key.MessageId,
                 Timestamp = serverResponse.Value.TimeOfRequest.Value,
                 RequestType = "Unary"
             }; 
 
-            return serverReturn;
+            return serverReturn; 
         }
 
        

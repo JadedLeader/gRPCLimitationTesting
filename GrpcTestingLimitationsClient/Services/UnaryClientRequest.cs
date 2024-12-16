@@ -60,12 +60,11 @@ namespace GrpcTestingLimitationsClient.Services
         /// <returns></returns>
         public async Task ClientUnaryRequest(GrpcChannel channel, string fileSize)
         {
-
             var freshClient = _clientHelper.CreatingSingularClient(channel);
 
             string clientIdentifier = Guid.NewGuid().ToString();    
 
-            await GeneratingRequest(freshClient, fileSize , clientIdentifier);
+            await GeneratingRequest(freshClient, fileSize , clientIdentifier, 1);
         }
 
         /// <summary>
@@ -76,7 +75,7 @@ namespace GrpcTestingLimitationsClient.Services
         /// <param name="fileSize"></param>
         /// <param name="clientIdentifier"></param>
         /// <returns></returns>
-        private async Task GeneratingRequest(Unary.UnaryClient client, string fileSize, string clientIdentifier)
+        private async Task GeneratingRequest(Unary.UnaryClient client, string fileSize, string clientIdentifier, int? dataIterations)
         {
             string filePath = _clientHelper.FileSize(fileSize);
 
@@ -93,6 +92,9 @@ namespace GrpcTestingLimitationsClient.Services
             var amountOfChannelsOpen = Settings.GetNumberOfActiveChannels().ToString();
             var amountOfActiveClients = Settings.GetNumberOfActiveClients().ToString();
 
+            string dataContent = _clientHelper.DataContentCalc(fileSize);
+
+            metaData.Add("data-iterations", dataIterations.ToString());
             metaData.Add("overarching-id", clientIdentifier);
             metaData.Add("request-id", guid);
             metaData.Add("timestamp", preciseTime);
@@ -100,7 +102,6 @@ namespace GrpcTestingLimitationsClient.Services
             metaData.Add("open-channels", amountOfChannelsOpen);
             metaData.Add("active-clients", amountOfActiveClients);
             metaData.Add("client-identifier", clientIdentifier);   
-
 
             var reply = await client.UnaryResponseAsync(
 
@@ -110,7 +111,8 @@ namespace GrpcTestingLimitationsClient.Services
                     RequestType = "Unary",
                     RequestTimestamp = preciseTime,
                     ConnectionAlive = true,
-                    DataSize = content
+                    DataSize = fileSize,
+                    DataContent = dataContent
                 }, headers: metaData);
 
 
@@ -137,7 +139,7 @@ namespace GrpcTestingLimitationsClient.Services
             int i = 0;
             while (instances >= i)
             {
-                await GeneratingRequest(freshClient, fileSize, clientIdentifier);
+                await GeneratingRequest(freshClient, fileSize, clientIdentifier, instances);
 
                 Console.WriteLine($"{i}");
                 i++;
@@ -148,7 +150,6 @@ namespace GrpcTestingLimitationsClient.Services
             var numberOfActiveClients = Settings.DecrementActiveClients();
 
             Console.WriteLine($"Number of active clients now -> {numberOfActiveClients}");
-
 
         }
 

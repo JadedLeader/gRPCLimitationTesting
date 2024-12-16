@@ -10,8 +10,13 @@ namespace SharedCommonalities.Storage
 {
     public class ClientStorage : DictionariesAbstract<Guid, ClientActivity>
     {
-        //so we're saying overarching ID = client id and the channel information stores or holds message ids  
-        public Dictionary<Guid, ClientActivity> Clients = new Dictionary<Guid, ClientActivity>();
+        /// <summary>
+        /// This is a permanent track record of all the what what client holds what messages
+        /// Guid allocated for the client id
+        /// CLientActivity holds a list of client details that holds information such as the message id, the message length, and if it's active
+        /// </summary>
+        
+        public Dictionary<Guid, ClientActivity> Clients = new Dictionary<Guid, ClientActivity>(); //might re-evaluate the use case of this 
 
         public ClientStorage()
         {

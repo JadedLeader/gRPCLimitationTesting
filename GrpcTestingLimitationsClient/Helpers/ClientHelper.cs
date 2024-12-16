@@ -10,6 +10,7 @@ using GrpcTestingLimitationsClient.Interfaces;
 using SharedCommonalities.TimeStorage;
 using SharedCommonalities.Storage;
 using SharedCommonalities.ReturnModels.ReturnTypes;
+using System.Runtime;
 
 namespace GrpcTestingLimitationsClient.Helpers
 {
@@ -134,6 +135,27 @@ namespace GrpcTestingLimitationsClient.Helpers
 
             return fileReturn;
         }
+
+        public string DataContentCalc(string fileSize)
+        {
+            string dataAmount = "";
+
+            switch(fileSize)
+            {
+                case "small":
+                    dataAmount = "1MB";
+                    break;
+                case "medium":
+                    dataAmount = "30MB";
+                    break;
+                case "large":
+                    dataAmount = "100MB";
+                    break;
+            }
+
+            return dataAmount;
+        }
+       
 
     }
 }

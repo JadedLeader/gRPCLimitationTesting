@@ -40,13 +40,13 @@ namespace GrpcTestingLimitationsClient
             UnaryClientRequestBatch clientRequestBatch = new UnaryClientRequestBatch(helper);
 
             //this is a singular request
-            
-             //await clientRequest.ClientUnaryRequest(channel, "small");
+
+            //await clientRequest.ClientUnaryRequest(channel, "small");
             //await clientRequest.ClientUnaryRequest(channel, "large");
             //await clientRequest.ClientUnaryRequest(channel, "large");
 
             //one client with multiple sequential messages
-            await clientRequest.ClientUnaryRequestBatch(channel, 15, "small");
+            //await clientRequest.ClientUnaryRequestBatch(channel, 15, "small");
 
             //await clientRequest.ClientUnaryRequestBatch(client2, 100, "small");
 
@@ -56,12 +56,18 @@ namespace GrpcTestingLimitationsClient
 
             //await clientRequestBatch.RequestBatchAsync(channel, "large", 10);
 
-            //await clientRequestBatch.RequestBatchSingleClient(channel, "large", 10);
+            //await clientRequestBatch.RequestBatchSingleClient(channel, "small", 10);
 
-            //await clientRequestBatch.MutlipleClientsRequestBatch(channel, "small", 2, 5);
+            //await clientRequestBatch.MutlipleClientsRequestBatch(channel, "small", 2, 7);
+            //await clientRequestBatch.MutlipleClientsRequestBatch(channel, "medium", 2, 5);
 
-           // await clientRequest.ClientUnaryRequest(channel, "medium");
-            //await clientRequest.ClientUnaryRequest(channel, "medium");  
+            // await clientRequest.ClientUnaryRequest(channel, "medium");
+            //await clientRequest.ClientUnaryRequest(channel, "medium"); 
+            //Admin.AdminClient adminclient = new Admin.AdminClient(channel);
+
+            AdminService adminservice = new AdminService();
+
+            //await adminservice.ResettingDatabase(adminclient);
 
             Console.WriteLine($"hello");
 
