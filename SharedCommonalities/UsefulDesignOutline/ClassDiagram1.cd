@@ -1,0 +1,128 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Comment CommentText="">
+    <Position X="10.094" Y="5.896" Height="2.24" Width="3.294" />
+  </Comment>
+  <Class Name="SharedCommonalities.Abstracts.DictionariesAbstract&lt;Key, Value&gt;">
+    <Position X="5.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAACAAAAEAAAAAAAAAAAAAAAAAAAAAAAABA=</HashCode>
+      <FileName>Abstracts\DictionariesAbstract.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SharedCommonalities.ObjectMapping.ObjectCreation" Collapsed="true">
+    <Position X="13.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAQAAAAAA=</HashCode>
+      <FileName>ObjectMapping\ObjectCreation.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SharedCommonalities.ReturnModels.ChannelInfo.ChannelInformation" Collapsed="true">
+    <Position X="11.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ReturnModels\ChannelInfo\ChannelInformation.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SharedCommonalities.ReturnModels.ChannelInfo.ClientInfo" Collapsed="true">
+    <Position X="11.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAACAAAIAAAAAA=</HashCode>
+      <FileName>ReturnModels\ChannelInfo\ClientInfo.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SharedCommonalities.ReturnModels.ReturnTypes.ClientActivity" Collapsed="true">
+    <Position X="13.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAACAAAAAAAAAAAAAAAAAAACAACAAAAAAAAAAAQAAA=</HashCode>
+      <FileName>ReturnModels\ReturnTypes\ClientActivity.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SharedCommonalities.ReturnModels.ReturnTypes.ClientDetails" Collapsed="true">
+    <Position X="15" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAQAAABAAAAAAAAAAAAACAAAAAAAAAA=</HashCode>
+      <FileName>ReturnModels\ReturnTypes\ClientDetails.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SharedCommonalities.ReturnModels.ReturnTypes.RawTimingValue" Collapsed="true">
+    <Position X="15" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAQAAAACAAAAAAAAAEAAAAAAAAAAAAA=</HashCode>
+      <FileName>ReturnModels\ReturnTypes\RawTimingValue.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SharedCommonalities.ReturnModels.ReturnTypes.UnaryInfo" Collapsed="true">
+    <Position X="15" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAgAAAAAAAAAEAEBAAAAAAAAAAIAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ReturnModels\ReturnTypes\UnaryInfo.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SharedCommonalities.ServicesConfig.ServiceConfig" Collapsed="true">
+    <Position X="11.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>ServicesConfig\ServiceConfig.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SharedCommonalities.TimeStorage.ChannelClientStorage">
+    <Position X="6.75" Y="2.75" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAACAAAAEAAAAAgAAAAAABAAAAAAAAAAABA=</HashCode>
+      <FileName>Storage\ChannelClientStorage.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SharedCommonalities.TimeStorage.RequestResponseTimeStorage">
+    <Position X="9" Y="2.75" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAABAAAAACAAAAEABAAAQBAAAAAAAAAAAAAAQAABA=</HashCode>
+      <FileName>Storage\RequestResponseTimeStorage.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SharedCommonalities.Storage.ChannelStorage">
+    <Position X="2.25" Y="2.75" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAACAAAAEAAAAAAAAAAAAAAAAAAAAAAAEBA=</HashCode>
+      <FileName>Storage\ChannelStorage.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SharedCommonalities.Storage.ClientStorage">
+    <Position X="4.5" Y="2.75" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Methods" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAACAAAAUCAAAAAAAAAAAAAAAAAAAAAAABA=</HashCode>
+      <FileName>Storage\ClientStorage.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SharedCommonalities.UsefulFeatures.Settings" Collapsed="true">
+    <Position X="13.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gACAARAAAEAAAAAAAAQAEBAEEAAAQABAAAABABAAAAA=</HashCode>
+      <FileName>UsefulFeatures\Settings.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="SharedCommonalities.Interfaces.TimeStorage.IRequestResponseTimeStorage" Collapsed="true">
+    <Position X="11.5" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAgACAAAAAQCBAAAQAAQAAAAAAAQAAAAAAAAg=</HashCode>
+      <FileName>Interfaces\TimeStorage\IRequestResponseTimeStorage.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

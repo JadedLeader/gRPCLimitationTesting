@@ -20,7 +20,9 @@ namespace SharedCommonalities.TimeStorage
 
         //largely the same as the client
         public Dictionary<string, UnaryInfo> _ServerResponseTiming = new Dictionary<string, UnaryInfo>();
-
+        
+        //the string here currently just states the message ID, not the overarching ID which is what we'll require to store the new record into the DB
+        //to do this we'll have to ammend the client request timing and the server response timing keys to also contain the overaching ID
         public Dictionary<string, UnaryInfo> _ActualDelayCalculations = new Dictionary<string, UnaryInfo>();
 
         public RequestResponseTimeStorage()

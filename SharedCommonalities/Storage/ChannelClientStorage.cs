@@ -12,7 +12,7 @@ namespace SharedCommonalities.TimeStorage
 {
     public class ChannelClientStorage : DictionariesAbstract<Guid, ChannelInformation>
     {
-
+       
         public Dictionary<Guid, ChannelInformation> ChannelWithClientInformation = new Dictionary<Guid, ChannelInformation>();
 
         public override void AddToDictionary(Dictionary<Guid, ChannelInformation> dictionaryName, Guid dataToAddKey, ChannelInformation dataToAddValue)
@@ -38,15 +38,17 @@ namespace SharedCommonalities.TimeStorage
         /// <returns>the guid of the client that was deleted</returns>
         public Guid RemoveClientFromChannel(Guid channelIdentifier, Guid clientIdentifier)
         {
+
+            throw new NotImplementedException();
             
-            if(ChannelWithClientInformation.TryGetValue(channelIdentifier, out ChannelInformation channelInformation))
+           /* if(ChannelWithClientInformation.TryGetValue(channelIdentifier, out ChannelInformation channelInformation))
             {
                 var findingClientWithin = channelInformation.ClientInfo.FirstOrDefault(c => c.ClientId == clientIdentifier);
 
                 channelInformation.ClientInfo.Remove(findingClientWithin);
             }
 
-            return clientIdentifier;
+            return clientIdentifier; */
 
             
         }

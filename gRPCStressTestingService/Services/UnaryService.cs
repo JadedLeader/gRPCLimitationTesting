@@ -33,6 +33,7 @@ namespace gRPCStressTestingService.Services
 
         public async Task<DataResponse> UnaryResponse(DataRequest request, ServerCallContext context)
         {
+            string? overarchingId = context.RequestHeaders.GetValue("overarching-id");
             string? guidFromMetaData = context.RequestHeaders.GetValue("request-id");
             string? responseTimeFromMetaData = context.RequestHeaders.GetValue("timestamp");
             string? typeOfDataFromMetaData = context.RequestHeaders.GetValue("request-type");
@@ -41,7 +42,7 @@ namespace gRPCStressTestingService.Services
             string? client = context.RequestHeaders.GetValue("client");
             string? clientUnique = context.RequestHeaders.GetValue("client-identifier");
 
-            Log.Information($"Unary request has ID {@guidFromMetaData}");
+            Log.Information($"Unary request message ID : {@guidFromMetaData}");
             Log.Information($"this is the unary client request client count : {Settings.GetNumberOfActiveClients()}");
 
             string preciseTime = GetPreciseTimeNow();
@@ -49,28 +50,28 @@ namespace gRPCStressTestingService.Services
             var dataReturn = new DataResponse()
             {
                 ConnectionAlive = false,
-                RequestId = request.RequestId,
+                RequestId = overarchingId,
                 RequestType = request.RequestType,
                 ResponseTimestamp = preciseTime
             };
 
-            var clientDetails = _objectCreation.MappingToClientDetails(Guid.Parse(request.RequestId), 0, true);
+            var clientDetails = _objectCreation.MappingToClientDetails(Guid.Parse(guidFromMetaData), 0, true);
             
-            if (!_storage.Clients.ContainsKey(Guid.Parse(clientUnique)))
+            if (!_storage.Clients.ContainsKey(Guid.Parse(overarchingId)))
             {
                 var clientActivity = new ClientActivity();
 
                 clientActivity.AddToClientActivities(clientDetails);
 
-                Log.Information($"Client ID : {dataReturn.RequestId} handles unary message -> {clientDetails.RequestId}");
+                Log.Information($"Client ID : {overarchingId} handles unary message -> {guidFromMetaData}");
 
-                _storage.AddToDictionary(_storage.Clients, Guid.Parse(clientUnique), clientActivity);
+                _storage.AddToDictionary(_storage.Clients, Guid.Parse(overarchingId), clientActivity);
             }
             else
             {
-                var existingClientActivity = _storage.Clients[Guid.Parse(clientUnique)];
+                var existingClientActivity = _storage.Clients[Guid.Parse(overarchingId)];
 
-                Log.Information($"Client ID : {dataReturn.RequestId} handles unary message -> {clientDetails.RequestId}");
+                Log.Information($"Client ID : {overarchingId} handles unary message -> {guidFromMetaData}");
 
                 existingClientActivity.AddToClientActivities(clientDetails);
             }
@@ -89,7 +90,9 @@ namespace gRPCStressTestingService.Services
             
             _timeStorage.AddToDictionary(_timeStorage._ClientRequestTiming, guidFromMetaData, requestUnaryInfo);
 
-            _timeStorage.AddToDictionary(_timeStorage._ServerResponseTiming, dataReturn.RequestId, responseUnaryInfo);
+            _timeStorage.AddToDictionary(_timeStorage._ServerResponseTiming, guidFromMetaData, responseUnaryInfo);
+
+            Console.WriteLine($"client storage guid {guidFromMetaData} SERVER GUID {dataReturn.RequestId}");
 
             Log.Information($"This is the request send time for the unary request : {requestUnaryInfo.TimeOfRequest} -> {responseTimeFromMetaData}");
             Log.Information($"This is the server response time for the unary request : {responseUnaryInfo.TimeOfRequest} -> {preciseTime}");

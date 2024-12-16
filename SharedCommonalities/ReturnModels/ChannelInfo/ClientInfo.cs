@@ -9,7 +9,7 @@ namespace SharedCommonalities.ReturnModels.ChannelInfo
     public class ClientInfo
     {
 
-        public Guid ClientId { get; set; }
+        public Guid MessageId { get; set; }
 
         public object Message { get; set; }
 

@@ -93,6 +93,7 @@ namespace GrpcTestingLimitationsClient.Services
             var amountOfChannelsOpen = Settings.GetNumberOfActiveChannels().ToString();
             var amountOfActiveClients = Settings.GetNumberOfActiveClients().ToString();
 
+            metaData.Add("overarching-id", clientIdentifier);
             metaData.Add("request-id", guid);
             metaData.Add("timestamp", preciseTime);
             metaData.Add("request-type", "Unary");

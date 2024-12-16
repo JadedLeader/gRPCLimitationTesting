@@ -1,0 +1,15 @@
+﻿using Grpc.Core;
+using gRPCStressTestingService;
+
+namespace gRPCStressTestingService.Interfaces.Services
+{
+    public interface IAdminService
+    {
+
+        public Task<RetrievingClientMessagesViaIdResponse> ClientMessages(RetrievingClientMessagesViaIdRequest request, ServerCallContext context);
+
+        public Task<DatabaseWipeResponse> DatabaseReset(DatabaseWipeRequest request, ServerCallContext context); 
+
+
+    }
+}

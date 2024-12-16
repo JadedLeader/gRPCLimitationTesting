@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcTestingLimitationsClient";
+
+
+service Admin
+{ 
+	rpc ClientMessages(RetrievingClientMessagesViaIdRequest) returns (RetrievingClientMessagesViaIdResponse);
+    rpc DatabaseReset(DatabaseWipeRequest) returns (DatabaseWipeResponse);
+	rpc RetrievingAllClients(RetrievingAllClientsRequest) returns (RetrievingAllClientsResponse);
+}
+
+message RetrievingClientMessagesViaIdRequest
+{ 
+	string clientId = 1; 
+}
+
+message RetrievingClientMessagesViaIdResponse
+{ 
+	string clientId = 1; 
+	bool finished = 2;
+}
+
+message DatabaseWipeRequest
+{ 
+
+}
+
+message DatabaseWipeResponse
+{ 
+	bool finished = 1;
+}
+
+message RetrievingAllClientsRequest
+{ 
+	string clientId = 1; 
+}
+
+message RetrievingAllClientsResponse
+{
+	ClientResponseObject clients = 1;
+}
+
+message ClientResponseObject
+{ 
+	string id = 1; 
+	string delayGuid = 2; 
+	string communicationType = 3; 
+	string dataLength = 4; 
+	string delay = 5;
+	string requestType = 6;
+}

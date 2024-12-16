@@ -35,11 +35,6 @@ namespace DbManagerWorkerService.Services
             _DelayCalculations.Remove(guid);
         }
 
-        /*private void PopulatingNewDict()
-        {
-            _DelayCalculations = RequestResponseTimeStorage.ReturnDelayCalculations();
-        } */
-
         private Dictionary<string, UnaryInfo> ReturningDict()
         {
             var delayCalculationsDict = _requestResponseTimeStorage.ReturnDictionary(_requestResponseTimeStorage._ActualDelayCalculations);
@@ -76,8 +71,6 @@ namespace DbManagerWorkerService.Services
                         Console.WriteLine($"item already exists in the dictionary, removing it now -> {item.Key}");
 
                         _requestResponseTimeStorage.RemoveFromDictionary(_requestResponseTimeStorage._ActualDelayCalculations, item.Key);
-
-                       // RemoveFromDict(item.Key);
                     }
 
                     

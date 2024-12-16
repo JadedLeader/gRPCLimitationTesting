@@ -1,4 +1,5 @@
 global using SharedCommonalities.ReturnModels.ReturnTypes;
+global using gRPCStressTestingService.protos;
 using gRPCStressTestingService.Implementations;
 using gRPCStressTestingService.Interfaces;
 using gRPCStressTestingService.Services;

@@ -1,4 +1,5 @@
-﻿using Grpc.Net.Client;
+﻿global using GrpcTestingLimitationsClient.proto;
+using Grpc.Net.Client;
 using GrpcTestingLimitationsClient.proto;
 using SharedCommonalities.Interfaces.TimeStorage;
 using SharedCommonalities.TimeStorage;
@@ -40,12 +41,12 @@ namespace GrpcTestingLimitationsClient
 
             //this is a singular request
             
-            //await clientRequest.ClientUnaryRequest(channel, "small");
+             //await clientRequest.ClientUnaryRequest(channel, "small");
             //await clientRequest.ClientUnaryRequest(channel, "large");
             //await clientRequest.ClientUnaryRequest(channel, "large");
 
             //one client with multiple sequential messages
-            //await clientRequest.ClientUnaryRequestBatch(channel, 15, "large");
+            await clientRequest.ClientUnaryRequestBatch(channel, 15, "small");
 
             //await clientRequest.ClientUnaryRequestBatch(client2, 100, "small");
 
@@ -57,7 +58,7 @@ namespace GrpcTestingLimitationsClient
 
             //await clientRequestBatch.RequestBatchSingleClient(channel, "large", 10);
 
-            await clientRequestBatch.MutlipleClientsRequestBatch(channel, "small", 2, 5);
+            //await clientRequestBatch.MutlipleClientsRequestBatch(channel, "small", 2, 5);
 
            // await clientRequest.ClientUnaryRequest(channel, "medium");
             //await clientRequest.ClientUnaryRequest(channel, "medium");  

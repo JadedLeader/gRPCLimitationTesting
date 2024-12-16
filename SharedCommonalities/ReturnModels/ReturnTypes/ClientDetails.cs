@@ -9,7 +9,7 @@ namespace SharedCommonalities.ReturnModels.ReturnTypes
     public class ClientDetails
     {
 
-        public Guid RequestId { get; set; }
+        public Guid messageId { get; set; }
 
         public long MessageLength { get; set; }
 

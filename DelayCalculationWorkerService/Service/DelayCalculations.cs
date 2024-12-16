@@ -24,8 +24,12 @@ namespace DelayCalculationWorkerService.Service
         {
             var clientRequests = _requestResponseTimeStorage.ReturnDictionary(_requestResponseTimeStorage._ClientRequestTiming);
 
+            Console.WriteLine($"amount of things in clients request -> {clientRequests.Count}");
+
             var serverResponses = _requestResponseTimeStorage.ReturnDictionary(_requestResponseTimeStorage._ServerResponseTiming);
-               
+
+            Console.WriteLine($"amunt of things in server responses -> {clientRequests.Count}");
+
             if (clientRequests.Count == 0 || serverResponses.Count == 0)
             {
                 Console.WriteLine($"Nothing to calculate - dict size of final calculations {_requestResponseTimeStorage.ReturnDictionary(_requestResponseTimeStorage._ServerResponseTiming).Count()}");
