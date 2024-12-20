@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+option csharp_namespace = "GrpcTestingLimitationsClient";
+
+service AuthTokens
+{ 
+	rpc GenerateToken (GenerateAuthTokenRequest) returns (GenerateAuthTokenResponse);
+	rpc RevokeToken (RevokeAuthTokenRequest) returns (RevokeAuthTokenResponse);
+}
+
+message GenerateAuthTokenRequest
+{ 
+	string Username = 1;
+}
+
+message GenerateAuthTokenResponse
+{ 
+	string Token = 1; 
+	string TokenCreationTime = 2;
+}
+
+message RevokeAuthTokenRequest
+{ 
+	string TokenUnique = 1; 
+}
+
+message RevokeAuthTokenResponse
+{ 
+	string AccountUnique = 1;
+	string TokenUnique = 2;
+}

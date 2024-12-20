@@ -4,6 +4,7 @@ using DbManagerWorkerService.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DbManagerWorkerService.Migrations
 {
     [DbContext(typeof(DataContexts))]
-    partial class DataContextsModelSnapshot : ModelSnapshot
+    [Migration("20241218121007_CompleteDbRework")]
+    partial class CompleteDbRework
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,10 +31,10 @@ namespace DbManagerWorkerService.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("AuthTokenAuthUnique")
+                    b.Property<Guid>("AuthTokenAuthUnique")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("AuthUnique")
+                    b.Property<Guid>("AuthUnique")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Password")
@@ -42,7 +45,7 @@ namespace DbManagerWorkerService.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("SessionUnique")
+                    b.Property<Guid>("SessionUnique")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("TimeOfAccountCreation")
@@ -50,6 +53,7 @@ namespace DbManagerWorkerService.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TimeOfLogin")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Username")
@@ -162,11 +166,15 @@ namespace DbManagerWorkerService.Migrations
                 {
                     b.HasOne("DbManagerWorkerService.DbModels.AuthToken", "AuthToken")
                         .WithMany()
-                        .HasForeignKey("AuthTokenAuthUnique");
+                        .HasForeignKey("AuthTokenAuthUnique")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("DbManagerWorkerService.DbModels.Session", "Session")
                         .WithMany()
-                        .HasForeignKey("SessionUnique");
+                        .HasForeignKey("SessionUnique")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("AuthToken");
 

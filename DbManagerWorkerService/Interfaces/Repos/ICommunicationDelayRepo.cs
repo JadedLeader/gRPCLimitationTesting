@@ -10,9 +10,9 @@ namespace DbManagerWorkerService.Interfaces.Repos
     public interface ICommunicationDelayRepo
     {
 
-        public Task AddToDb(CommunicationDelay delay);
+        //public Task AddToDb(CommunicationDelay delay);
 
-        public Task EmptyTable();
+        //public Task EmptyTable();
 
     }
 }

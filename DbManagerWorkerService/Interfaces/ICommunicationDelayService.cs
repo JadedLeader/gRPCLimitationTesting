@@ -3,9 +3,9 @@
     public interface ICommunicationDelayService
     {
 
-        public Task AddingDelayCalculationsToDb();
+       // public Task AddingDelayCalculationsToDb();
 
-        public Task EmptyTable();
+       // public Task EmptyTable();
 
     }
 }

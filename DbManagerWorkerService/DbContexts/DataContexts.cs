@@ -28,19 +28,15 @@ namespace DbManagerWorkerService.DbContexts
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            var commDelay = modelBuilder.Entity<CommunicationDelay>();
+            var account = modelBuilder.Entity<Account>();
+            var authToken = modelBuilder.Entity<AuthToken>();
+            var clientInstance = modelBuilder.Entity<ClientInstance>();
+            var session = modelBuilder.Entity<Session>();
+            var delayCalc  = modelBuilder.Entity<DelayCalc>();
+            //key 
+           
 
-            //key
-            commDelay.HasKey(k => k.Id);
-
-            //props
-            commDelay.Property(ci => ci.ClientId).IsRequired();
-            commDelay.Property(dg => dg.MessageDelayId).IsRequired();
-            commDelay.Property(ct => ct.CommunicationType).IsRequired();
-            commDelay.Property(di => di.DataIterations).IsRequired();
-            commDelay.Property(dc => dc.DataContents).IsRequired();
-            commDelay.Property(d => d.Delay).IsRequired();
-            commDelay.Property(rt => rt.RequestType).IsRequired();
+            //props 
          
         }
 
@@ -49,7 +45,16 @@ namespace DbManagerWorkerService.DbContexts
              return await base.SaveChangesAsync();
         }
 
-        public DbSet<CommunicationDelay> CommunicationDelay { get; set; }
+        //public DbSet<CommunicationDelay> CommunicationDelay { get; set; }
+
+        public DbSet<Account> Account { get; set; }
+        public DbSet<AuthToken> AuthToken { get; set; }
+        public DbSet<ClientInstance> ClientInstance { get; set; }
+        public DbSet<Session> Session { get; set; }
+        public DbSet<DelayCalc> DelayCalc { get; set; }
+
+
+
 
     }
 }

@@ -21,6 +21,10 @@ using SharedCommonalities.ServicesConfig;
 using DbManagerWorkerService.Interfaces.Repos;
 using SharedCommonalities.ObjectMapping;
 using gRPCStressTestingService.Interfaces.Services;
+using DbManagerWorkerService.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 
 namespace gRPCStressTestingService
@@ -39,6 +43,28 @@ namespace gRPCStressTestingService
 
             });
 
+            var jwtAssertions = builder.Configuration.GetSection("Tokens");
+
+            var tokenKey = jwtAssertions["Key"];
+            var tokenIssuer = jwtAssertions["Issuer"];
+            var tokenAudience = jwtAssertions["Audience"];
+
+           builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+               .AddJwtBearer(options =>
+               {
+                   options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                   {
+                       ValidateIssuer = true,
+                       ValidateAudience = true,
+                       ValidateLifetime = true,
+                       ValidateIssuerSigningKey = true,
+                       ValidIssuer = tokenIssuer,
+                       ValidAudience = tokenAudience,
+                       IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(tokenKey))
+                   };
+               });
+
+
             // Add services to the container.
             builder.Services.AddGrpc(options =>
             {
@@ -50,7 +76,7 @@ namespace gRPCStressTestingService
             builder.Services.AddScoped<IUnaryService, UnaryService>();
             builder.Services.AddScoped<UnaryImplementation>();
             builder.Services.AddSingleton<DelayCalculations>(); 
-            builder.Services.AddHostedService<DbManagerWorker>();
+            //builder.Services.AddHostedService<DbManagerWorker>();
 
             builder.Services.AddSingleton<IClientManagementService, ClientManagementService>(); 
             //builder.Services.AddHostedService<ClientManagerWorker>();
@@ -59,11 +85,17 @@ namespace gRPCStressTestingService
             builder.Services.AddSingleton<ICommunicationDelayRepo, CommunicationDelayRepo>();
             builder.Services.AddSingleton<ICommunicationDelayService, CommunicationDelayService>();
 
+            builder.Services.AddScoped<IAccountService, AccountService>();
+            builder.Services.AddSingleton<IAccountRepo, AccountRepo>();
+
+            builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
+            builder.Services.AddSingleton<IAuthTokenRepo, AuthTokenRepo>();
+
             builder.Services.AddScoped<IAdminService, AdminService>();
 
             builder.Services.AddScoped<ObjectCreation>();
          
-            builder.Services.AddHostedService<DelayWorker>();
+           // builder.Services.AddHostedService<DelayWorker>();
 
             var app = builder.Build();
             
@@ -71,6 +103,8 @@ namespace gRPCStressTestingService
 
             app.MapGrpcService<UnaryImplementation>();
             app.MapGrpcService<AdminImplementation>();
+            app.MapGrpcService<AccountImplementation>();
+            app.MapGrpcService<AuthTokenImplementation>();
 
             // Configure the HTTP request pipeline.
             app.MapGrpcService<GreeterService>();

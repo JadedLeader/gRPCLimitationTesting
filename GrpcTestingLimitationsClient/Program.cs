@@ -63,11 +63,21 @@ namespace GrpcTestingLimitationsClient
 
             // await clientRequest.ClientUnaryRequest(channel, "medium");
             //await clientRequest.ClientUnaryRequest(channel, "medium"); 
-            //Admin.AdminClient adminclient = new Admin.AdminClient(channel);
+            Admin.AdminClient adminclient = new Admin.AdminClient(channel);
 
             AdminService adminservice = new AdminService();
 
             //await adminservice.ResettingDatabase(adminclient);
+
+           // await adminservice.GetAccountViaId( adminclient, "E3CC23A7-F35A-4D0D-886C-56DE2828A0D1");
+
+            Accounts.AccountsClient accountClient = new Accounts.AccountsClient(channel);
+
+            AccountService account = new AccountService();
+
+           // account.CreateAccount(accountClient, "jadedleader", "123");
+
+          //  account.AccountLogin(accountClient, "jadedleader", "123");
 
             Console.WriteLine($"hello");
 

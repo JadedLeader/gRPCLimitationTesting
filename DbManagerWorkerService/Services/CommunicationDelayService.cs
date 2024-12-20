@@ -42,12 +42,12 @@ namespace DbManagerWorkerService.Services
             return delayCalculationsDict;
         }
 
-        public async Task EmptyTable()
+       /* public async Task EmptyTable()
         {
            await _communicationDelayRepo.EmptyTable();
-        }
+        } */
 
-        public async Task AddingDelayCalculationsToDb()
+       /* public async Task AddingDelayCalculationsToDb()
         {
             try
             {
@@ -89,7 +89,7 @@ namespace DbManagerWorkerService.Services
                         transportingToDb.CommunicationType = "Batch";
                     }
 
-                    await _communicationDelayRepo.AddToDb(transportingToDb);
+                   // await _communicationDelayRepo.AddToDb(transportingToDb);
 
                     var delaydick = ReturningDict();
                 }
@@ -97,8 +97,8 @@ namespace DbManagerWorkerService.Services
             catch(Exception ex)
             {
                 Console.WriteLine($"something happened in the delay service -> {ex.Message}");
-            }
-        }
+            } */
+        
 
     }
 }

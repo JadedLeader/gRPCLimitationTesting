@@ -8,7 +8,9 @@ namespace gRPCStressTestingService.Interfaces.Services
 
         public Task<RetrievingClientMessagesViaIdResponse> ClientMessages(RetrievingClientMessagesViaIdRequest request, ServerCallContext context);
 
-        public Task<DatabaseWipeResponse> DatabaseReset(DatabaseWipeRequest request, ServerCallContext context); 
+        public Task<DatabaseWipeResponse> DatabaseReset(DatabaseWipeRequest request, ServerCallContext context);
+
+        public Task<GetAcountViaIdResponse> GetAccountViaId(GetAcountViaIdRequest request, ServerCallContext context);
 
 
     }

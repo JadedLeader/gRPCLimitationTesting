@@ -8,6 +8,7 @@ service Admin
 	rpc ClientMessages(RetrievingClientMessagesViaIdRequest) returns (RetrievingClientMessagesViaIdResponse);
     rpc DatabaseReset(DatabaseWipeRequest) returns (DatabaseWipeResponse);
 	rpc RetrievingAllClients(RetrievingAllClientsRequest) returns (RetrievingAllClientsResponse);
+	rpc GetAccountViaId(GetAcountViaIdRequest) returns (GetAcountViaIdResponse);
 }
 
 message RetrievingClientMessagesViaIdRequest
@@ -49,4 +50,15 @@ message ClientResponseObject
 	string dataLength = 4; 
 	string delay = 5;
 	string requestType = 6;
+}
+
+message GetAcountViaIdRequest
+{ 
+	string accountUnique = 1;
+}
+
+message GetAcountViaIdResponse
+{
+	string accountUnique = 1; 
+	bool success = 2;
 }

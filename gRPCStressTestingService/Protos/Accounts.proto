@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+option csharp_namespace = "gRPCStressTestingService.proto";
+
+service Accounts
+{ 
+	rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse);
+	rpc DeleteAccount(DeleteAccountRequest) returns (DeleteAccountResponse);
+	rpc AccountLogin(AccountLoginRequest) returns (AccountLoginResponse);
+}
+
+message CreateAccountRequest
+{ 
+	string Username = 1; 
+	string Password = 2;
+}
+
+message CreateAccountResponse
+{ 
+	string Username = 1; 
+	string Password = 2;
+	string TimeOfCreation = 3;
+	string role = 4; 
+}
+
+message DeleteAccountRequest 
+{ 
+	string AccountId = 1; 
+}
+
+message DeleteAccountResponse
+{ 
+	string AccountId = 1; 
+	string TimeOfDeletion = 2; 
+}
+
+message AccountLoginRequest
+{ 
+	string Username = 1; 
+	string Password = 2;
+}
+
+message AccountLoginResponse
+{ 
+	string Username = 1;
+	bool State = 2;
+}
+

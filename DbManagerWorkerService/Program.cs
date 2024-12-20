@@ -1,3 +1,4 @@
+global using DbManagerWorkerService.DbModels;
 using DbManagerWorkerService.Repos;
 using DbManagerWorkerService.DbContexts;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ using SharedCommonalities.TimeStorage;
 using SharedCommonalities.Storage;
 using DbManagerWorkerService.Interfaces.Repos;
 using SharedCommonalities.ServicesConfig;
+using DbManagerWorkerService.Repositories;
 
 namespace DbManagerWorkerService
 {
@@ -22,12 +24,16 @@ namespace DbManagerWorkerService
 
             ServiceConfig.AddSharedServices(builder.Services);
 
-
             builder.Services.AddTransient<IDataContexts, DataContexts>();
+
+            builder.Services.AddSingleton<IAccountRepo, AccountRepo>();
+            builder.Services.AddSingleton<IAuthTokenRepo, AuthTokenRepo>();
+            builder.Services.AddSingleton<IClientInstanceRepo, ClientInstanceRepo>();
+            builder.Services.AddSingleton<IDelayCalcRepo, delayCalcRepo>();
+            builder.Services.AddSingleton<ISessionRepo, SessionRepo>();
+
             builder.Services.AddSingleton<ICommunicationDelayRepo, CommunicationDelayRepo>();
             builder.Services.AddSingleton<ICommunicationDelayService, CommunicationDelayService>();
-
-            
 
             var connectionString = builder.Configuration.GetConnectionString("DbConnection");
             builder.Services.AddDbContext<DataContexts>(options =>

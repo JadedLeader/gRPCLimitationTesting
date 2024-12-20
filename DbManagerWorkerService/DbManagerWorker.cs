@@ -24,7 +24,7 @@ namespace DbManagerWorkerService
                     {
                           var communicationDelayService = scope.ServiceProvider.GetRequiredService<ICommunicationDelayService>();
 
-                          await communicationDelayService.AddingDelayCalculationsToDb();
+                          //await communicationDelayService.AddingDelayCalculationsToDb();
 
                           //await communicationDelayService.EmptyTable();
                     }

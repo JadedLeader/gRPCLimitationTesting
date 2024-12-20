@@ -30,6 +30,8 @@
   <ItemGroup>
     <Protobuf Include="Protos\UnaryLatency.proto" GrpcServices="Client" />
 	<Protobuf Include="Protos\Admin.proto" GrpcServices="Client" />
+	<Protobuf Include="Protos\Accounts.proto" GrpcServices="Client" />
+	<Protobuf Include="Protos\AuthTokens.proto" GrpcServices="Client" />
   </ItemGroup>
 
 </Project>

@@ -16,6 +16,13 @@ namespace GrpcTestingLimitationsClient.Services
             
         }
 
+        public async Task GetAccountViaId(Admin.AdminClient client, string unique)
+        {
+            var sendingRequest = await client.GetAccountViaIdAsync(new GetAcountViaIdRequest
+            {
+                AccountUnique = unique
+            });
+        }
 
         public async Task ResettingDatabase(Admin.AdminClient adminClient)
         {

@@ -21,10 +21,10 @@ namespace gRPCStressTestingService.Implementations
             
         }
 
-        public override Task<DataResponse> UnaryResponse(DataRequest request, ServerCallContext context)
+        public override async Task<DataResponse> UnaryResponse(DataRequest request, ServerCallContext context)
         {
 
-            var calling = _unaryService.UnaryResponse(request, context);
+            var calling = await _unaryService.UnaryResponse(request, context);
 
             if (calling == null)
             {
@@ -35,9 +35,9 @@ namespace gRPCStressTestingService.Implementations
 
         }
 
-        public override Task<BatchDataResponse> BatchUnaryResponse(BatchDataRequest request, ServerCallContext context)
+        public override async Task<BatchDataResponse> BatchUnaryResponse(BatchDataRequest request, ServerCallContext context)
         {
-            var callingBatch = _unaryService.BatchUnaryResponse(request, context);
+            var callingBatch = await _unaryService.BatchUnaryResponse(request, context);
 
             if(callingBatch == null)
             {

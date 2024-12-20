@@ -19,9 +19,9 @@ namespace gRPCStressTestingService.Implementations
             throw new NotImplementedException();
         }
 
-        public override Task<DatabaseWipeResponse> DatabaseReset(DatabaseWipeRequest request, ServerCallContext context)
+        public override async Task<DatabaseWipeResponse> DatabaseReset(DatabaseWipeRequest request, ServerCallContext context)
         {
-            var databaseReset = _adminService.DatabaseReset(request, context); 
+            var databaseReset = await _adminService.DatabaseReset(request, context); 
 
             if (databaseReset == null)
             {
@@ -29,6 +29,18 @@ namespace gRPCStressTestingService.Implementations
             }
 
             return databaseReset;
+        }
+        public override async Task<GetAcountViaIdResponse> GetAccountViaId(GetAcountViaIdRequest request, ServerCallContext context)
+        {
+            var calling = await _adminService.GetAccountViaId(request, context);
+
+            if(calling == null)
+            {
+                Log.Warning($"couldn't get an account via the id");
+            }
+
+            return calling;
+
         }
 
         public override Task<RetrievingAllClientsResponse> RetrievingAllClients(RetrievingAllClientsRequest request, ServerCallContext context)

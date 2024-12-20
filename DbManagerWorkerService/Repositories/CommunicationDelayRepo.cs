@@ -14,7 +14,7 @@ namespace DbManagerWorkerService.Repos
             _dataContext = dataContext;
         }
 
-        public async Task AddToDb(CommunicationDelay delay)
+       /* public async Task AddToDb(CommunicationDelay delay)
         {
             try
             {
@@ -39,7 +39,7 @@ namespace DbManagerWorkerService.Repos
 
 
             Console.WriteLine($"table has been emptied");
-        }
+        } */
 
 
 
