@@ -48,5 +48,18 @@ namespace gRPCStressTestingService.Implementations
              throw new NotFiniteNumberException();
         }
 
+        public override async Task<RevokeTokenResponse> RevokeToken(RevokeTokenRequest request, ServerCallContext context)
+        {
+            var callingTokenRevoke = await _adminService.RevokeToken(request, context);
+
+            if(callingTokenRevoke == null)
+            {
+                Log.Error($"{callingTokenRevoke} did not return as expected");
+                throw new RpcException(new Status(new StatusCode(), $"The revoke token endpoint did not function as expected {StatusCode.Internal}"));
+            }
+
+            return callingTokenRevoke;
+        }
+
     }
 }

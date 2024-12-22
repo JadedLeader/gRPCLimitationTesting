@@ -25,7 +25,7 @@ namespace DbManagerWorkerService.DbModels
 
         public string TimeOfAccountCreation { get;set; }
 
-        public string Role { get; set; }    
+        public string Role { get; set; }     
 
         //nav property to the token table
         public AuthToken? AuthToken { get; set; }

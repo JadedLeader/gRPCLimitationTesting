@@ -28,10 +28,5 @@ namespace gRPCStressTestingService.Implementations
             return tokenGeneration;
         }
 
-        public override Task<RevokeAuthTokenResponse> RevokeToken(RevokeAuthTokenRequest request, ServerCallContext context)
-        {
-            return base.RevokeToken(request, context);
-        }
-
     }
 }

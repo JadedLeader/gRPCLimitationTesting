@@ -22,13 +22,6 @@ namespace GrpcTestingLimitationsClient
                 MaxReceiveMessageSize = 100 * 1024 * 1024,  
             });
 
-           /* var channelList = await helper.GeneratingMutlipleChannels(500);
-                
-            foreach(var channels in channelList)
-            {
-                Console.WriteLine($"this is the channels {channels.State}");
-            } */
-
             //this is currently only using the same client, we would have to generate these with the requests 
             var client = new Unary.UnaryClient(channel);
 

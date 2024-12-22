@@ -23,7 +23,6 @@ namespace ClientManagementWorkerService.Services
         /// This service is going to check the _clientRequestTiming dictionary and the clientStorage dictionary
         /// </summary>
        
-
         private void GetClientRequestTimingDict()
         {
            // clientRequestTiming = RequestResponseTimeStorage.ReturnClientRequests();

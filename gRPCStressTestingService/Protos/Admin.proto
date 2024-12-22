@@ -9,6 +9,7 @@ service Admin
 	rpc DatabaseReset(DatabaseWipeRequest) returns (DatabaseWipeResponse);
 	rpc RetrievingAllClients(RetrievingAllClientsRequest) returns (RetrievingAllClientsResponse);
 	rpc GetAccountViaId(GetAcountViaIdRequest) returns (GetAcountViaIdResponse);
+	rpc RevokeToken(RevokeTokenRequest) returns (RevokeTokenResponse);
 }
 
 message RetrievingClientMessagesViaIdRequest
@@ -61,5 +62,16 @@ message GetAcountViaIdResponse
 {
 	string accountUnique = 1; 
 	bool success = 2;
+}
+
+message RevokeTokenRequest
+{ 
+	string TokenUnique = 1;
+}
+
+message RevokeTokenResponse
+{ 
+	string TokenUnique = 1; 
+	bool State = 2;
 }
 

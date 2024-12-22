@@ -12,6 +12,8 @@ namespace gRPCStressTestingService.Interfaces.Services
 
         public Task<GetAcountViaIdResponse> GetAccountViaId(GetAcountViaIdRequest request, ServerCallContext context);
 
+        public Task<RevokeTokenResponse> RevokeToken(RevokeTokenRequest request, ServerCallContext context);
+
 
     }
 }

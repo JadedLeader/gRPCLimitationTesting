@@ -1,6 +1,7 @@
 ﻿using DbManagerWorkerService.DbModels;
 using DbManagerWorkerService.Interfaces.DataContext;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Principal;
 
 namespace DbManagerWorkerService.DbContexts
 {
@@ -33,6 +34,14 @@ namespace DbManagerWorkerService.DbContexts
             var clientInstance = modelBuilder.Entity<ClientInstance>();
             var session = modelBuilder.Entity<Session>();
             var delayCalc  = modelBuilder.Entity<DelayCalc>();
+
+          
+
+         /*   account
+                .HasOne(a => a.Session)
+                .WithOne(s => s.Account)
+                .HasForeignKey<Session>(s => s.AccountUnique); */
+
             //key 
            
 

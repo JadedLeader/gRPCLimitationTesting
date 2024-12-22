@@ -5,6 +5,8 @@ using gRPCStressTestingService.Interfaces.Services;
 using SharedCommonalities.Storage;
 using gRPCStressTestingService.protos;
 using Serilog;
+using DbManagerWorkerService.DbModels;
+using Microsoft.AspNetCore.Mvc;
 
 namespace gRPCStressTestingService.Services
 {
@@ -13,27 +15,17 @@ namespace gRPCStressTestingService.Services
         private readonly ICommunicationDelayRepo _communicationDelayRepo;
         private readonly ClientStorage _clientStorage;
         private readonly IAccountRepo _accountRepo;
-        public AdminService(ICommunicationDelayRepo communicationDelayRepo, ClientStorage clientStorage, IAccountRepo accountRepo)
+        private readonly IAuthTokenRepo _authTokenRepo;
+        public AdminService(ICommunicationDelayRepo communicationDelayRepo, ClientStorage clientStorage, IAccountRepo accountRepo, IAuthTokenRepo authTokenRepo)
         {
             _communicationDelayRepo = communicationDelayRepo;
             _clientStorage = clientStorage;
             _accountRepo = accountRepo;
+            _authTokenRepo = authTokenRepo;
         }
 
         public async Task<RetrievingClientMessagesViaIdResponse> ClientMessages(RetrievingClientMessagesViaIdRequest request, ServerCallContext context)
         {
-            /* RetrievingClientMessagesViaIdResponse clientMessagesResponse = new RetrievingClientMessagesViaIdResponse()
-             {
-                 ClientId = "",
-                 Finished = true
-             };
-
-             //we're going to grab the id from the meta data that will be passed in by the user
-
-             _clientStorage.ReturnClientRequestMessages()
-
-             return clientMessagesResponse; */
-
             throw new NotImplementedException();
         }
 
@@ -58,18 +50,54 @@ namespace gRPCStressTestingService.Services
 
         public async Task<GetAcountViaIdResponse> GetAccountViaId(GetAcountViaIdRequest request, ServerCallContext context)
         {
-            var thing = _accountRepo.GetAccountViaId(Guid.Parse(request.AccountUnique));
-
-            if(thing == null)
-            {
-                Log.Error("thing was null when trying to get an account by the id");
-            }
+            Account? getAccount = await _accountRepo.GetAccountViaId(Guid.Parse(request.AccountUnique));
 
             GetAcountViaIdResponse serverResponse = new GetAcountViaIdResponse()
             {
                 AccountUnique = request.AccountUnique,
                 Success = true,
+
             };
+
+            if (getAccount == null)
+            {
+                Log.Warning($"Could not find an account when trying to get it via the ID {request.AccountUnique}");
+                throw new RpcException(new Status(StatusCode.NotFound, $"Account not found"));
+            }
+
+            return serverResponse;
+        }
+
+        public async Task<RevokeTokenResponse> RevokeToken(RevokeTokenRequest request, ServerCallContext context)
+        {
+            Account? retrieveAccount = await _accountRepo.GetAccountViaToken(Guid.Parse(request.TokenUnique));
+
+            if(retrieveAccount == null)
+            {
+                Log.Warning($"Could not find an account when trying to get it via the token ID of {request.TokenUnique}");
+                throw new RpcException(new Status(StatusCode.NotFound, $"Account not found"));
+            }
+
+            RevokeTokenResponse serverResponse = new RevokeTokenResponse()
+            {
+                TokenUnique = request.TokenUnique,
+                State = true
+            };
+
+            if (retrieveAccount.AuthUnique == null || retrieveAccount.AuthToken == null)
+            {
+                serverResponse.TokenUnique = request.TokenUnique;
+                serverResponse.State = false;
+
+                return serverResponse;
+            
+            }
+
+            retrieveAccount.AuthToken.RefreshToken = null;
+            retrieveAccount.AuthToken.CurrentToken = null; 
+
+            await _accountRepo.UpdateDbAsync(retrieveAccount);
+
 
             return serverResponse;
         }

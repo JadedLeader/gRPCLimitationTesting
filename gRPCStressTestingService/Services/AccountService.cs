@@ -28,12 +28,12 @@ namespace gRPCStressTestingService.Services
 
         public async Task<CreateAccountResponse> CreateAccount(CreateAccountRequest request, ServerCallContext context)
         {
-
             //we're literally just going to want to read the request, get the username and password and boom
 
             string? accountRole = context.RequestHeaders.GetValue("role");
             string? accountCreationTime = context.RequestHeaders.GetValue("creation-time");
 
+            //if it does not exist it returns false
             bool usernameExist = await VerifyingNonExistingUsername(request.Username);
 
             if(usernameExist == true)
@@ -55,7 +55,8 @@ namespace gRPCStressTestingService.Services
                 Username = request.Username,
                 Password = request.Password,
                 Role = accountRole,
-                TimeOfCreation = accountCreationTime
+                TimeOfCreation = accountCreationTime, 
+ 
             };
 
             //then we just need to add to the db - we want to serialise the password first before we add it to the database
@@ -92,7 +93,9 @@ namespace gRPCStressTestingService.Services
 
             if(userAccount == null)
             {
-                Console.WriteLine($"No user can be found with this account name");
+                Log.Warning($"No user account can be found via the username {request.Username}");
+
+                throw new RpcException(new Status(StatusCode.NotFound, $"Account not found"));
             }
 
             string hashedPassword = userAccount.Password;
@@ -101,9 +104,9 @@ namespace gRPCStressTestingService.Services
 
             if(!match)
             {
-                Log.Information($"The password from the request was not a match to the password retrieved from the database");
+                Log.Warning($"The password from the request was not a match to the password retrieved from the database");
 
-                Console.WriteLine($"The password from the request was not a match to the password retrieved from the database");
+                throw new RpcException(new Status(StatusCode.Unauthenticated, $"The stored password and the password entered don't match"));
             }
 
             AccountLoginResponse serverResponse = new AccountLoginResponse()
@@ -119,11 +122,6 @@ namespace gRPCStressTestingService.Services
         }
 
         public async Task<DeleteAccountResponse> DeleteAccount(DeleteAccountRequest request, ServerCallContext context)
-        {
-            throw new NotImplementedException();
-        }
-
-        private bool PasswordVerification(string password)
         {
             throw new NotImplementedException();
         }

@@ -150,13 +150,5 @@ namespace GrpcTestingLimitationsClient.Services
 
             return requests;
         }
-
-        /* public async Task RequestBatchAsync(GrpcChannel channel, string fileSize, int amountOfRequests, Unary.UnaryClient freshClient)
-        {
-            await SendingBatchOfRequests(amountOfRequests, freshClient, fileSize);
-
-        } */
-
-
     }
 }

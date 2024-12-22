@@ -14,9 +14,9 @@ namespace DbManagerWorkerService.DbModels
         [Key]
         public Guid AuthUnique { get; set; }
 
-        public string CurrentToken { get; set; }
+        public string? CurrentToken { get; set; }
 
-        public string RefreshToken { get; set; }    
+        public string? RefreshToken { get; set; }    
 
 
 

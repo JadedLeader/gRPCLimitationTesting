@@ -13,6 +13,7 @@
 	<Protobuf Include="Protos\Admin.proto" GrpcServices="Server" />
 	<Protobuf Include="Protos\Accounts.proto" GrpcServices="Server" />
 	<Protobuf Include="Protos\AuthTokens.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\Sessions.proto" GrpcServices="Server" />
   </ItemGroup>
 
   <ItemGroup>

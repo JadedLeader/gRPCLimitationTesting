@@ -14,12 +14,11 @@ namespace DbManagerWorkerService.DbModels
         [Key]
         public Guid SessionUnique { get; set; }
 
-        [ForeignKey("AccountUnique")]
-        public Guid AccountUnique { get; set; } 
+        public Guid? AccountUnique { get; set; }
 
-        public string SessionCreated { get; set; }
+        public string? SessionCreated { get; set; }
 
-        public ClientInstance ClientInstance { get; set; }
+        public ClientInstance? ClientInstance { get; set; }
 
 
     }

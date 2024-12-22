@@ -26,11 +26,11 @@ namespace DbManagerWorkerService
 
             builder.Services.AddTransient<IDataContexts, DataContexts>();
 
-            builder.Services.AddSingleton<IAccountRepo, AccountRepo>();
-            builder.Services.AddSingleton<IAuthTokenRepo, AuthTokenRepo>();
-            builder.Services.AddSingleton<IClientInstanceRepo, ClientInstanceRepo>();
-            builder.Services.AddSingleton<IDelayCalcRepo, delayCalcRepo>();
-            builder.Services.AddSingleton<ISessionRepo, SessionRepo>();
+            builder.Services.AddScoped<IAccountRepo, AccountRepo>();
+            builder.Services.AddScoped<IAuthTokenRepo, AuthTokenRepo>();
+            builder.Services.AddScoped<IClientInstanceRepo, ClientInstanceRepo>();
+            builder.Services.AddScoped<IDelayCalcRepo, delayCalcRepo>();
+            builder.Services.AddScoped<ISessionRepo, SessionRepo>();
 
             builder.Services.AddSingleton<ICommunicationDelayRepo, CommunicationDelayRepo>();
             builder.Services.AddSingleton<ICommunicationDelayService, CommunicationDelayService>();

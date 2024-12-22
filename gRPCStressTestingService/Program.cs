@@ -82,14 +82,17 @@ namespace gRPCStressTestingService
             //builder.Services.AddHostedService<ClientManagerWorker>();
 
             builder.Services.AddTransient<IDataContexts, DataContexts>();
-            builder.Services.AddSingleton<ICommunicationDelayRepo, CommunicationDelayRepo>();
-            builder.Services.AddSingleton<ICommunicationDelayService, CommunicationDelayService>();
+            builder.Services.AddScoped<ICommunicationDelayRepo, CommunicationDelayRepo>();
+            builder.Services.AddScoped<ICommunicationDelayService, CommunicationDelayService>();
 
             builder.Services.AddScoped<IAccountService, AccountService>();
-            builder.Services.AddSingleton<IAccountRepo, AccountRepo>();
+            builder.Services.AddScoped<IAccountRepo, AccountRepo>();
+
+            builder.Services.AddScoped<ISessionService, SessionService>();
+            builder.Services.AddScoped<ISessionRepo, SessionRepo>();
 
             builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
-            builder.Services.AddSingleton<IAuthTokenRepo, AuthTokenRepo>();
+            builder.Services.AddScoped<IAuthTokenRepo, AuthTokenRepo>();
 
             builder.Services.AddScoped<IAdminService, AdminService>();
 
@@ -105,6 +108,7 @@ namespace gRPCStressTestingService
             app.MapGrpcService<AdminImplementation>();
             app.MapGrpcService<AccountImplementation>();
             app.MapGrpcService<AuthTokenImplementation>();
+            app.MapGrpcService<SessionImplementation>();
 
             // Configure the HTTP request pipeline.
             app.MapGrpcService<GreeterService>();

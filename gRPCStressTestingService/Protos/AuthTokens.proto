@@ -5,7 +5,7 @@ option csharp_namespace = "gRPCStressTestingService.proto";
 service AuthTokens
 { 
 	rpc GenerateToken (GenerateAuthTokenRequest) returns (GenerateAuthTokenResponse);
-	rpc RevokeToken (RevokeAuthTokenRequest) returns (RevokeAuthTokenResponse);
+	
 }
 
 message GenerateAuthTokenRequest
@@ -21,13 +21,3 @@ message GenerateAuthTokenResponse
 	string TokenCreationTime = 2;
 }
 
-message RevokeAuthTokenRequest
-{ 
-	string TokenUnique = 1; 
-}
-
-message RevokeAuthTokenResponse
-{ 
-	string AccountUnique = 1;
-	string TokenUnique = 2;
-}

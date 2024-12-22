@@ -9,6 +9,7 @@ using DbManagerWorkerService.Abstracts;
 using Microsoft.EntityFrameworkCore;
 using DbManagerWorkerService.Interfaces.Repos;
 using Serilog;
+using Microsoft.Identity.Client;
 
 namespace DbManagerWorkerService.Repositories
 {
@@ -38,7 +39,7 @@ namespace DbManagerWorkerService.Repositories
             return base.UpdateDbAsync(entity);
         }
 
-        public async Task<Account> UpdateAuthUnique(Account entity, Guid tokenUnique, AuthToken tokenInstance)
+        public async Task<Account> UpdateAuthUnique(Account entity, Guid? tokenUnique, AuthToken tokenInstance)
         {
             entity.AuthUnique = tokenUnique;
             entity.AuthToken = tokenInstance;
@@ -62,7 +63,7 @@ namespace DbManagerWorkerService.Repositories
 
         public async Task<Account> GetAccountViaId(Guid recordId)
         {
-            var accountViaId = await _dataContext.Account.FirstOrDefaultAsync(u => u.AccountUnique == recordId);
+            Account? accountViaId = await _dataContext.Account.FirstOrDefaultAsync(u => u.AccountUnique == recordId);
 
             if(accountViaId == null)
             {
@@ -77,8 +78,6 @@ namespace DbManagerWorkerService.Repositories
         public async Task<Account> GetAccountViaUsername(string username)
         {
             Account? accountViaUsername = await _dataContext.Account.FirstOrDefaultAsync(u => u.Username == username);
-
-            
 
             if(accountViaUsername == null)
             {
@@ -102,8 +101,41 @@ namespace DbManagerWorkerService.Repositories
             return accountWithToken;
         }
 
+        public async Task<Account> GetAccountViaToken(Guid tokenUnique)
+        {
+            Account? tokenWithAccount = await _dataContext.Account.Include(at => at.AuthToken).FirstOrDefaultAsync(t => t.AuthUnique == tokenUnique);
 
+            if(tokenWithAccount == null)
+            {
+                Log.Error($"No token could be linked with the account via a token ID of {tokenUnique}.");
+            }
 
+            return tokenWithAccount;
+        }
+
+        public async Task<Account> LinkAccountWithSessionViaId(Guid accountId)
+        {
+            Account? accountWithToken = await _dataContext.Account.Include(t => t.Session).FirstOrDefaultAsync(u => u.AccountUnique == accountId);
+
+            if (accountWithToken == null)
+            {
+                Log.Error($"A token cannot be paired with account with ID : {accountId}");
+            }
+
+            return accountWithToken;
+        }
+
+        public async Task<Account> LinkAccountWithSessionViaUsername(string username)
+        {
+            Account? accountWithToken = await _dataContext.Account.Include(t => t.Session).FirstOrDefaultAsync(u => u.Username == username);
+
+            if (accountWithToken == null)
+            {
+                Log.Error($"A token cannot be paired with account with ID : {username}");
+            }
+
+            return accountWithToken;
+        }
 
     }
 }

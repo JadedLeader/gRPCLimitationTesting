@@ -32,6 +32,7 @@
 	<Protobuf Include="Protos\Admin.proto" GrpcServices="Client" />
 	<Protobuf Include="Protos\Accounts.proto" GrpcServices="Client" />
 	<Protobuf Include="Protos\AuthTokens.proto" GrpcServices="Client" />
+	<Protobuf Include="Protos\Sessions.proto" GrpcServices="Client" />
   </ItemGroup>
 
 </Project>

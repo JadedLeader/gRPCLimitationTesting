@@ -10,11 +10,27 @@ namespace DbManagerWorkerService.Interfaces.Repos
     public interface ISessionRepo
     {
 
-        public Task<SessionRepo> AddToDbAsync(SessionRepo entity);
+        public Task<Session> AddToDbAsync(Session entity);
 
-        public Task<SessionRepo> RemoveFromDbAsync(SessionRepo entity);
 
-        public Task<IEnumerable<SessionRepo>> GetDbContent();
-       
+
+        public Task<Session> RemoveFromDbAsync(Session entity);
+
+
+
+        public Task<Session> UpdateDbAsync(Session entity);
+
+
+
+        public Task<IEnumerable<Session>> GetDbContent();
+
+
+
+        public Task<Session> GetRecordViaId(Guid? recordId);
+        
+
+        public Task<Account> GetSessionViaAccountId(Guid accountUnique);
+
+
     }
 }

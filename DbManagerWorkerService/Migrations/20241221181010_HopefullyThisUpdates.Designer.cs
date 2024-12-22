@@ -4,6 +4,7 @@ using DbManagerWorkerService.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DbManagerWorkerService.Migrations
 {
     [DbContext(typeof(DataContexts))]
-    partial class DataContextsModelSnapshot : ModelSnapshot
+    [Migration("20241221181010_HopefullyThisUpdates")]
+    partial class HopefullyThisUpdates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -45,7 +48,7 @@ namespace DbManagerWorkerService.Migrations
                     b.Property<Guid?>("SessionUnique")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("SessionUniqueIdentifier")
+                    b.Property<Guid?>("SessionUnique1")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("TimeOfAccountCreation")
@@ -63,7 +66,7 @@ namespace DbManagerWorkerService.Migrations
 
                     b.HasIndex("AuthTokenAuthUnique");
 
-                    b.HasIndex("SessionUnique");
+                    b.HasIndex("SessionUnique1");
 
                     b.ToTable("Account");
                 });
@@ -166,7 +169,7 @@ namespace DbManagerWorkerService.Migrations
 
                     b.HasOne("DbManagerWorkerService.DbModels.Session", "Session")
                         .WithMany()
-                        .HasForeignKey("SessionUnique");
+                        .HasForeignKey("SessionUnique1");
 
                     b.Navigation("AuthToken");
 

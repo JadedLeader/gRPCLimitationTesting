@@ -37,8 +37,6 @@ namespace GrpcTestingLimitationsClient.Services
         {
             Metadata metadata = new Metadata();
 
-            //metadata.Add("login-timestamp", DateTime.Now.ToString());
-
             var creatingRequest = accountClient.AccountLoginAsync(new AccountLoginRequest
             {
                 Username = username,

@@ -15,7 +15,7 @@ namespace DbManagerWorkerService.DbModels
         public Guid ClientUnique { get; set; }
 
         [ForeignKey("SessionUnique")]
-        public Guid SessionUnique { get; set; } 
+        public Guid? SessionUnique { get; set; } 
 
         public ICollection<DelayCalc> DelayCalcs { get; set; }
 

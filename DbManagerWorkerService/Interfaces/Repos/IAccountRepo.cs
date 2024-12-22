@@ -21,9 +21,15 @@ namespace DbManagerWorkerService.Interfaces.Repos
 
         public Task<Account> GetAccountViaUsername(string username);
 
-        public Task<Account> UpdateAuthUnique(Account entity, Guid tokenUnique, AuthToken tokenInstance);
+        public Task<Account> UpdateAuthUnique(Account entity, Guid? tokenUnique, AuthToken tokenInstance);
 
         public Task<Account> LinkAccountWithTokenViaId(Guid accountId);
+
+        public Task<Account> GetAccountViaToken(Guid tokenUnique);
+
+        public Task<Account> LinkAccountWithSessionViaId(Guid accountId);
+
+        public Task<Account> LinkAccountWithSessionViaUsername(string username);
 
 
 

@@ -15,17 +15,17 @@ namespace DbManagerWorkerService.DbModels
         public Guid messageId { get; set; }
 
         [ForeignKey("ClientUnique")]
-        public Guid ClientUnique { get; set; }
+        public Guid? ClientUnique { get; set; }
 
-        public string RequestType { get; set; }
+        public string? RequestType { get; set; }
 
-        public string CommunicationType { get; set; }
+        public string? CommunicationType { get; set; }
 
-        public int DataIterations { get; set; } 
+        public int? DataIterations { get; set; } 
 
-        public string DataContent { get; set; }
+        public string? DataContent { get; set; }
 
-        public TimeSpan Delay { get ; set; }
+        public TimeSpan? Delay { get ; set; }
 
     }
 }

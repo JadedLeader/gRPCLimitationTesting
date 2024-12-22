@@ -4,6 +4,7 @@ using DbManagerWorkerService.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DbManagerWorkerService.Migrations
 {
     [DbContext(typeof(DataContexts))]
-    partial class DataContextsModelSnapshot : ModelSnapshot
+    [Migration("20241220160931_MadeSomeFieldsNullable")]
+    partial class MadeSomeFieldsNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,9 +46,6 @@ namespace DbManagerWorkerService.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("SessionUnique")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("SessionUniqueIdentifier")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("TimeOfAccountCreation")
@@ -122,9 +122,6 @@ namespace DbManagerWorkerService.Migrations
 
                     b.Property<TimeSpan?>("Delay")
                         .HasColumnType("time");
-
-                    b.Property<string>("Nonsense")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RequestType")
                         .HasColumnType("nvarchar(max)");
