@@ -11,6 +11,7 @@ C#
 gRPC
 EF core
 Serilog
+JWT
 
 Installation Guide:
 
