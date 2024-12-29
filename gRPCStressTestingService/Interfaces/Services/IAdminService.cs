@@ -14,6 +14,10 @@ namespace gRPCStressTestingService.Interfaces.Services
 
         public Task<RevokeTokenResponse> RevokeToken(RevokeTokenRequest request, ServerCallContext context);
 
+        public Task<RevokeSessionResponse> RevokeSession(RevokeSessionRequest request, ServerCallContext context);
+
+        public Task<RevokeClientInstanceResponse> RevokeClientInstances(RevokeClientInstanceRequest request, ServerCallContext context);
+
 
     }
 }

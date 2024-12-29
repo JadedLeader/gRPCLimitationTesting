@@ -34,7 +34,7 @@ namespace GrpcTestingLimitationsClient
 
             //this is a singular request
 
-            //await clientRequest.ClientUnaryRequest(channel, "small");
+            await clientRequest.ClientUnaryRequest(channel, "small");
             //await clientRequest.ClientUnaryRequest(channel, "large");
             //await clientRequest.ClientUnaryRequest(channel, "large");
 

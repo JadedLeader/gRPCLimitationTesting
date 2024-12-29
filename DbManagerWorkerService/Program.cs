@@ -1,16 +1,11 @@
-global using DbManagerWorkerService.DbModels;
+global using SharedCommonalities;
 using DbManagerWorkerService.Repos;
-using DbManagerWorkerService.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using DbManagerWorkerService.Interfaces;
 using DbManagerWorkerService.Services;
 using DbManagerWorkerService.Interfaces.DataContext;
-using SharedCommonalities.Interfaces.TimeStorage;
-using SharedCommonalities.TimeStorage;
-using SharedCommonalities.Storage;
-using DbManagerWorkerService.Interfaces.Repos;
-using SharedCommonalities.ServicesConfig;
 using DbManagerWorkerService.Repositories;
+
 
 namespace DbManagerWorkerService
 {
@@ -20,30 +15,13 @@ namespace DbManagerWorkerService
         {
             var builder = Host.CreateApplicationBuilder(args);
 
+            ConfigurationStuff.ServicesConfig.ServiceConfig.AddSharedServices(builder.Services, builder.Configuration);
+
             builder.Services.AddHostedService<DbManagerWorker>();
 
-            ServiceConfig.AddSharedServices(builder.Services);
-
-            builder.Services.AddTransient<IDataContexts, DataContexts>();
-
-            builder.Services.AddScoped<IAccountRepo, AccountRepo>();
-            builder.Services.AddScoped<IAuthTokenRepo, AuthTokenRepo>();
-            builder.Services.AddScoped<IClientInstanceRepo, ClientInstanceRepo>();
-            builder.Services.AddScoped<IDelayCalcRepo, delayCalcRepo>();
-            builder.Services.AddScoped<ISessionRepo, SessionRepo>();
-
-            builder.Services.AddSingleton<ICommunicationDelayRepo, CommunicationDelayRepo>();
-            builder.Services.AddSingleton<ICommunicationDelayService, CommunicationDelayService>();
-
-            var connectionString = builder.Configuration.GetConnectionString("DbConnection");
-            builder.Services.AddDbContext<DataContexts>(options =>
-            {
-                options.UseSqlServer(connectionString);
-            });
+            builder.Services.AddScoped<ICommunicationDelayService, CommunicationDelayService>();
 
             var host = builder.Build();
-
-
 
             Console.WriteLine($"host is running");
 

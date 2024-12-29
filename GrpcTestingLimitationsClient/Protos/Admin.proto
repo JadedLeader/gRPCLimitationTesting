@@ -10,6 +10,8 @@ service Admin
 	rpc RetrievingAllClients(RetrievingAllClientsRequest) returns (RetrievingAllClientsResponse);
 	rpc GetAccountViaId(GetAcountViaIdRequest) returns (GetAcountViaIdResponse);
 	rpc RevokeToken(RevokeTokenRequest) returns (RevokeTokenResponse);
+	rpc RevokeSession(RevokeSessionRequest) returns (RevokeSessionResponse);
+	rpc RevokeClientInstances(RevokeClientInstanceRequest) returns (RevokeClientInstanceResponse);
 }
 
 message RetrievingClientMessagesViaIdRequest
@@ -73,4 +75,26 @@ message RevokeTokenResponse
 { 
 	string TokenUnique = 1; 
 	bool State = 2;
+}
+
+message RevokeSessionRequest
+{ 
+	string SessionUnique = 1;
+}
+
+message RevokeSessionResponse
+{ 
+	string SessionUnique = 1; 
+	string TimeOfSessionRevoke = 2;
+}
+
+message RevokeClientInstanceRequest
+{ 
+	string SessionUnique = 1; 
+}
+
+message RevokeClientInstanceResponse
+{ 
+	string SessionUnique = 1; 
+	string TimeOfClientRevoke = 2;
 }

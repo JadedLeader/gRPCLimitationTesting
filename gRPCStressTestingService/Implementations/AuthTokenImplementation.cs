@@ -1,5 +1,4 @@
-﻿using DbManagerWorkerService.DbModels;
-using DbManagerWorkerService.Interfaces.Repos;
+﻿
 using Grpc.Core;
 using gRPCStressTestingService.Interfaces.Services;
 using gRPCStressTestingService.proto;

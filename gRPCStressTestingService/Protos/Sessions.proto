@@ -5,6 +5,7 @@ option csharp_namespace = "gRPCStressTestingService.proto";
 service Sessions
 { 
 	rpc CreateSession(CreateSessionRequest) returns (CreateSessionResponse);
+	
 }
 
 message CreateSessionRequest

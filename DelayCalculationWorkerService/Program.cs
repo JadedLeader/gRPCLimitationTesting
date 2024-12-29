@@ -1,7 +1,9 @@
+using ConfigurationStuff.ServicesConfig;
 using DelayCalculationWorkerService.Service;
+using Grpc.Net.Client.Configuration;
 using SharedCommonalities.Interfaces.TimeStorage;
 using SharedCommonalities.TimeStorage;
-using SharedCommonalities.ServicesConfig;
+
 
 namespace DelayCalculationWorkerService
 {
@@ -10,8 +12,8 @@ namespace DelayCalculationWorkerService
         public static async Task Main(string[] args)
         {
             var builder = Host.CreateApplicationBuilder(args);
-            
-            ServiceConfig.AddSharedServices(builder.Services);
+
+            ConfigurationStuff.ServicesConfig.ServiceConfig.AddSharedServices(builder.Services, builder.Configuration);
 
             builder.Services.AddHostedService<DelayWorker>();
             

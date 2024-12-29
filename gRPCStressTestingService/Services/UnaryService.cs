@@ -117,6 +117,10 @@ namespace gRPCStressTestingService.Services
             Log.Information($"This is the request send time for the unary request : {requestUnaryInfo.TimeOfRequest} -> {responseTimeFromMetaData}");
             Log.Information($"This is the server response time for the unary request : {responseUnaryInfo.TimeOfRequest} -> {preciseTime}");
 
+           var thing = _timeStorage.ReturnDictionary(_timeStorage._ClientRequestTiming);
+           var thing1 = _timeStorage.ReturnDictionary(_timeStorage._ServerResponseTiming);
+           var thing2 = _timeStorage.ReturnDictionary( _timeStorage._ActualDelayCalculations);
+
             return dataReturn;
                
         }
@@ -204,6 +208,8 @@ namespace gRPCStressTestingService.Services
 
             Log.Information($"This is the request send time for the unary batch request : {requestUnaryInfo.TimeOfRequest} -> {batchTimestampFromMetaData}");
             Log.Information($"This is the server response time for the unary batch request : {responseUnaryInfo.TimeOfRequest} -> {preciseTime}");
+
+        
 
             return batchDataResponse;
         }

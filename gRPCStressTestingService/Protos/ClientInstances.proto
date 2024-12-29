@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option csharp_namespace = "gRPCStressTestingService.proto";
+
+
+service ClientInstances
+{ 
+	rpc CreateClientInstance(CreateClientInstanceRequest) returns (CreateClientInstanceResponse);
+}
+
+message CreateClientInstanceRequest
+{ 
+	string username = 1;
+	string SessionUnique = 2;
+}
+
+message CreateClientInstanceResponse
+{ 
+	string SessionUnique = 1; 
+	string TimeOfClientCreation = 2;
+}
+

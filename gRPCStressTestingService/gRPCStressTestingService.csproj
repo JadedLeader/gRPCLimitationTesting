@@ -14,6 +14,7 @@
 	<Protobuf Include="Protos\Accounts.proto" GrpcServices="Server" />
 	<Protobuf Include="Protos\AuthTokens.proto" GrpcServices="Server" />
     <Protobuf Include="Protos\Sessions.proto" GrpcServices="Server" />
+	<Protobuf Include="Protos\ClientInstances.proto" GrpcServices="Server" />
   </ItemGroup>
 
   <ItemGroup>
@@ -46,10 +47,12 @@
 
   <ItemGroup>
     <Folder Include="Interfaces\Services\NewFolder\" />
+    <Folder Include="Migrations\" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ClientManagementWorker\ClientManagementWorkerService.csproj" />
+    <ProjectReference Include="..\ConfigurationStuff\ConfigurationStuff.csproj" />
     <ProjectReference Include="..\DbManagerWorkerService\DbManagerWorkerService.csproj" />
     <ProjectReference Include="..\DelayCalculationWorkerService\DelayCalculationWorkerService.csproj" />
     <ProjectReference Include="..\GrpcTestingLimitationsClient\GrpcTestingLimitationsClient.csproj" />

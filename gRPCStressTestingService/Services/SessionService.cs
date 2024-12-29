@@ -1,5 +1,5 @@
-﻿using DbManagerWorkerService.DbModels;
-using DbManagerWorkerService.Interfaces.Repos;
+﻿using ConfigurationStuff.Interfaces.Repos;
+using ConfigurationStuff.DbModels;
 using Grpc.Core;
 using gRPCStressTestingService.Interfaces;
 using gRPCStressTestingService.proto;
@@ -48,6 +48,7 @@ namespace gRPCStressTestingService.Services
                 AccountUnique = getAccountViaUsername.AccountUnique,
                 SessionUnique = Guid.NewGuid(),
                 SessionCreated = DateTime.Now.ToString(),
+                ClientInstance = new List<ClientInstance>()
             };
 
             CreateSessionResponse serverResponse = new CreateSessionResponse()
@@ -56,6 +57,16 @@ namespace gRPCStressTestingService.Services
                 Username = request.Username,
                 TimeOfSessionCreation = newSession.SessionCreated,
             };
+
+            if (getAccountViaUsername.Session != null)
+            {
+                getAccountViaUsername.Session.SessionCreated = DateTime.Now.ToString();
+                getAccountViaUsername.TimeOfLogin = DateTime.Now.ToString();
+
+                await _accountRepo.UpdateDbAsync(getAccountViaUsername);
+                await _sessionRepo.UpdateDbAsync(getAccountViaUsername.Session);
+
+            }
 
             if (getAccountViaUsername.Session == null)
             {
@@ -67,15 +78,9 @@ namespace gRPCStressTestingService.Services
                 await _accountRepo.UpdateDbAsync(getAccountViaUsername);
             }
 
-            if(getAccountViaUsername.Session != null)
-            {
-                getAccountViaUsername.Session.SessionCreated = DateTime.Now.ToString(); 
-                getAccountViaUsername.TimeOfLogin = DateTime.Now.ToString();
+            
 
-                await _accountRepo.UpdateDbAsync(getAccountViaUsername);
-                await _sessionRepo.UpdateDbAsync(getAccountViaUsername.Session);
-
-            }
+            await _accountRepo.SaveAsync();
 
             return serverResponse;
 

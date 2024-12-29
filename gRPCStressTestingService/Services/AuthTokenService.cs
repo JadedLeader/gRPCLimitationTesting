@@ -1,6 +1,4 @@
-﻿using DbManagerWorkerService.DbModels;
-using DbManagerWorkerService.Interfaces.Repos;
-using Grpc.Core;
+﻿using Grpc.Core;
 using gRPCStressTestingService.Interfaces.Services;
 using gRPCStressTestingService.proto;
 using Microsoft.AspNetCore.Authentication;
@@ -13,6 +11,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Text;
+using ConfigurationStuff.Interfaces.Repos;
+using ConfigurationStuff.DbModels;
 
 namespace gRPCStressTestingService.Services
 {
@@ -143,6 +143,8 @@ namespace gRPCStressTestingService.Services
         {
             await _authTokenRepo.AddToDbAsync(token);
             await _accountRepo.UpdateAuthUnique(account, tokenUnique, token);
+
+            await _authTokenRepo.SaveAsync();
         }
 
         /// <summary>

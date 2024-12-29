@@ -9,7 +9,7 @@ using DelayCalculationWorkerService.Service;
 using DbManagerWorkerService;
 using DbManagerWorkerService.Services;
 using DbManagerWorkerService.Interfaces;
-using DbManagerWorkerService.DbContexts;
+
 using DbManagerWorkerService.Interfaces.DataContext;
 using DbManagerWorkerService.Repos;
 using ClientManagementWorkerService.Interfaces;
@@ -17,14 +17,15 @@ using ClientManagementWorkerService.Services;
 using ClientManagementWorker;
 using SharedCommonalities.Storage;
 using SharedCommonalities.UsefulFeatures;
-using SharedCommonalities.ServicesConfig;
-using DbManagerWorkerService.Interfaces.Repos;
 using SharedCommonalities.ObjectMapping;
 using gRPCStressTestingService.Interfaces.Services;
 using DbManagerWorkerService.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
+using ConfigurationStuff;
+using ConfigurationStuff.ServicesConfig;
 
 
 namespace gRPCStressTestingService
@@ -44,7 +45,6 @@ namespace gRPCStressTestingService
             });
 
             var jwtAssertions = builder.Configuration.GetSection("Tokens");
-
             var tokenKey = jwtAssertions["Key"];
             var tokenIssuer = jwtAssertions["Issuer"];
             var tokenAudience = jwtAssertions["Audience"];
@@ -71,34 +71,38 @@ namespace gRPCStressTestingService
                 options.MaxReceiveMessageSize = 100 * 1024 * 1024;
             });
 
-            ServiceConfig.AddSharedServices(builder.Services);
+            ServiceConfig.AddSharedServices(builder.Services, builder.Configuration);
 
             builder.Services.AddScoped<IUnaryService, UnaryService>();
             builder.Services.AddScoped<UnaryImplementation>();
             builder.Services.AddSingleton<DelayCalculations>(); 
-            //builder.Services.AddHostedService<DbManagerWorker>();
+            builder.Services.AddHostedService<DbManagerWorker>();
 
-            builder.Services.AddSingleton<IClientManagementService, ClientManagementService>(); 
+            builder.Services.AddSingleton<IClientManagementService, ClientManagementService>();
             //builder.Services.AddHostedService<ClientManagerWorker>();
 
-            builder.Services.AddTransient<IDataContexts, DataContexts>();
-            builder.Services.AddScoped<ICommunicationDelayRepo, CommunicationDelayRepo>();
-            builder.Services.AddScoped<ICommunicationDelayService, CommunicationDelayService>();
+           // builder.Services.AddScoped<ICommunicationDelayRepo, CommunicationDelayRepo>();
+           // builder.Services.AddScoped<ICommunicationDelayService, CommunicationDelayService>();
 
             builder.Services.AddScoped<IAccountService, AccountService>();
-            builder.Services.AddScoped<IAccountRepo, AccountRepo>();
+           // builder.Services.AddScoped<IAccountRepo, AccountRepo>();
 
             builder.Services.AddScoped<ISessionService, SessionService>();
-            builder.Services.AddScoped<ISessionRepo, SessionRepo>();
+            //builder.Services.AddScoped<ISessionRepo, SessionRepo>();
 
             builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
-            builder.Services.AddScoped<IAuthTokenRepo, AuthTokenRepo>();
+          //  builder.Services.AddScoped<IAuthTokenRepo, AuthTokenRepo>();
+
+            builder.Services.AddScoped<IClientInstanceService, ClientInstanceService>();
+           // builder.Services.AddScoped<IClientInstanceRepo, ClientInstanceRepo>();  
+
+            builder.Services.AddScoped<ICommunicationDelayService, CommunicationDelayService>();
 
             builder.Services.AddScoped<IAdminService, AdminService>();
 
             builder.Services.AddScoped<ObjectCreation>();
          
-           // builder.Services.AddHostedService<DelayWorker>();
+            builder.Services.AddHostedService<DelayWorker>();
 
             var app = builder.Build();
             
@@ -109,6 +113,7 @@ namespace gRPCStressTestingService
             app.MapGrpcService<AccountImplementation>();
             app.MapGrpcService<AuthTokenImplementation>();
             app.MapGrpcService<SessionImplementation>();
+            app.MapGrpcService<ClientInstanceImplementation>();
 
             // Configure the HTTP request pipeline.
             app.MapGrpcService<GreeterService>();

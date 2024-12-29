@@ -1,4 +1,5 @@
-﻿using DbManagerWorkerService.Interfaces;
+﻿using ConfigurationStuff.Interfaces.Repos;
+using DbManagerWorkerService.Interfaces;
 
 namespace DbManagerWorkerService
 {
@@ -16,6 +17,8 @@ namespace DbManagerWorkerService
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+
+            
             while(!stoppingToken.IsCancellationRequested)
             {
                 try
@@ -24,7 +27,7 @@ namespace DbManagerWorkerService
                     {
                           var communicationDelayService = scope.ServiceProvider.GetRequiredService<ICommunicationDelayService>();
 
-                          //await communicationDelayService.AddingDelayCalculationsToDb();
+                          await communicationDelayService.AddingDelayCalculationsToDb();
 
                           //await communicationDelayService.EmptyTable();
                     }
@@ -36,9 +39,9 @@ namespace DbManagerWorkerService
                 {
                     Console.WriteLine($"Error in db manager worker -> {ex.Message}");
                 }
-            }
+            }  
 
             
-        }
+        } 
     }
 }

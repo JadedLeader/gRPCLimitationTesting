@@ -15,6 +15,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DbManagerWorkerService", "D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClientManagementWorkerService", "ClientManagementWorker\ClientManagementWorkerService.csproj", "{1151CCF8-02B4-4B4C-91FA-0FC7C3755BF1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigurationStuff", "ConfigurationStuff\ConfigurationStuff.csproj", "{CAF9332A-1DE9-48F0-B586-B516B29E2DAA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{1151CCF8-02B4-4B4C-91FA-0FC7C3755BF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1151CCF8-02B4-4B4C-91FA-0FC7C3755BF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1151CCF8-02B4-4B4C-91FA-0FC7C3755BF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAF9332A-1DE9-48F0-B586-B516B29E2DAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAF9332A-1DE9-48F0-B586-B516B29E2DAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAF9332A-1DE9-48F0-B586-B516B29E2DAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAF9332A-1DE9-48F0-B586-B516B29E2DAA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

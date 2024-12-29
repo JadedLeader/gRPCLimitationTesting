@@ -61,5 +61,33 @@ namespace gRPCStressTestingService.Implementations
             return callingTokenRevoke;
         }
 
+        public override async Task<RevokeSessionResponse> RevokeSession(RevokeSessionRequest request, ServerCallContext context)
+        {
+            RevokeSessionResponse? revokeSession = await _adminService.RevokeSession(request, context);
+
+            if(revokeSession == null)
+            {
+                Log.Error($"The revoke session endpoint has failed");
+
+                throw new RpcException(new Status(StatusCode.Internal, $"Session could not be revoked, an error occurred within the admin service"));
+            }
+
+            return revokeSession;
+        }
+
+        public override async Task<RevokeClientInstanceResponse> RevokeClientInstances(RevokeClientInstanceRequest request, ServerCallContext context)
+        {
+            RevokeClientInstanceResponse revokeClientInstances = await _adminService.RevokeClientInstances(request, context);
+
+            if(revokeClientInstances == null)
+            {
+                Log.Error($"The revoke client instances endpoint has failed");
+
+                throw new RpcException(new Status(StatusCode.Internal, $"Client instances could not be revoked, an error occureed within the admin service")); 
+            }
+
+            return revokeClientInstances;
+        }
+
     }
 }

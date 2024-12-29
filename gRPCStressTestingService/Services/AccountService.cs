@@ -1,6 +1,4 @@
-﻿using DbManagerWorkerService.DbModels;
-using DbManagerWorkerService.Interfaces.DataContext;
-using DbManagerWorkerService.Interfaces.Repos;
+﻿using DbManagerWorkerService.Interfaces.DataContext;
 using DevOne.Security.Cryptography.BCrypt;
 using Grpc.Core;
 using gRPCStressTestingService.proto;
@@ -13,6 +11,8 @@ using gRPCStressTestingService.Interfaces;
 using gRPCStressTestingService.Interfaces.Services;
 using Microsoft.VisualBasic;
 using Serilog;
+using ConfigurationStuff.Interfaces.Repos;
+using ConfigurationStuff.DbModels;
 
 
 namespace gRPCStressTestingService.Services
@@ -74,6 +74,8 @@ namespace gRPCStressTestingService.Services
             };
 
             await _accountRepo.AddToDbAsync(newAccount);
+
+            await _accountRepo.SaveAsync();
 
             return serverResponse;
 
