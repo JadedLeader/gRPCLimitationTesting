@@ -43,5 +43,36 @@ namespace GrpcTestingLimitationsClient.Services
 
             }); 
         }
+
+        public async Task<RevokeSessionResponse> RevokeSession(Admin.AdminClient adminClient, string sessionUnique)
+        {
+            RevokeSessionResponse revokingSession = await adminClient.RevokeSessionAsync(new RevokeSessionRequest
+            {
+                SessionUnique = sessionUnique
+            });
+
+
+            return revokingSession;
+        }
+
+        public async Task<RevokeClientInstanceResponse>  RevokeClientInstance(Admin.AdminClient adminClient, string sessionUnique)
+        {
+            RevokeClientInstanceResponse revokeClientInstance = await adminClient.RevokeClientInstancesAsync(new RevokeClientInstanceRequest
+            {
+                SessionUnique = sessionUnique
+            });
+
+            return revokeClientInstance;
+        }
+
+        public async Task<RevokeTokenResponse> RevokeToken(Admin.AdminClient adminClient, string tokenUnique)
+        {
+            RevokeTokenResponse revokeToken = await adminClient.RevokeTokenAsync(new RevokeTokenRequest
+            {
+                TokenUnique = tokenUnique
+            });
+
+            return revokeToken;
+        }
     }
 }

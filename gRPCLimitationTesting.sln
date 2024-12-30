@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DbManagerWorkerService", "D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClientManagementWorkerService", "ClientManagementWorker\ClientManagementWorkerService.csproj", "{1151CCF8-02B4-4B4C-91FA-0FC7C3755BF1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConfigurationStuff", "ConfigurationStuff\ConfigurationStuff.csproj", "{CAF9332A-1DE9-48F0-B586-B516B29E2DAA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConfigurationStuff", "ConfigurationStuff\ConfigurationStuff.csproj", "{CAF9332A-1DE9-48F0-B586-B516B29E2DAA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -63,6 +63,7 @@ namespace DbManagerWorkerService.Services
                     DelayCalc transportingToDb = new DelayCalc
                     {
                         messageId = Guid.Parse(item.Key.MessageId),
+                        RequestType = item.Value.TypeOfData,
                         ClientUnique = Guid.Parse(item.Key.ClientId),
                         CommunicationType = item.Value.TypeOfData,
                         DataIterations = item.Value.LengthOfData,
