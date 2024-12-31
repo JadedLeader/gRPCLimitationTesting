@@ -102,7 +102,7 @@ namespace gRPCStressTestingService.Services
 
             string hashedPassword = userAccount.Password;
 
-            bool match = BCrypt.Net.BCrypt.EnhancedVerify(request.Username, hashedPassword);
+            bool match = BCrypt.Net.BCrypt.EnhancedVerify(request.Password, hashedPassword);
 
             if(!match)
             {
@@ -114,7 +114,8 @@ namespace gRPCStressTestingService.Services
             AccountLoginResponse serverResponse = new AccountLoginResponse()
             {
                 Username = request.Username,
-                State = true
+                State = true, 
+                Role = userAccount.Role,
             };
 
             Log.Information($"Account login successfull for user : {serverResponse.Username}");

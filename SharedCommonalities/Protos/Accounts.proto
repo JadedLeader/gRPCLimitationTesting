@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "gRPCStressTestingService.proto";
+option csharp_namespace = "SharedCommonalities";
 
 service Accounts
 { 
@@ -44,6 +44,5 @@ message AccountLoginResponse
 { 
 	string Username = 1;
 	bool State = 2;
-	string Role = 3;
 }
 

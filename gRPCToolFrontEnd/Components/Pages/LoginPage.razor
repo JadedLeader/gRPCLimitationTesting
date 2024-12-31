@@ -1,0 +1,79 @@
+﻿@page "/login"
+@using Serilog
+@using Grpc.Net.Client
+@using gRPCToolFrontEnd.Components.Layout
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@using gRPCToolFrontEnd.Services
+@inject AccountsService AccountService
+@inject NavigationManager NavManager
+
+<HeadContent>
+    <link href="/Style/LoginPage.css" rel="stylesheet"/>
+</HeadContent>
+
+<body class="MyCustomBody"</body>
+
+    <MudGrid Justify="Justify.Center" Spacing="4" >
+        <MudItem xs="12" sm="7">
+            <MudForm @ref="form" Class="MyMudForm">
+            <MudText Class="MyMudText">Login</MudText>
+
+                <!-- Corrected binding -->
+                <MudTextField font-style="Montserrat" @bind-value="@Username" Class="MyMudTextField" T="string" Label="Username" Required="true" RequiredError="User name is required!" HelperText="Input username above:" Margin="Margin.Dense"></MudTextField>
+                <MudTextField font-style="Montserrat" @bind-value="@Password" Class="MyMudTextField" T="string" Label="Password" HelperText="Input password above:" InputType="InputType.Password" Required="true" RequiredError="Password is required!" Margin="Margin.Dense"></MudTextField>
+
+                <MudLink Class="MyMudLink" Underline="Underline.Always">Forgotten Password?</MudLink>
+
+                <MudPaper Class="pa-4 mt-4">
+                    <MudButton Variant="Variant.Filled" DropShadow="false" @onclick="Redirect" Class="mx-2 MyRegisterMudButton">Register</MudButton>
+                    <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="CheckLogin">Login</MudButton>
+                </MudPaper>
+
+            </MudForm>
+        </MudItem>
+    </MudGrid>
+
+
+@code {
+    bool success;
+    string[] errors = { };
+    MudForm form;
+
+    private string Username;
+    private string Password;
+
+    private string ResponseMessage = string.Empty;
+
+    public async Task CheckLogin()
+    {
+        AccountLoginRequest request = new AccountLoginRequest
+        {
+            Username = Username,
+            Password = Password,
+        };
+
+        AccountLoginResponse serverResponse = await AccountService.LoginAsync(request);
+
+        Log.Information($"User logged in {serverResponse.Username} : {serverResponse.Role}");
+
+        if(serverResponse == null)
+        {
+            Log.Information($"The server did not respond to this request"); 
+        }
+
+        if(serverResponse.Role == "User")
+        {
+            NavManager.NavigateTo("/Home");
+        }
+    }
+
+    
+
+    public async Task Redirect()
+    {
+        NavManager.NavigateTo("/accountcreation");
+    }
+
+
+}

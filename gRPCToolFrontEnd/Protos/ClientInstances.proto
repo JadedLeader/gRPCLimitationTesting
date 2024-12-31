@@ -1,7 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "gRPCStressTestingService.proto";
-
+option csharp_namespace = "gRPCToolFrontEnd";
 
 service ClientInstances
 { 
@@ -30,3 +29,5 @@ message StreamClientInstanceResponse
 { 
 	bool state = 1;
 }
+
+

@@ -1,11 +1,11 @@
 ﻿global using GrpcTestingLimitationsClient.proto;
 using Grpc.Net.Client;
-using GrpcTestingLimitationsClient.proto;
 using SharedCommonalities.Interfaces.TimeStorage;
 using SharedCommonalities.TimeStorage;
 using GrpcTestingLimitationsClient.Services;
 using GrpcTestingLimitationsClient.Interfaces;
 using GrpcTestingLimitationsClient.Helpers;
+using SharedCommonalities;
 
 namespace GrpcTestingLimitationsClient
 {
@@ -68,9 +68,9 @@ namespace GrpcTestingLimitationsClient
 
             AccountService account = new AccountService();
 
-           // account.CreateAccount(accountClient, "jadedleader", "123");
+           // account.CreateAccount(accountClient, "jaded", "123");
 
-          //  account.AccountLogin(accountClient, "jadedleader", "123");
+           // await account.AccountLogin(accountClient, "jaded", "123");
 
             Console.WriteLine($"hello");
 

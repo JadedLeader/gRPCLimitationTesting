@@ -29,5 +29,10 @@ namespace gRPCStressTestingService.Implementations
             return createClientInstance;
         }
 
+        public override Task<CreateClientInstanceResponse> StreamClientInstances(IAsyncStreamReader<StreamClientInstanceRequest> requestStream, ServerCallContext context)
+        {
+            return base.StreamClientInstances(requestStream, context);
+        }
+
     }
 }

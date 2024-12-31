@@ -26,6 +26,7 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using ConfigurationStuff;
 using ConfigurationStuff.ServicesConfig;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 
 namespace gRPCStressTestingService
@@ -38,11 +39,19 @@ namespace gRPCStressTestingService
 
             builder.WebHost.ConfigureKestrel(serverOptions =>
             {
-                serverOptions.Listen(System.Net.IPAddress.Loopback, 5000);
+               
                 serverOptions.Limits.MaxRequestBodySize = int.MaxValue;
-                
+
+                serverOptions.Listen(System.Net.IPAddress.Loopback, 5000, listenOptions =>
+                {
+                    listenOptions.UseHttps(); 
+                    listenOptions.Protocols = HttpProtocols.Http2;
+                });
+
 
             });
+
+            builder.Services.AddGrpc();
 
             var jwtAssertions = builder.Configuration.GetSection("Tokens");
             var tokenKey = jwtAssertions["Key"];
@@ -76,7 +85,7 @@ namespace gRPCStressTestingService
             builder.Services.AddScoped<IUnaryService, UnaryService>();
             builder.Services.AddScoped<UnaryImplementation>();
             builder.Services.AddSingleton<DelayCalculations>(); 
-            builder.Services.AddHostedService<DbManagerWorker>();
+            //builder.Services.AddHostedService<DbManagerWorker>();
 
             builder.Services.AddSingleton<IClientManagementService, ClientManagementService>();
             //builder.Services.AddHostedService<ClientManagerWorker>();
@@ -102,7 +111,7 @@ namespace gRPCStressTestingService
 
             builder.Services.AddScoped<ObjectCreation>();
          
-            builder.Services.AddHostedService<DelayWorker>();
+           // builder.Services.AddHostedService<DelayWorker>();
 
             var app = builder.Build();
             

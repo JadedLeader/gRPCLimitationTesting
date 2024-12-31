@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClientManagementWorkerServi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConfigurationStuff", "ConfigurationStuff\ConfigurationStuff.csproj", "{CAF9332A-1DE9-48F0-B586-B516B29E2DAA}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "gRPCToolFrontEnd", "gRPCToolFrontEnd\gRPCToolFrontEnd.csproj", "{14C2CE7B-BDDF-491D-9521-0F1E642721E8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{CAF9332A-1DE9-48F0-B586-B516B29E2DAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CAF9332A-1DE9-48F0-B586-B516B29E2DAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CAF9332A-1DE9-48F0-B586-B516B29E2DAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14C2CE7B-BDDF-491D-9521-0F1E642721E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14C2CE7B-BDDF-491D-9521-0F1E642721E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14C2CE7B-BDDF-491D-9521-0F1E642721E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14C2CE7B-BDDF-491D-9521-0F1E642721E8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

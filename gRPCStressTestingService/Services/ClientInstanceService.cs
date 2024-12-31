@@ -101,5 +101,10 @@ namespace gRPCStressTestingService.Services
              
         }
 
+        public async Task<CreateClientInstanceResponse> StreamClientInstances(IAsyncStreamReader<StreamClientInstanceRequest> requestStream, ServerCallContext context)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }

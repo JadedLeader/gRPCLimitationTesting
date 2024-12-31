@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "GrpcTestingLimitationsClient";
+option csharp_namespace = "gRPCToolFrontEnd";
 
 service Accounts
 { 
@@ -44,5 +44,6 @@ message AccountLoginResponse
 { 
 	string Username = 1;
 	bool State = 2;
+	string Role = 3;
 }
 

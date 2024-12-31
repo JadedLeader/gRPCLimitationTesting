@@ -1,0 +1,44 @@
+﻿@using gRPCToolFrontEnd.Components.Layout
+@using gRPCToolFrontEnd.Services
+@page "/"
+@layout MainLayout
+@inject ClientInstanceService ClientInstanceService
+
+
+<HeadContent>
+    <link href="/Style/LoginPage.css" rel="stylesheet" />
+    <link href="/Style/ConfigurationPage.css" rel="stylesheet" />
+</HeadContent>
+
+<body class="MyCustomBody"></body>
+
+<MudGrid Justify="Justify.Center" Spacing="4">
+    <MudItem xs="12" sm="7">
+        <MudForm @ref="form" Class="MyMudForm">
+            
+            <!-- Corrected binding -->
+            <MudTextField font-style="Montserrat" @bind-value="@AmountOfClients"  Class="MyMudTextField" T="int" Label="Client number" Required="true" RequiredError="A client number is required!" HelperText="Input amount of client above:" Margin="Margin.Dense"></MudTextField>
+
+            <MudPaper Class="pa-4 mt-4">
+                <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@GenerateClients">Apply Configuration Settings</MudButton>
+            </MudPaper>
+
+        </MudForm>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+
+    //essentially what we're going to want on this page is for the user to be able to generate as many clients as he wants
+    //stores them in a DS locally which we can then call to populate the database with the clients that are created
+
+    MudForm form;
+
+    private int AmountOfClients; 
+
+    private async Task GenerateClients()
+    {
+        await ClientInstanceService.GeneratingClientInstances(AmountOfClients);
+    }
+}

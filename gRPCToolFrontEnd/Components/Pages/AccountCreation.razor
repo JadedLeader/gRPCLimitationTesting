@@ -1,0 +1,61 @@
+﻿@using gRPCToolFrontEnd.Services
+@page "/accountcreation"
+@inject NavigationManager NavManager
+@inject AccountsService AccountService
+
+<HeadContent>
+    <link href="/Style/LoginPage.css" rel="stylesheet" />
+</HeadContent>
+
+<MudGrid Justify="Justify.Center" Spacing="4">
+    <MudItem xs="12" sm="7">
+        <MudForm @ref="form" Class="MyMudForm">
+            <MudText Class="MyMudText">Account Creation</MudText>
+
+            <!-- Corrected binding -->
+            <MudTextField @bind-Value="@Username"  Class="MyMudTextField" T="string" Label="Username" Required="true" RequiredError="User name is required!" HelperText="Input desired username above" Margin="Margin.Dense"></MudTextField>
+            <MudTextField @bind-Value="@Password"  Class="MyMudTextField" T="string" Label="Password" HelperText="Input desired password above:" InputType="InputType.Password" Required="true" RequiredError="Password is required!" Margin="Margin.Dense"></MudTextField>
+
+
+            <MudPaper Class="pa-4 mt-4">
+                <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" @onclick="@RedirectToLoginPage" DropShadow="false">Login</MudButton>
+                <MudButton Variant="Variant.Filled" DropShadow="false" Class="mx-2 MyRegisterMudButton" @onclick="@CreateAccount">Create Account</MudButton>
+            </MudPaper>
+
+        </MudForm>
+    </MudItem>
+</MudGrid>
+
+
+<body class="MyCustomBody"></body>
+
+@code {
+    private string Username;
+
+    private string Password; 
+
+    MudForm form;
+
+    private async Task RedirectToLoginPage()
+    {
+        NavManager.NavigateTo("/");
+    }
+
+    private async Task CreateAccount()
+    {
+
+        CreateAccountRequest accountRequest = new CreateAccountRequest
+        {
+            Username = Username, 
+            Password = Password
+        };
+
+        CreateAccountResponse createAccountResponse = await AccountService.CreateAccount(accountRequest);
+
+        if(createAccountResponse.Username != null)
+        {
+            NavManager.NavigateTo("/");
+        }
+    }
+
+}
