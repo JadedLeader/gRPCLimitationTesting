@@ -50,6 +50,7 @@ namespace ConfigurationStuff.DbContexts
                    .HasForeignKey<Session>(s => s.AccountUnique); */
 
             clientInstance.Property(a => a.ClientUnique).ValueGeneratedNever();
+            clientInstance.Property(a => a.SessionUnique).ValueGeneratedNever();
 
 
             //key 

@@ -104,11 +104,18 @@ namespace gRPCStressTestingService.Services
         public async Task<StreamClientInstanceResponse> StreamClientInstances(IAsyncStreamReader<StreamClientInstanceRequest> requestStream, ServerCallContext context)
         {
 
+            List<ClientInstance> clientInstancesList = new List<ClientInstance>();
+
             string? sessionUnique = context.RequestHeaders.GetValue("session-unique");
 
             if(sessionUnique == null)
             {
                 Log.Warning($"No session unique was passed in the metadata when creating client instances");
+            }
+
+            if(requestStream.ReadAllAsync() == null)
+            {
+                Log.Warning($"Nothing received in the request stream on the server side");
             }
 
             StreamClientInstanceResponse serverResponse = new StreamClientInstanceResponse
@@ -126,13 +133,88 @@ namespace gRPCStressTestingService.Services
                     DelayCalcs = null
                 };
 
-                await _clientInstanceRepo.AddToDbAsync(clientInstance);
+                Log.Information($"Received message with GUID {message.ClientUnique}");
 
-                await _clientInstanceRepo.SaveAsync();
+                clientInstancesList.Add(clientInstance);
+            }
+
+            await _clientInstanceRepo.AddBatchToDbAsync(clientInstancesList);
+
+            await _clientInstanceRepo.SaveAsync();
+
+            return serverResponse;
+        }
+
+        public async Task<ClearClientInstancesResponse> StreamClientClears(IAsyncStreamReader<ClearClientInstancesRequest> requestStream, ServerCallContext context)
+        {
+            List<ClientInstance> clientInstancesToRemove = new List<ClientInstance>();
+
+            string? sessionUnique = context.RequestHeaders.GetValue("session-unique");
+
+            if(sessionUnique == null)
+            {
+                Log.Warning($"Session unique is null on the stream client clears");
             }
 
 
+            ClearClientInstancesResponse serverResponse = new ClearClientInstancesResponse
+            {
+                SessionUnique = sessionUnique,
+                InstancesCleared = 0,
+                ResponseState = true
+            };
+
+            await foreach (ClearClientInstancesRequest instanceClear in requestStream.ReadAllAsync())
+            {
+
+                ClientInstance newClientInstance = new ClientInstance
+                {
+                    ClientUnique = Guid.Empty,
+                    DelayCalcs = null,
+                    SessionUnique = null
+                };
+
+                serverResponse.InstancesCleared += 1;
+
+                clientInstancesToRemove.Add(newClientInstance);
+
+            }
+
+            await _clientInstanceRepo.RemoveRange(clientInstancesToRemove);
+
+            await _clientInstanceRepo.SaveAsync();
+
             return serverResponse;
+
+        }
+
+        public async Task GetClientInstances(GetClientInstancesFromSessionUniqueRequest request, IServerStreamWriter<GetClientInstancesFromSessionUniqueResponse> responseStream, ServerCallContext context)
+        {
+
+            List<ClientInstance> clientInstances = await _clientInstanceRepo.GetClientInstancesViaSessionId(Guid.Parse(request.SessionUnique));
+
+            if(clientInstances.Count == 0)
+            {
+                Log.Warning($"No client instances can be found");
+            }
+
+            foreach (ClientInstance client in clientInstances)
+            {
+                GetClientInstancesFromSessionUniqueResponse newResponse = new GetClientInstancesFromSessionUniqueResponse
+                {
+                    SessionUnique = client.SessionUnique.ToString(),
+                    ClientUnique = client.ClientUnique.ToString(),
+                };
+
+                Log.Information($"Found client instance {client.SessionUnique}");
+
+                await responseStream.WriteAsync(newResponse);
+
+                await _clientInstanceRepo.RemoveFromDbAsync(client);
+                
+            }
+
+            await _clientInstanceRepo.SaveAsync();
         }
 
     }

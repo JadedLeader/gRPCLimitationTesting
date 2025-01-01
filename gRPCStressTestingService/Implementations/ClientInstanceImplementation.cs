@@ -43,5 +43,24 @@ namespace gRPCStressTestingService.Implementations
             return streamCreateClientInstance;
         }
 
+        public override async Task<ClearClientInstancesResponse> StreamClientClears(IAsyncStreamReader<ClearClientInstancesRequest> requestStream, ServerCallContext context)
+        {
+            ClearClientInstancesResponse streamClearClientInstances = await _clientInstanceService.StreamClientClears(requestStream, context);
+
+            if(streamClearClientInstances == null)
+            {
+                Log.Error($"Something went wrong when clearing client instances");
+
+                throw new RpcException(new Status(StatusCode.Internal, $"Could not stream clear client instances"));
+            }
+
+            return streamClearClientInstances;
+        }
+
+        public override async Task GetClientInstances(GetClientInstancesFromSessionUniqueRequest request, IServerStreamWriter<GetClientInstancesFromSessionUniqueResponse> responseStream, ServerCallContext context)
+        {
+             await _clientInstanceService.GetClientInstances(request, responseStream, context);
+        }
+
     }
 }

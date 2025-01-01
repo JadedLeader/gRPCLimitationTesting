@@ -1,8 +1,10 @@
 ﻿@using gRPCToolFrontEnd.Components.Layout
 @using gRPCToolFrontEnd.Services
+@using Serilog
 @page "/Configuration"
 @layout MainLayout
 @inject ClientInstanceService ClientInstanceService
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
 
 <HeadContent>
@@ -21,6 +23,7 @@
 
             <MudPaper Class="pa-4 mt-4">
                 <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@GenerateClients">Apply Configuration Settings</MudButton>
+                <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@ClearClientInstances">Clear Client Instances</MudButton>
             </MudPaper>
 
         </MudForm>
@@ -37,15 +40,74 @@
 
     private int AmountOfClients; 
 
+    private List<Guid> ClientList = new List<Guid>();
+
+    private List<Guid> ClientListFromDb = new List<Guid>();
+
     private async Task GenerateClients()
     {
-        await ClientInstanceService.GeneratingClientInstances(AmountOfClients);
+        await GeneratingClientInstances();
+
+        await SendClientsToBackend();
+    }
+
+
+    private async Task ClearClientInstances()
+    {
+        string sessionUnique = await GetStringFromStringFromLocalStorage("session-unique");
+
+        ClientListFromDb.Clear();
+
+        GetClientInstancesFromSessionUniqueRequest request = new GetClientInstancesFromSessionUniqueRequest
+            {
+                SessionUnique = sessionUnique
+            };
+
+        await ClientInstanceService.GetClientInstancesViaSessionUnique(request, ClientListFromDb);
+
+        //we need to create an API call that gets all the sessions based off a session unique
+        await ClientInstanceService.ClearingClientInstancesStreamedAsync(sessionUnique, ClientListFromDb);
+    }
+
+    private async Task GeneratingClientInstances()
+    {
+        int i = 0;
+
+        while (i < AmountOfClients)
+        {
+            ClientList.Add(Guid.NewGuid());
+
+            Log.Information($"amount of things in client list {i}");
+
+            i++;
+        }
+
+        foreach(var thing in ClientList)
+        {
+            Log.Information($"This is inside the client list {thing}");
+        }
     }
 
     private async Task SendClientsToBackend()
     {
+        string username = await GetStringFromStringFromLocalStorage("username");
 
-        throw new NotImplementedException();
-       // await ClientInstanceService.CreatingClientInstancesStreamedAsync()
+        string sessionUnique = await GetStringFromStringFromLocalStorage("session-unique");
+
+        string accountUnique = await GetStringFromStringFromLocalStorage("account-unique");
+
+        await ClientInstanceService.CreatingClientInstancesStreamedAsync(sessionUnique, accountUnique, ClientList);
+    }
+
+    private async Task<string> GetStringFromStringFromLocalStorage(string storagekey)
+    {
+        string? localStorageUsername = await LocalStorage.GetItemAsync<string>(storagekey);
+
+        if(string.IsNullOrEmpty(localStorageUsername))
+        {
+            Log.Information($"key {storagekey} cannot be found in the local storage");
+        }
+
+        return localStorageUsername;
     }
 }

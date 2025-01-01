@@ -6,6 +6,8 @@ service ClientInstances
 { 
 	rpc CreateClientInstance(CreateClientInstanceRequest) returns (CreateClientInstanceResponse);
 	rpc StreamClientInstances(stream StreamClientInstanceRequest) returns (StreamClientInstanceResponse);
+	rpc StreamClientClears(stream ClearClientInstancesRequest) returns (ClearClientInstancesResponse); 
+	rpc GetClientInstances(GetClientInstancesFromSessionUniqueRequest) returns (stream GetClientInstancesFromSessionUniqueResponse);
 }
 
 message CreateClientInstanceRequest
@@ -30,4 +32,28 @@ message StreamClientInstanceResponse
 	bool state = 1;
 }
 
+
+message ClearClientInstancesRequest
+{ 
+	string SessionUnique = 1;
+	string ClientUnique = 2;
+}
+
+message ClearClientInstancesResponse
+{ 
+	string SessionUnique = 1; 
+	bool ResponseState = 2; 
+	int32 InstancesCleared = 3;
+}
+
+message GetClientInstancesFromSessionUniqueRequest
+{ 
+	string SessionUnique = 1;
+}
+
+message GetClientInstancesFromSessionUniqueResponse
+{ 
+	string ClientUnique = 1; 
+	string SessionUnique = 2;
+}
 

@@ -1,5 +1,7 @@
 ﻿using Grpc.Core;
 using Grpc.Net.Client;
+using Serilog;
+using System.Runtime.InteropServices;
 
 namespace gRPCToolFrontEnd.Services
 {
@@ -7,7 +9,6 @@ namespace gRPCToolFrontEnd.Services
     {
         private readonly ClientInstances.ClientInstancesClient _clientInstanceClient;
 
-        private List<Guid> ClientList = new List<Guid>();
         public ClientInstanceService(ClientInstances.ClientInstancesClient clientInstancesClient)
         {
             _clientInstanceClient = clientInstancesClient;
@@ -18,53 +19,89 @@ namespace gRPCToolFrontEnd.Services
             return await _clientInstanceClient.CreateClientInstanceAsync(clientInstanceRequest);
         }
 
-        public async Task<StreamClientInstanceResponse> CreatingClientInstancesStreamedAsync(string sessionUnique, string clientUnique, List<Guid> clientList)
+        public async Task GetClientInstancesViaSessionUnique(GetClientInstancesFromSessionUniqueRequest getClientInstanceRequest, List<Guid> clientInstanceFromDb)
         {
-            using(var call = _clientInstanceClient.StreamClientInstances())
+            using(var call = _clientInstanceClient.GetClientInstances(getClientInstanceRequest))
             {
-                var metadata = new Metadata();
-
-                metadata.Add("session-unique", sessionUnique);
-
-                await call.RequestStream.WriteAsync(new StreamClientInstanceRequest 
-                { 
-                    ClientUnique = clientUnique 
-                });
-
-                foreach(Guid message in clientList)
+                await foreach(var response in call.ResponseStream.ReadAllAsync())
                 {
-                    var request = new StreamClientInstanceRequest
+                    clientInstanceFromDb.Add(Guid.Parse(response.ClientUnique));
+
+                    Log.Information($"Client instance has received Client instance {response.ClientUnique}");
+                }
+            }
+        }
+
+        public async Task<ClearClientInstancesResponse> ClearingClientInstancesStreamedAsync(string sessionUnique, List<Guid> clientsToClear)
+        {
+
+           var metadata = new Metadata();
+
+            metadata.Add("session-unique", sessionUnique);
+
+            using(var call = _clientInstanceClient.StreamClientClears(new CallOptions(metadata)))
+            {
+                foreach(Guid client in clientsToClear)
+                {
+                    var request = new ClearClientInstancesRequest
                     {
-                        ClientUnique = message.ToString()
+                        SessionUnique = sessionUnique,
+                        ClientUnique = client.ToString()
                     };
+
+                    Log.Information($"Sending client instance with ID {client} to be deleted");
 
                     await call.RequestStream.WriteAsync(request);
                 }
 
                 await call.RequestStream.CompleteAsync();
 
-                StreamClientInstanceResponse response = await call.ResponseAsync;
+                ClearClientInstancesResponse response = await call.ResponseAsync;
 
                 return response;
 
-            }
-
-       
+            } 
         }
 
-        public async Task GeneratingClientInstances(int numberOfClientInstances)
+        public async Task<StreamClientInstanceResponse> CreatingClientInstancesStreamedAsync(string sessionUnique, string clientUnique, List<Guid> clientList)
         {
-            int i = 0; 
 
-            while(numberOfClientInstances < i)
+            try
             {
-                ClientList.Add(Guid.NewGuid());
-            }
-        }
+                var metadata = new Metadata();
 
-        public async Task<List<Guid>> GetClientList()
-        {
-            return ClientList;
+                metadata.Add("session-unique", sessionUnique);
+
+                using (var call = _clientInstanceClient.StreamClientInstances(new CallOptions(metadata)))
+                {
+                   
+                    foreach (Guid message in clientList)
+                    {
+                        var request = new StreamClientInstanceRequest
+                        {
+                            ClientUnique = message.ToString()
+                        };
+
+                        Log.Information($"sending message over with GUID: {message}");
+
+                        await call.RequestStream.WriteAsync(request);
+                    }
+
+                    await call.RequestStream.CompleteAsync();
+
+                    StreamClientInstanceResponse response = await call.ResponseAsync;
+
+                    return response;
+
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"exception thrown: {ex.Message}");
+            }
+
+            return null;
+       
         }
 
     }

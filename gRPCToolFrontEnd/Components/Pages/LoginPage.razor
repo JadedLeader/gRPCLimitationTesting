@@ -5,10 +5,12 @@
 @using System.Text.RegularExpressions
 @using System.ComponentModel.DataAnnotations
 @using gRPCToolFrontEnd.Services
+@using gRPCToolFrontEnd.LocalStorage
 @inject AccountsService AccountService
 @inject SessionService SessionService
 @inject AuthTokenService AuthTokenService
 @inject NavigationManager NavManager
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 
 <HeadContent>
     <link href="/Style/LoginPage.css" rel="stylesheet"/>
@@ -38,7 +40,7 @@
 
 
 @code {
-    
+
     MudForm form;
 
     private string Username;
@@ -53,7 +55,7 @@
         await CheckLogin();
     }
 
-    private async Task CheckLogin()
+    private async Task<string> CheckLogin()
     {
         AccountLoginRequest request = new AccountLoginRequest
         {
@@ -74,9 +76,14 @@
         {
             NavManager.NavigateTo("/Home");
         }
+
+        await LocalStorage.SetItemAsync("username", serverResponse.Username);
+        await LocalStorage.SetItemAsync("account-unique", serverResponse.AccountUnique);
+
+        return request.Username;
     }
 
-    private async Task CreateSession()
+    private async Task<string> CreateSession()
     {
         CreateSessionRequest createSession = new CreateSessionRequest
         {
@@ -85,10 +92,15 @@
 
         CreateSessionResponse serverResponse = await SessionService.CreateSessionAsync(createSession); 
 
-        Log.Information($"Server has created a session with ID: {serverResponse.SessionUnique}"); 
+        Log.Information($"Server has created a session with ID: {serverResponse.SessionUnique}");
+
+        await LocalStorage.SetItemAsync("session-unique", serverResponse.SessionUnique);
+        
+
+        return serverResponse.SessionUnique;
     }
 
-    private async Task CreateAuthenticationToken()
+    private async Task<string> CreateAuthenticationToken()
     {
         GenerateAuthTokenRequest createAuthToken = new GenerateAuthTokenRequest
         {
@@ -103,6 +115,10 @@
         {
             Log.Information($"The server returned no response");
         }
+
+        await LocalStorage.SetItemAsync("auth-token", serverResponse.Token);
+
+        return serverResponse.Token;
 
     }
 

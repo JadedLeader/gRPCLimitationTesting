@@ -60,11 +60,17 @@ namespace gRPCStressTestingService.Services
 
             if (getAccountViaUsername.Session != null)
             {
+
+                serverResponse.SessionUnique = getAccountViaUsername.Session.SessionUnique.ToString();
+
                 getAccountViaUsername.Session.SessionCreated = DateTime.Now.ToString();
                 getAccountViaUsername.TimeOfLogin = DateTime.Now.ToString();
 
                 await _accountRepo.UpdateDbAsync(getAccountViaUsername);
                 await _sessionRepo.UpdateDbAsync(getAccountViaUsername.Session);
+
+                await _accountRepo.SaveAsync();
+                await _sessionRepo.SaveAsync();
 
             }
 
@@ -76,11 +82,10 @@ namespace gRPCStressTestingService.Services
                 getAccountViaUsername.Session = newSession;
 
                 await _accountRepo.UpdateDbAsync(getAccountViaUsername);
+
+                await _sessionRepo.SaveAsync();
+                await _accountRepo.SaveAsync();
             }
-
-            
-
-            await _accountRepo.SaveAsync();
 
             return serverResponse;
 

@@ -1,5 +1,7 @@
+using Blazored.LocalStorage;
 using Grpc.Net.Client;
 using gRPCToolFrontEnd.Components;
+using gRPCToolFrontEnd.LocalStorage;
 using gRPCToolFrontEnd.Services;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using MudBlazor.Services;
@@ -24,6 +26,8 @@ namespace gRPCToolFrontEnd
 
             // Add MudBlazor services
             builder.Services.AddMudServices();
+
+            builder.Services.AddBlazoredLocalStorage();
 
             // Add services to the container.
             builder.Services.AddRazorComponents()
@@ -63,6 +67,8 @@ namespace gRPCToolFrontEnd
             });
 
             builder.Services.AddScoped<AuthTokenService>();
+
+            
 
             var app = builder.Build();
 
