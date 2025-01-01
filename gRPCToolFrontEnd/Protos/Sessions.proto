@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option csharp_namespace = "gRPCToolFrontEnd";
+
+service Sessions
+{ 
+	rpc CreateSession(CreateSessionRequest) returns (CreateSessionResponse);
+	
+}
+
+message CreateSessionRequest
+{ 
+	string Username = 1;
+}
+
+message CreateSessionResponse
+{ 
+	string SessionUnique = 1; 
+	string Username = 2; 
+	string TimeOfSessionCreation = 3;
+}
+

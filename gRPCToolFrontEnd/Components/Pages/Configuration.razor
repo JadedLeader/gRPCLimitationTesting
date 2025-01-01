@@ -1,6 +1,6 @@
 ﻿@using gRPCToolFrontEnd.Components.Layout
 @using gRPCToolFrontEnd.Services
-@page "/"
+@page "/Configuration"
 @layout MainLayout
 @inject ClientInstanceService ClientInstanceService
 
@@ -40,5 +40,12 @@
     private async Task GenerateClients()
     {
         await ClientInstanceService.GeneratingClientInstances(AmountOfClients);
+    }
+
+    private async Task SendClientsToBackend()
+    {
+
+        throw new NotImplementedException();
+       // await ClientInstanceService.CreatingClientInstancesStreamedAsync()
     }
 }

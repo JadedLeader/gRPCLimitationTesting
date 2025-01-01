@@ -11,7 +11,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Protos\AuthTokens.proto" />
     <None Remove="Protos\ClientInstances.proto" />
+    <None Remove="Protos\Sessions.proto" />
   </ItemGroup>
 
 
@@ -37,6 +39,8 @@
 
 	<ItemGroup>
 		<Protobuf Include="Protos\Accounts.proto" GrpcServices="Client" />
+		<Protobuf Include="Protos\AuthTokens.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\ClientInstances.proto" GrpcServices="Client" />
+		<Protobuf Include="Protos\Sessions.proto" GrpcServices="Client " />
 	</ItemGroup>
 </Project>

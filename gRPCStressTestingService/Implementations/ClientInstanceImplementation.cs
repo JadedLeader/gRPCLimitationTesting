@@ -29,9 +29,18 @@ namespace gRPCStressTestingService.Implementations
             return createClientInstance;
         }
 
-        public override Task<CreateClientInstanceResponse> StreamClientInstances(IAsyncStreamReader<StreamClientInstanceRequest> requestStream, ServerCallContext context)
+        public override async Task<StreamClientInstanceResponse> StreamClientInstances(IAsyncStreamReader<StreamClientInstanceRequest> requestStream, ServerCallContext context)
         {
-            return base.StreamClientInstances(requestStream, context);
+            StreamClientInstanceResponse streamCreateClientInstance = await _clientInstanceService.StreamClientInstances(requestStream, context);
+
+            if (streamCreateClientInstance == null)
+            {
+                Log.Error($"Something went wrong when creating a streamed client instance");
+
+                throw new RpcException(new Status(StatusCode.Internal, $"could not create streamed client instances"));
+            }
+
+            return streamCreateClientInstance;
         }
 
     }

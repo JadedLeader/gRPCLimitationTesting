@@ -101,9 +101,38 @@ namespace gRPCStressTestingService.Services
              
         }
 
-        public async Task<CreateClientInstanceResponse> StreamClientInstances(IAsyncStreamReader<StreamClientInstanceRequest> requestStream, ServerCallContext context)
+        public async Task<StreamClientInstanceResponse> StreamClientInstances(IAsyncStreamReader<StreamClientInstanceRequest> requestStream, ServerCallContext context)
         {
-            throw new NotImplementedException();
+
+            string? sessionUnique = context.RequestHeaders.GetValue("session-unique");
+
+            if(sessionUnique == null)
+            {
+                Log.Warning($"No session unique was passed in the metadata when creating client instances");
+            }
+
+            StreamClientInstanceResponse serverResponse = new StreamClientInstanceResponse
+            {
+                State = true
+            }; 
+
+            await foreach(var message in requestStream.ReadAllAsync())
+            {
+
+                ClientInstance clientInstance = new ClientInstance
+                {
+                    SessionUnique = Guid.Parse(sessionUnique),
+                    ClientUnique = Guid.Parse(message.ClientUnique),
+                    DelayCalcs = null
+                };
+
+                await _clientInstanceRepo.AddToDbAsync(clientInstance);
+
+                await _clientInstanceRepo.SaveAsync();
+            }
+
+
+            return serverResponse;
         }
 
     }

@@ -8,5 +8,7 @@ namespace gRPCStressTestingService.Interfaces.Services
 
         public Task<CreateClientInstanceResponse> CreateClientInstance(CreateClientInstanceRequest request, ServerCallContext context);
 
+        public Task<StreamClientInstanceResponse> StreamClientInstances(IAsyncStreamReader<StreamClientInstanceRequest> requestStream, ServerCallContext context);
+
     }
 }

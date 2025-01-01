@@ -1,4 +1,5 @@
-﻿using Grpc.Net.Client;
+﻿using Grpc.Core;
+using Grpc.Net.Client;
 
 namespace gRPCToolFrontEnd.Services
 {
@@ -15,6 +16,40 @@ namespace gRPCToolFrontEnd.Services
         public async Task<CreateClientInstanceResponse> CreateClientInstanceAsync(CreateClientInstanceRequest clientInstanceRequest)
         {
             return await _clientInstanceClient.CreateClientInstanceAsync(clientInstanceRequest);
+        }
+
+        public async Task<StreamClientInstanceResponse> CreatingClientInstancesStreamedAsync(string sessionUnique, string clientUnique, List<Guid> clientList)
+        {
+            using(var call = _clientInstanceClient.StreamClientInstances())
+            {
+                var metadata = new Metadata();
+
+                metadata.Add("session-unique", sessionUnique);
+
+                await call.RequestStream.WriteAsync(new StreamClientInstanceRequest 
+                { 
+                    ClientUnique = clientUnique 
+                });
+
+                foreach(Guid message in clientList)
+                {
+                    var request = new StreamClientInstanceRequest
+                    {
+                        ClientUnique = message.ToString()
+                    };
+
+                    await call.RequestStream.WriteAsync(request);
+                }
+
+                await call.RequestStream.CompleteAsync();
+
+                StreamClientInstanceResponse response = await call.ResponseAsync;
+
+                return response;
+
+            }
+
+       
         }
 
         public async Task GeneratingClientInstances(int numberOfClientInstances)

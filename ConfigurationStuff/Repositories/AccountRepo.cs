@@ -75,7 +75,9 @@ namespace ConfigurationStuff.Repositories
 
         public async Task<Account> GetAccountViaUsername(string username)
         {
-            Account? accountViaUsername = await _dataContext.Account.FirstOrDefaultAsync(u => u.Username == username);
+            Account? accountViaUsername = await _dataContext.Account
+                .Include(s => s.Session)
+                .FirstOrDefaultAsync(u => u.Username == username);
 
             if(accountViaUsername == null)
             {

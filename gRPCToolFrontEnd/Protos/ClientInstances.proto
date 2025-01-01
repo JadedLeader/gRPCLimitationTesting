@@ -5,7 +5,7 @@ option csharp_namespace = "gRPCToolFrontEnd";
 service ClientInstances
 { 
 	rpc CreateClientInstance(CreateClientInstanceRequest) returns (CreateClientInstanceResponse);
-	rpc StreamClientInstances(stream StreamClientInstanceRequest) returns (CreateClientInstanceResponse);
+	rpc StreamClientInstances(stream StreamClientInstanceRequest) returns (StreamClientInstanceResponse);
 }
 
 message CreateClientInstanceRequest

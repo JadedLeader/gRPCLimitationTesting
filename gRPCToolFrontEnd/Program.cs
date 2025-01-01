@@ -50,6 +50,20 @@ namespace gRPCToolFrontEnd
 
             builder.Services.AddScoped<ClientInstanceService>();
 
+            builder.Services.AddGrpcClient<Sessions.SessionsClient>(o =>
+            {
+                o.Address = new Uri("https://localhost:5000");
+            });
+
+            builder.Services.AddScoped<SessionService>();
+
+            builder.Services.AddGrpcClient<AuthTokens.AuthTokensClient>(o =>
+            {
+                o.Address = new Uri("https://localhost:5000");
+            });
+
+            builder.Services.AddScoped<AuthTokenService>();
+
             var app = builder.Build();
 
             Console.WriteLine("APP HAS BEEN BUILT");

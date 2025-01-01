@@ -1,4 +1,4 @@
-﻿@page "/login"
+﻿@page "/"
 @using Serilog
 @using Grpc.Net.Client
 @using gRPCToolFrontEnd.Components.Layout
@@ -6,6 +6,8 @@
 @using System.ComponentModel.DataAnnotations
 @using gRPCToolFrontEnd.Services
 @inject AccountsService AccountService
+@inject SessionService SessionService
+@inject AuthTokenService AuthTokenService
 @inject NavigationManager NavManager
 
 <HeadContent>
@@ -27,7 +29,7 @@
 
                 <MudPaper Class="pa-4 mt-4">
                     <MudButton Variant="Variant.Filled" DropShadow="false" @onclick="Redirect" Class="mx-2 MyRegisterMudButton">Register</MudButton>
-                    <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="CheckLogin">Login</MudButton>
+                    <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="Login">Login</MudButton>
                 </MudPaper>
 
             </MudForm>
@@ -36,8 +38,7 @@
 
 
 @code {
-    bool success;
-    string[] errors = { };
+    
     MudForm form;
 
     private string Username;
@@ -45,7 +46,14 @@
 
     private string ResponseMessage = string.Empty;
 
-    public async Task CheckLogin()
+    private async Task Login()
+    {
+        await CreateSession();
+        await CreateAuthenticationToken();
+        await CheckLogin();
+    }
+
+    private async Task CheckLogin()
     {
         AccountLoginRequest request = new AccountLoginRequest
         {
@@ -68,7 +76,35 @@
         }
     }
 
-    
+    private async Task CreateSession()
+    {
+        CreateSessionRequest createSession = new CreateSessionRequest
+        {
+            Username = Username,
+        }; 
+
+        CreateSessionResponse serverResponse = await SessionService.CreateSessionAsync(createSession); 
+
+        Log.Information($"Server has created a session with ID: {serverResponse.SessionUnique}"); 
+    }
+
+    private async Task CreateAuthenticationToken()
+    {
+        GenerateAuthTokenRequest createAuthToken = new GenerateAuthTokenRequest
+        {
+            Username = Username
+        }; 
+
+        GenerateAuthTokenResponse serverResponse = await AuthTokenService.GenerateAuthTokenAsync(createAuthToken);
+
+        Log.Information($"Server has generated the JWT: {serverResponse.Token}");
+
+        if(serverResponse == null)
+        {
+            Log.Information($"The server returned no response");
+        }
+
+    }
 
     public async Task Redirect()
     {

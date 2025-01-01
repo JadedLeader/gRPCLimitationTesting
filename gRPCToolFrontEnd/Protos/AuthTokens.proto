@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option csharp_namespace = "gRPCToolFrontEnd";
+
+service AuthTokens
+{ 
+	rpc GenerateToken (GenerateAuthTokenRequest) returns (GenerateAuthTokenResponse);
+	
+}
+
+message GenerateAuthTokenRequest
+{ 
+
+	string Username = 1;
+
+}
+
+message GenerateAuthTokenResponse
+{ 
+	string Token = 1; 
+	string TokenCreationTime = 2;
+}
+
