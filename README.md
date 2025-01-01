@@ -28,6 +28,7 @@
 - Worker services
 - Blazor server app
 - MudBlazor
+- Blazored local storage
 
 ## Installation Guide:
 
