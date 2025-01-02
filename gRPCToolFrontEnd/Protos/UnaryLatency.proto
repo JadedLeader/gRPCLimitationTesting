@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+option csharp_namespace = "gRPCToolFrontEnd";
+
+
+service Unary { 
+
+	rpc UnaryResponse (DataRequest) returns (DataResponse);
+
+	rpc BatchUnaryResponse(BatchDataRequest) returns (BatchDataResponse);
+
+}
+
+message DataRequest
+{ 
+	string ClientUnique = 1;
+	string RequestId = 2;
+	string RequestType = 3; 
+	string RequestTimestamp = 4; 
+	string DataContent = 5;
+	string DataSize = 6;
+	bool ConnectionAlive = 7;
+}
+
+message DataResponse
+{ 
+	string ClientUnique = 1;
+	string RequestId = 2; 
+	string RequestType = 3;
+    bool ConnectionAlive = 4;
+	string ResponseTimestamp = 5;
+	
+}
+
+message BatchDataRequest
+{ 
+
+	repeated BatchDataRequestDetails BatchDataRequest = 1;
+}
+
+message BatchDataRequestDetails
+{ 
+	string ClientUnique = 1;
+	string RequestId = 2;
+	string RequestType = 3; 
+	string RequestTimestamp = 4; 
+	string DataSize = 5;
+	string DataContent = 6;
+	bool ConnectionAlive = 7;
+}
+
+message BatchDataResponse
+{ 
+	string ClientUnique = 1; 
+	string BatchRequestId = 2;
+	int32 numberOfRequestsInBatch = 3; 
+	string ResponseTimestamp = 4; 
+	string RequestType = 5;
+}

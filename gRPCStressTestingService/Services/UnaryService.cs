@@ -1,4 +1,5 @@
-﻿using Google.Protobuf.Collections;
+﻿using Azure.Core;
+using Google.Protobuf.Collections;
 using Grpc.Core;
 using gRPCStressTestingService;
 using gRPCStressTestingService.Interfaces;
@@ -39,18 +40,13 @@ namespace gRPCStressTestingService.Services
         /// <returns></returns>
         public async Task<DataResponse> UnaryResponse(DataRequest request, ServerCallContext context)
         {
-            string? overarchingId = context.RequestHeaders.GetValue("overarching-id");
-            string? guidFromMetaData = context.RequestHeaders.GetValue("request-id");
-            string? responseTimeFromMetaData = context.RequestHeaders.GetValue("timestamp");
+           
             string? typeOfDataFromMetaData = context.RequestHeaders.GetValue("request-type");
             string? numOfOpenChannels = context.RequestHeaders.GetValue("open-channels");
             string? numOfActiveClients = context.RequestHeaders.GetValue("active-clients");
-            string? client = context.RequestHeaders.GetValue("client");
-            string? clientUnique = context.RequestHeaders.GetValue("client-identifier");
-            string? dataSize = context.RequestHeaders.GetValue("data-size");
             string? dataIterations = context.RequestHeaders.GetValue("data-iterations");
 
-            Log.Information($"Unary request message ID : {@guidFromMetaData}");
+            Log.Information($"Unary request message ID : {request.RequestId}");
             Log.Information($"this is the unary client request client count : {Settings.GetNumberOfActiveClients()}");
 
             string preciseTime = GetPreciseTimeNow();
@@ -58,28 +54,30 @@ namespace gRPCStressTestingService.Services
             DataResponse dataReturn = new DataResponse()
             {
                 ConnectionAlive = false,
-                RequestId = overarchingId,
+                RequestId = request.RequestId,
                 RequestType = request.RequestType,
-                ResponseTimestamp = preciseTime
+                ResponseTimestamp = preciseTime, 
+                ClientUnique = request.ClientUnique,
+                
             };
 
-            ClientDetails clientDetails = _objectCreation.MappingToClientDetails(Guid.Parse(guidFromMetaData), 0, true, null);
+            ClientDetails clientDetails = _objectCreation.MappingToClientDetails(Guid.Parse(request.RequestId), 0, true, null,Guid.Parse( request.ClientUnique));
             
-            if (!_storage.Clients.ContainsKey(Guid.Parse(overarchingId)))
+            if (!_storage.Clients.ContainsKey(Guid.Parse(request.ClientUnique)))
             {
                 ClientActivity clientActivity = new ClientActivity();
 
                 clientActivity.AddToClientActivities(clientDetails);
 
-                Log.Information($"Client ID : {overarchingId} handles unary message -> {guidFromMetaData}");
+                Log.Information($"Client ID : {request.ClientUnique} handles unary message -> {request.RequestId}");
 
-                _storage.AddToDictionary(_storage.Clients, Guid.Parse(overarchingId), clientActivity);
+                _storage.AddToDictionary(_storage.Clients, Guid.Parse(request.ClientUnique), clientActivity);
             }
             else
             {
-                ClientActivity existingClientActivity = _storage.Clients[Guid.Parse(overarchingId)];
+                ClientActivity existingClientActivity = _storage.Clients[Guid.Parse(request.ClientUnique)];
 
-                Log.Information($"Client ID : {overarchingId} handles unary message -> {guidFromMetaData}");
+                Log.Information($"Client ID : {request.ClientUnique} handles unary message -> {request.RequestId}");
 
                 existingClientActivity.AddToClientActivities(clientDetails);
             }
@@ -87,34 +85,34 @@ namespace gRPCStressTestingService.Services
             Settings.SetNumberOfActiveChannels(Convert.ToInt32(numOfOpenChannels));
             Settings.SetNumberOfActiveClients(Convert.ToInt32(numOfActiveClients));
 
-            if(guidFromMetaData == string.Empty || responseTimeFromMetaData == string.Empty)
+            if(request.RequestId == string.Empty || request.RequestTimestamp == string.Empty)
             {
-                Log.Warning($"The guid ({@guidFromMetaData}) or the response time ({@responseTimeFromMetaData}) from the meta data was null");
+                Log.Warning($"The guid ({request.RequestId}) or the response time ({request.RequestTimestamp}) from the meta data was null");
             }
 
-            UnaryInfo requestUnaryInfo = MapToRequest(Convert.ToDateTime(responseTimeFromMetaData), typeOfDataFromMetaData, Convert.ToInt32(dataIterations), request.DataContent);
+            UnaryInfo requestUnaryInfo = MapToRequest(Convert.ToDateTime(request.RequestTimestamp), typeOfDataFromMetaData, Convert.ToInt32(dataIterations), request.DataContent);
 
             UnaryInfo responseUnaryInfo = MapToResponse(Convert.ToDateTime(dataReturn.ResponseTimestamp), typeOfDataFromMetaData, Convert.ToInt32(dataIterations), request.DataContent);
 
             ClientMessageId requestKeys = new ClientMessageId()
             {
-                ClientId = dataReturn.RequestId,
-                MessageId = guidFromMetaData,
+                ClientId = dataReturn.ClientUnique,
+                MessageId = request.RequestId,
             };
 
             ClientMessageId responseKeys = new ClientMessageId()
             {
-                ClientId = dataReturn.RequestId,
-                MessageId = guidFromMetaData,
+                ClientId = dataReturn.ClientUnique,
+                MessageId = request.RequestId,
             };
             
             _timeStorage.AddToDictionary(_timeStorage._ClientRequestTiming, requestKeys, requestUnaryInfo);
 
             _timeStorage.AddToDictionary(_timeStorage._ServerResponseTiming, responseKeys, responseUnaryInfo);
 
-            Console.WriteLine($"Client Id : {overarchingId} handles message with ID : {guidFromMetaData}");
+            Console.WriteLine($"Client Id : {request.ClientUnique} handles message with ID : {request.RequestId}");
 
-            Log.Information($"This is the request send time for the unary request : {requestUnaryInfo.TimeOfRequest} -> {responseTimeFromMetaData}");
+            Log.Information($"This is the request send time for the unary request : {requestUnaryInfo.TimeOfRequest} -> {request.RequestTimestamp}");
             Log.Information($"This is the server response time for the unary request : {responseUnaryInfo.TimeOfRequest} -> {preciseTime}");
 
            var thing = _timeStorage.ReturnDictionary(_timeStorage._ClientRequestTiming);
@@ -133,28 +131,25 @@ namespace gRPCStressTestingService.Services
         /// <returns></returns>
         public async Task<BatchDataResponse> BatchUnaryResponse(BatchDataRequest request, ServerCallContext context)
         {
-            string? batchIterations = context.RequestHeaders.GetValue("batch-iterations");
-            string? overachingBatchId = context.RequestHeaders.GetValue("overarching-id");
-            string? batchIdFromMetaData = context.RequestHeaders.GetValue("batch-request-id");
+            
             string? batchTimestampFromMetaData = context.RequestHeaders.GetValue("batch-request-timestamp");
             string? typeOfDataFromMetaData = context.RequestHeaders.GetValue("request-type");
             int batchFromMetaData = Convert.ToInt32(context.RequestHeaders.GetValue("batch-request-count"));
             int numOfActiveClients = Convert.ToInt32(context.RequestHeaders.GetValue("active-clients"));
 
-            Log.Information($"Client ID: {overachingBatchId}");
-            Log.Information($"The batch request ID : {batchIdFromMetaData}");
+            List<ClientDetails> clientDetailsList = IteratingBatchToClientDetails(request.BatchDataRequest_);
+
+            ClientDetails firstRequestElement = clientDetailsList[0];
+
+            Guid clientUnique = firstRequestElement.ClientUnique;
+
+            Guid batchRequestId = firstRequestElement.messageId;
+
+            string requestContent = firstRequestElement.DataContent;
+
+            Log.Information($"Client ID: {clientUnique}");
+            Log.Information($"The batch request ID : {batchRequestId}");
             Log.Information($"this is the batch client request client count -> {Settings.GetNumberOfActiveClients()}");
-
-            List<ClientDetails> clientDetailsList = IteratingBatchToClientDetails(request.BatchDataRequest_, batchIdFromMetaData);
-
-            List<string> requestDataContent = clientDetailsList.Select(entry => entry.DataContent).ToList();
-
-            string requestContent = "";
-
-            foreach(string unaryRequestItem in requestDataContent)
-            {
-                requestContent = unaryRequestItem;
-            }
 
             Settings.SetNumberOfActiveClients(numOfActiveClients);
 
@@ -162,28 +157,29 @@ namespace gRPCStressTestingService.Services
 
             BatchDataResponse batchDataResponse = new BatchDataResponse()
             {
-                BatchResponseId = batchIdFromMetaData,
+                ClientUnique = clientUnique.ToString(),
+                BatchRequestId = batchRequestId.ToString(),
                 NumberOfRequestsInBatch = batchFromMetaData,
                 ResponseTimestamp = preciseTime,
                 RequestType = typeOfDataFromMetaData,
             };
 
-            if(!_storage.Clients.ContainsKey(Guid.Parse(overachingBatchId)))
+            if(!_storage.Clients.ContainsKey(clientUnique))
             {
                 ClientActivity newClientActivity = new ClientActivity();
 
                 newClientActivity.AddBatchToClientActivities(clientDetailsList);
 
-                _storage.AddToDictionary(_storage.Clients, Guid.Parse(overachingBatchId), newClientActivity);
+                _storage.AddToDictionary(_storage.Clients, clientUnique, newClientActivity);
             }
             else
             {
-                KeyValuePair<Guid, ClientActivity> retrieveExisting = _storage.Clients.FirstOrDefault(entry => entry.Key == Guid.Parse(overachingBatchId));
+                KeyValuePair<Guid, ClientActivity> retrieveExisting = _storage.Clients.FirstOrDefault(entry => entry.Key == clientUnique);
 
                 retrieveExisting.Value.AddBatchToClientActivities(clientDetailsList);
             }
 
-            UnaryInfo responseUnaryInfo = MapToResponse(Convert.ToDateTime(batchDataResponse.ResponseTimestamp), typeOfDataFromMetaData, Convert.ToInt32(batchDataResponse.NumberOfRequestsInBatch), requestContent);
+            UnaryInfo responseUnaryInfo = MapToResponse(Convert.ToDateTime(batchDataResponse.ResponseTimestamp), typeOfDataFromMetaData, batchFromMetaData, requestContent);
 
             UnaryInfo requestUnaryInfo = MapToRequest(Convert.ToDateTime(batchTimestampFromMetaData), typeOfDataFromMetaData, batchFromMetaData, requestContent);
 
@@ -192,14 +188,14 @@ namespace gRPCStressTestingService.Services
 
             ClientMessageId requestKeys = new ClientMessageId()
             {
-                ClientId = overachingBatchId, 
-                MessageId = batchIdFromMetaData,
+                ClientId = clientUnique.ToString(), 
+                MessageId = batchRequestId.ToString(),
             };
 
             ClientMessageId responseKeys = new ClientMessageId()
             {
-                ClientId = overachingBatchId, 
-                MessageId = batchIdFromMetaData,
+                ClientId = clientUnique.ToString(), 
+                MessageId = batchRequestId.ToString(),
             };
 
             _timeStorage.AddToDictionary(_timeStorage._ClientRequestTiming, requestKeys, requestUnaryInfo);
@@ -208,8 +204,6 @@ namespace gRPCStressTestingService.Services
 
             Log.Information($"This is the request send time for the unary batch request : {requestUnaryInfo.TimeOfRequest} -> {batchTimestampFromMetaData}");
             Log.Information($"This is the server response time for the unary batch request : {responseUnaryInfo.TimeOfRequest} -> {preciseTime}");
-
-        
 
             return batchDataResponse;
         }
@@ -245,19 +239,21 @@ namespace gRPCStressTestingService.Services
         /// <param name="batchRequestData"></param>
         /// <param name="id"></param>
         /// <returns></returns>
-        private List<ClientDetails> IteratingBatchToClientDetails(RepeatedField<BatchDataRequestDetails> batchRequestData, string id)
+        private List<ClientDetails> IteratingBatchToClientDetails(RepeatedField<BatchDataRequestDetails> batchRequestData)
         {
             List<ClientDetails> clientDetailsList = new List<ClientDetails>();
 
             foreach(BatchDataRequestDetails details in batchRequestData)
             {
-                Log.Information($"Client ID : {details.OverarchingRequestId} handles batch messages -> {details.RequestId}");
+                Log.Information($"Client ID : {details.ClientUnique} handles batch messages -> {details.RequestId}");
 
                 int lengthOfData = LengthOfBatchRequest(details);
 
                 string dataContent = details.DataContent;
 
-                ClientDetails clientDetails = _objectCreation.MappingToClientDetails(Guid.Parse(details.RequestId), lengthOfData, details.ConnectionAlive, dataContent);
+                string clientUnique = details.ClientUnique;
+
+                ClientDetails clientDetails = _objectCreation.MappingToClientDetails(Guid.Parse(details.RequestId), lengthOfData, details.ConnectionAlive, dataContent, Guid.Parse(details.ClientUnique));
 
                 clientDetailsList.Add(clientDetails);
             }

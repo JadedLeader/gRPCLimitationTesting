@@ -1,10 +1,13 @@
 ﻿@using gRPCToolFrontEnd.Components.Layout
 @using gRPCToolFrontEnd.Services
+@using gRPCToolFrontEnd.Helpers
 @using Serilog
 @page "/Configuration"
 @layout MainLayout
 @inject ClientInstanceService ClientInstanceService
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject UnaryRequestService UnaryRequestService
+@inject ClientHelper ClientHelper
 
 
 <HeadContent>
@@ -19,11 +22,17 @@
         <MudForm @ref="form" Class="MyMudForm">
             
             <!-- Corrected binding -->
-            <MudTextField font-style="Montserrat" @bind-value="@AmountOfClients"  Class="MyMudTextField" T="int" Label="Client number" Required="true" RequiredError="A client number is required!" HelperText="Input amount of client above:" Margin="Margin.Dense"></MudTextField>
+            <MudTextField font-style="Montserrat" @bind-value="@AmountOfClients"  Class="MyMudTextField" T="int" Label="Client Number" Required="true" RequiredError="A client number is required!" HelperText="Input amount of client above:" Margin="Margin.Dense"></MudTextField>
+            <MudTextField font-style="Montserrat" @bind-value="@_ClientUnique" Class="MyMudTextField" T="string" Label="Client Instance Unique" Required="true" RequiredError="A client instance is required!" HelperText="Input client instance ID above:" Margin="Margin.Dense"></MudTextField>
+            <MudTextField font-style="Montserrat" @bind-value="@_FileSize" Class="MyMudTextField" T="string" Label="File Size" Required="true" RequiredError="A file size of small, medium or large is required!" HelperText="Input file size above:" Margin="Margin.Dense"></MudTextField>
+            <MudTextField font-style="Montserrat" @bind-value="@_Iterations" Class="MyMudTextField" T="int" Label="Batch Iterations" Required="true" RequiredError="A number of batch iterations is required!" HelperText="Input number of batch iterations above:" Margin="Margin.Dense"></MudTextField>
+
 
             <MudPaper Class="pa-4 mt-4">
                 <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@GenerateClients">Apply Configuration Settings</MudButton>
                 <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@ClearClientInstances">Clear Client Instances</MudButton>
+                <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@SendUnaryRequest">Send single unary request</MudButton>
+                <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@SendBatchUnaryRequest">Send batch unary request</MudButton>
             </MudPaper>
 
         </MudForm>
@@ -38,7 +47,13 @@
 
     MudForm form;
 
-    private int AmountOfClients; 
+    private int AmountOfClients;
+
+    private int _Iterations;
+
+    private string _ClientUnique;
+
+    private string _FileSize;
 
     private List<Guid> ClientList = new List<Guid>();
 
@@ -49,6 +64,114 @@
         await GeneratingClientInstances();
 
         await SendClientsToBackend();
+    }
+
+    private async Task SendUnaryRequest()
+    {
+        await GenerateUnaryRequest();
+    }
+
+    private async Task SendBatchUnaryRequest()
+    {
+        await GenerateBatchUnaryRequest();
+    }
+
+    private async Task GenerateBatchUnaryRequest()
+    {
+
+        List<BatchDataRequestDetails> dataRequestDetails = await GeneratingBatchOfRequests(_Iterations);
+
+        Log.Information($"Amount of requests in the data request list: {dataRequestDetails.Count}");
+
+        BatchDataRequest batchDataRequestUnary = new BatchDataRequest
+        {
+             BatchDataRequest_ = { dataRequestDetails }
+        };
+
+        await UnaryRequestService.UnaryBatchResponseAsync(batchDataRequestUnary, _Iterations);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="requestIterations"> is how many messages you want to be in the batch</param>
+    /// <returns></returns>
+    private async Task<List<BatchDataRequestDetails>> GeneratingBatchOfRequests(int requestIterations)
+    {
+        List<BatchDataRequestDetails> dataRequestDetails = new List<BatchDataRequestDetails>();
+
+        string filePath = ClientHelper.FileSize(_FileSize);
+
+        string dataContent = ClientHelper.DataContentCalc(_FileSize);
+
+        string requestId = Guid.NewGuid().ToString();
+
+        var now = DateTime.UtcNow;
+        long ticks = now.Ticks;
+        string preciseTime = now.ToString("HH:mm:ss.ffffff");
+
+        int i = 0; 
+
+        while(i < requestIterations)
+        {
+
+            BatchDataRequestDetails singleRequest = new BatchDataRequestDetails
+            {
+                ClientUnique = _ClientUnique, 
+                ConnectionAlive = true, 
+                DataContent = dataContent, 
+                DataSize = _FileSize, 
+                RequestId = requestId, 
+                RequestTimestamp = preciseTime, 
+                RequestType = "BatchUnary"
+
+            };
+
+            Log.Information($"New batch data request has been added to the batch, request is owned by client ID {singleRequest.ClientUnique} handles message {singleRequest.RequestId}");
+
+            dataRequestDetails.Add(singleRequest);
+
+            i++;
+        }
+
+        return dataRequestDetails;
+    }
+
+    private async Task GenerateUnaryRequest()
+    {
+        string filePath = ClientHelper.FileSize(_FileSize);
+
+        string content = File.ReadAllText(filePath);
+
+        string dataContent = ClientHelper.DataContentCalc(_FileSize);
+
+        string newGuid = Guid.NewGuid().ToString();
+
+        var now = DateTime.UtcNow;
+        long ticks = now.Ticks;
+        string preciseTime = now.ToString("HH:mm:ss.ffffff");
+
+        DataRequest newDataRequest = new DataRequest
+        {
+            ClientUnique = _ClientUnique, 
+            ConnectionAlive = false, 
+            DataContent = dataContent, 
+            RequestType = "Unary", 
+            DataSize = _FileSize, 
+            RequestId = newGuid, 
+            RequestTimestamp = preciseTime
+        };
+
+        Log.Information($"Client ID: {newDataRequest.ClientUnique} has sent message ID: {newDataRequest.RequestId} at {newDataRequest.RequestTimestamp}");
+
+        DataResponse serverResponse = await UnaryRequestService.UnaryResponseAsync(newDataRequest);
+
+        if(serverResponse.RequestId == null || serverResponse.ClientUnique == null)
+        {
+            Log.Information($"Something went wrong, the server responded with no requestID or clientID"); 
+        }
+
+        
     }
 
     private async Task ClearClientInstances()

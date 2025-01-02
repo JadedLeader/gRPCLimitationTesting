@@ -13,20 +13,23 @@ service Unary {
 
 message DataRequest
 { 
-	string RequestId = 1;
-	string RequestType = 2; 
-	string RequestTimestamp = 3; 
-	string DataContent = 4;
-	string DataSize = 5;
-	bool ConnectionAlive = 6;
+	string ClientUnique = 1;
+	string RequestId = 2;
+	string RequestType = 3; 
+	string RequestTimestamp = 4; 
+	string DataContent = 5;
+	string DataSize = 6;
+	bool ConnectionAlive = 7;
 }
 
 message DataResponse
 { 
-	string RequestId = 1; 
-	string RequestType = 2;
-    bool ConnectionAlive = 3;
-	string ResponseTimestamp = 4;
+	string ClientUnique = 1;
+	string RequestId = 2; 
+	string RequestType = 3;
+    bool ConnectionAlive = 4;
+	string ResponseTimestamp = 5;
+	
 }
 
 message BatchDataRequest
@@ -37,7 +40,7 @@ message BatchDataRequest
 
 message BatchDataRequestDetails
 { 
-	string OverarchingRequestId = 1;
+	string ClientUnique = 1;
 	string RequestId = 2;
 	string RequestType = 3; 
 	string RequestTimestamp = 4; 
@@ -48,8 +51,9 @@ message BatchDataRequestDetails
 
 message BatchDataResponse
 { 
-	string batchResponseId = 1; 
-	int32 numberOfRequestsInBatch = 2; 
-	string ResponseTimestamp = 3; 
-	string RequestType = 4;
+	string ClientUnique = 1; 
+	string BatchRequestId = 2;
+	int32 numberOfRequestsInBatch = 3; 
+	string ResponseTimestamp = 4; 
+	string RequestType = 5;
 }

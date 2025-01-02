@@ -24,8 +24,8 @@
             <MudText Class="MyMudText">Login</MudText>
 
                 <!-- Corrected binding -->
-                <MudTextField font-style="Montserrat" @bind-value="@Username" Class="MyMudTextField" T="string" Label="Username" Required="true" RequiredError="User name is required!" HelperText="Input username above:" Margin="Margin.Dense"></MudTextField>
-                <MudTextField font-style="Montserrat" @bind-value="@Password" Class="MyMudTextField" T="string" Label="Password" HelperText="Input password above:" InputType="InputType.Password" Required="true" RequiredError="Password is required!" Margin="Margin.Dense"></MudTextField>
+                <MudTextField font-style="Montserrat" Variant="Variant.Filled" Clearable="true" @bind-value="@Username" Class="MyMudTextField" T="string" Label="Username" Required="true" RequiredError="User name is required!" HelperText="Input username above:" Margin="Margin.Dense"></MudTextField>
+                <MudTextField font-style="Montserrat" Variant="Variant.Filled" Clearable="true" @bind-value="@Password" Class="MyMudTextField" T="string" Label="Password" HelperText="Input password above:" InputType="InputType.Password" Required="true" RequiredError="Password is required!" Margin="Margin.Dense"></MudTextField>
 
                 <MudLink Class="MyMudLink" Underline="Underline.Always">Forgotten Password?</MudLink>
 

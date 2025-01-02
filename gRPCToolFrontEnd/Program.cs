@@ -6,6 +6,7 @@ using gRPCToolFrontEnd.Services;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using MudBlazor.Services;
 using Serilog;
+using gRPCToolFrontEnd.Helpers;
 
 
 namespace gRPCToolFrontEnd
@@ -68,7 +69,14 @@ namespace gRPCToolFrontEnd
 
             builder.Services.AddScoped<AuthTokenService>();
 
-            
+            builder.Services.AddGrpcClient<Unary.UnaryClient>(o =>
+            {
+                o.Address = new Uri("https://localhost:5000");
+            }); 
+
+            builder.Services.AddScoped<UnaryRequestService>();
+
+            builder.Services.AddScoped<ClientHelper>();
 
             var app = builder.Build();
 

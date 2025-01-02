@@ -32,7 +32,7 @@ namespace DbManagerWorkerService
                           //await communicationDelayService.EmptyTable();
                     }
 
-                    await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+                    await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken);
 
                 }
                 catch(Exception ex)

@@ -7,6 +7,7 @@ using SharedCommonalities.ReturnModels.ReturnTypes;
 using SharedCommonalities.TimeStorage;
 using ConfigurationStuff.Interfaces.Repos;
 using ConfigurationStuff.DbModels;
+using Serilog;
 
 namespace DbManagerWorkerService.Services
 {
@@ -39,12 +40,17 @@ namespace DbManagerWorkerService.Services
             {
                 var delayCalculationsDict = ReturningDict();
 
+
+
                 if (delayCalculationsDict.Count == 0)
                 {
                     Console.WriteLine($"nothing to add to db");
                 }
-
-                Console.WriteLine("SOMETHING TO ADD TO DB");
+                else
+                {
+                    Console.WriteLine("SOMETHING TO ADD TO DB");
+                }
+                    
 
                 //this needs to be edited for streaming requests as right now for a batch we dont care about each item in the list as they all have the same timestamp 
                 //however with a streaming request, we're going to care about every timing within that list
@@ -71,8 +77,9 @@ namespace DbManagerWorkerService.Services
                         Delay = item.Value.Delay,
                         ClientInstance = null,
                     };
-                    
 
+                    Console.WriteLine($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
+                    
                     if (item.Value.TypeOfData.Contains("Batch"))
                     {
                         transportingToDb.CommunicationType = "Batch";

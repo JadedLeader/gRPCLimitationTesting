@@ -27,10 +27,11 @@ namespace SharedCommonalities.ObjectMapping
             return unaryInfo;
         }
 
-        public ClientDetails MappingToClientDetails(Guid messageId, int messageLength, bool isActiveClient, string? dataContent)
+        public ClientDetails MappingToClientDetails(Guid messageId, int messageLength, bool isActiveClient, string? dataContent, Guid clientUnique)
         {
             ClientDetails clientDetails = new ClientDetails()
             {
+                ClientUnique = clientUnique,
                 messageId = messageId,
                 MessageLength = messageLength,
                 IsActiveClient = isActiveClient,

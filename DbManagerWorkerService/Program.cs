@@ -17,7 +17,7 @@ namespace DbManagerWorkerService
 
             ConfigurationStuff.ServicesConfig.ServiceConfig.AddSharedServices(builder.Services, builder.Configuration);
 
-            builder.Services.AddHostedService<DbManagerWorker>();
+            //builder.Services.AddHostedService<DbManagerWorker>();
 
             builder.Services.AddScoped<ICommunicationDelayService, CommunicationDelayService>();
 

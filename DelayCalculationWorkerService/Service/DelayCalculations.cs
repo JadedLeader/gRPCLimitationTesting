@@ -38,8 +38,9 @@ namespace DelayCalculationWorkerService.Service
 
             foreach (var timing in clientRequests)
             {
-               
-                var verifyingServerResponseId = serverResponses.Keys.FirstOrDefault(entry => entry.ClientId == timing.Key.ClientId);
+
+                var verifyingServerResponseId = serverResponses.Keys.FirstOrDefault(entry =>
+                entry.ClientId == timing.Key.ClientId && entry.MessageId == timing.Key.MessageId);
 
                 if (verifyingServerResponseId != null && serverResponses.TryGetValue(verifyingServerResponseId, out var timingValue))
                 {
