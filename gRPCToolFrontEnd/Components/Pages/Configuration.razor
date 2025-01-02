@@ -51,7 +51,6 @@
         await SendClientsToBackend();
     }
 
-
     private async Task ClearClientInstances()
     {
         string sessionUnique = await GetStringFromStringFromLocalStorage("session-unique");
@@ -63,10 +62,12 @@
                 SessionUnique = sessionUnique
             };
 
-        await ClientInstanceService.GetClientInstancesViaSessionUnique(request, ClientListFromDb);
+        //await ClientInstanceService.GetClientInstancesViaSessionUnique(request, ClientListFromDb);
 
-        //we need to create an API call that gets all the sessions based off a session unique
-        await ClientInstanceService.ClearingClientInstancesStreamedAsync(sessionUnique, ClientListFromDb);
+        //THIS DELETES THE CURRENT RECORDS IN A UNARY MATTER
+        await ClientInstanceService.GetClientInstancesAsync(request);
+
+        //await ClientInstanceService.ClearingClientInstancesStreamedAsync(sessionUnique, ClientListFromDb);
     }
 
     private async Task GeneratingClientInstances()
@@ -80,11 +81,6 @@
             Log.Information($"amount of things in client list {i}");
 
             i++;
-        }
-
-        foreach(var thing in ClientList)
-        {
-            Log.Information($"This is inside the client list {thing}");
         }
     }
 

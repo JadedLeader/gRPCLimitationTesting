@@ -191,30 +191,64 @@ namespace gRPCStressTestingService.Services
         public async Task GetClientInstances(GetClientInstancesFromSessionUniqueRequest request, IServerStreamWriter<GetClientInstancesFromSessionUniqueResponse> responseStream, ServerCallContext context)
         {
 
+            try
+            {
+                List<ClientInstance> clientInstances = await _clientInstanceRepo.GetClientInstancesViaSessionId(Guid.Parse(request.SessionUnique));
+
+                if (clientInstances.Count == 0)
+                {
+                    Log.Warning($"No client instances can be found");
+                }
+
+                List<ClientInstance> clientsToDelete = new List<ClientInstance>();
+
+                foreach (ClientInstance client in clientInstances)
+                {
+                    GetClientInstancesFromSessionUniqueResponse newResponse = new GetClientInstancesFromSessionUniqueResponse
+                    {
+                        SessionUnique = client.SessionUnique.ToString(),
+                        ClientUnique = client.ClientUnique.ToString(),
+                    };
+
+                    Log.Information($"Found client instance {client.ClientUnique}");
+
+                    await responseStream.WriteAsync(newResponse);
+
+                    clientsToDelete.Add(client);
+
+                }
+
+                await _clientInstanceRepo.RemoveRangeAsync(clientsToDelete);
+
+                await _clientInstanceRepo.SaveAsync();
+            } 
+            catch(DbUpdateConcurrencyException ex)
+            {
+                Log.Error($"Concurrency thing happened again {ex.Message}");
+            }
+
+            
+        }
+
+        public async Task<GetClientInstancesFromSessionUniqueResponse> GetClientInstancesUnary(GetClientInstancesFromSessionUniqueRequest request, ServerCallContext context)
+        {
             List<ClientInstance> clientInstances = await _clientInstanceRepo.GetClientInstancesViaSessionId(Guid.Parse(request.SessionUnique));
 
-            if(clientInstances.Count == 0)
+            if (clientInstances.Count == 0)
             {
                 Log.Warning($"No client instances can be found");
             }
 
-            foreach (ClientInstance client in clientInstances)
-            {
-                GetClientInstancesFromSessionUniqueResponse newResponse = new GetClientInstancesFromSessionUniqueResponse
-                {
-                    SessionUnique = client.SessionUnique.ToString(),
-                    ClientUnique = client.ClientUnique.ToString(),
-                };
-
-                Log.Information($"Found client instance {client.SessionUnique}");
-
-                await responseStream.WriteAsync(newResponse);
-
-                await _clientInstanceRepo.RemoveFromDbAsync(client);
-                
-            }
+            await _clientInstanceRepo.RemoveRange(clientInstances);
 
             await _clientInstanceRepo.SaveAsync();
+
+            GetClientInstancesFromSessionUniqueResponse serverResponse = new GetClientInstancesFromSessionUniqueResponse
+            {
+                SessionUnique = request.SessionUnique
+            };
+
+            return serverResponse;
         }
 
     }

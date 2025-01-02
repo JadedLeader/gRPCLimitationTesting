@@ -9,6 +9,7 @@ using Serilog;
 using ConfigurationStuff.DbModels;
 using ConfigurationStuff.Interfaces.Repos;
 using ConfigurationStuff.Abstracts;
+using ConfigurationStuff.DbContexts;
 
 namespace ConfigurationStuff.Repositories
 {
@@ -18,7 +19,7 @@ namespace ConfigurationStuff.Repositories
 
         private readonly IDataContexts _dataContext;
 
-        public AccountRepo(IDataContexts dataContext) : base(dataContext as DbContext)
+        public AccountRepo(IDataContexts dataContext) : base(dataContext as DataContexts)
         {
             _dataContext = dataContext;
         }

@@ -62,5 +62,19 @@ namespace gRPCStressTestingService.Implementations
              await _clientInstanceService.GetClientInstances(request, responseStream, context);
         }
 
+        public override async Task<GetClientInstancesFromSessionUniqueResponse> GetClientInstancesUnary(GetClientInstancesFromSessionUniqueRequest request, ServerCallContext context)
+        {
+            GetClientInstancesFromSessionUniqueResponse thing = await _clientInstanceService.GetClientInstancesUnary(request, context);
+
+            if(thing == null)
+            {
+                Log.Error($"Something went wrong when clearing client instances unary");
+
+                throw new RpcException(new Status(StatusCode.Internal, $"Could not stream clear client instances"));
+            }
+
+            return thing;
+        }
+
     }
 }

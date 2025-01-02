@@ -27,6 +27,8 @@ namespace ConfigurationStuff.Interfaces.Repos
 
         public Task<List<ClientInstance>> RemoveRange(List<ClientInstance> clientToRemove);
 
+        public Task RemoveRangeAsync(List<ClientInstance> clientList);
+
         public Task SaveAsync();
 
 

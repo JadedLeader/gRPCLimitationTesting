@@ -1,6 +1,7 @@
 ﻿using Grpc.Core;
 using Grpc.Net.Client;
 using Serilog;
+using System.Formats.Asn1;
 using System.Runtime.InteropServices;
 
 namespace gRPCToolFrontEnd.Services
@@ -30,6 +31,11 @@ namespace gRPCToolFrontEnd.Services
                     Log.Information($"Client instance has received Client instance {response.ClientUnique}");
                 }
             }
+        }
+
+        public async Task<GetClientInstancesFromSessionUniqueResponse> GetClientInstancesAsync(GetClientInstancesFromSessionUniqueRequest getClientRequest)
+        {
+            return await _clientInstanceClient.GetClientInstancesUnaryAsync(getClientRequest);
         }
 
         public async Task<ClearClientInstancesResponse> ClearingClientInstancesStreamedAsync(string sessionUnique, List<Guid> clientsToClear)

@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ConfigurationStuff.DbModels;
 using ConfigurationStuff.Interfaces.Repos;
+using ConfigurationStuff.DbContexts;
 
 namespace DbManagerWorkerService.Repositories
 {
@@ -17,7 +18,7 @@ namespace DbManagerWorkerService.Repositories
 
         private readonly IDataContexts _dataContext;
 
-        public SessionRepo(IDataContexts dataContext) : base(dataContext as DbContext)
+        public SessionRepo(IDataContexts dataContext) : base(dataContext as DataContexts)
         {
             _dataContext = dataContext;
 

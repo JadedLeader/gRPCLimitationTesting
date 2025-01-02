@@ -1,4 +1,5 @@
-﻿using ConfigurationStuff.DbModels;
+﻿using ConfigurationStuff.DbContexts;
+using ConfigurationStuff.DbModels;
 using DbManagerWorkerService.Interfaces.DataContext;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -12,8 +13,8 @@ namespace ConfigurationStuff.Abstracts
 {
     public abstract class RepositoryAbstract<T> where T : class
     {
-        private DbContext _context;
-        protected RepositoryAbstract(DbContext context)
+        private DataContexts _context;
+        protected RepositoryAbstract(DataContexts context)
         {
             _context = context;
         }
@@ -24,6 +25,30 @@ namespace ConfigurationStuff.Abstracts
 
             
             return entity;
+        }
+        public virtual async Task RemoveRangeAsync(List<ClientInstance> clientList)
+        {
+            // Ensure that _context.ClientInstances is valid
+            if (_context.ClientInstance == null)
+            {
+                throw new InvalidOperationException("ClientInstances DbSet is not available.");
+            }
+
+            foreach (var clientInstance in clientList)
+            {
+                var dbEntry = _context.Entry(clientInstance);
+
+                // Set RowVersion in OriginalValues to handle concurrency
+                if (dbEntry.Property("RowVersion") != null)
+                {
+                    dbEntry.OriginalValues["RowVersion"] = clientInstance.RowVersion;
+                }
+            }
+
+            // Remove the client instances in bulk
+            _context.ClientInstance.RemoveRange(clientList);
+            await _context.SaveChangesAsync();
+
         }
 
         public virtual async Task ReloadAsync(T entity)

@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ConfigurationStuff.DbModels;
 using ConfigurationStuff.Interfaces.Repos;
+using ConfigurationStuff.DbContexts;
 
 namespace DbManagerWorkerService.Repositories
 {
@@ -17,7 +18,7 @@ namespace DbManagerWorkerService.Repositories
 
         private readonly IDataContexts _dataContext;
 
-        public ClientInstanceRepo(IDataContexts dataContext) : base(dataContext as DbContext)
+        public ClientInstanceRepo(IDataContexts dataContext) : base(dataContext as DataContexts)
         {
             _dataContext = dataContext;
         }
@@ -85,6 +86,10 @@ namespace DbManagerWorkerService.Repositories
             _dataContext.ClientInstance.RemoveRange(clientToRemove);
 
             return clientToRemove.ToList();
+        }
+        public override Task RemoveRangeAsync(List<ClientInstance> clientList)
+        {
+            return base.RemoveRangeAsync(clientList);
         }
 
         public override Task SaveAsync()

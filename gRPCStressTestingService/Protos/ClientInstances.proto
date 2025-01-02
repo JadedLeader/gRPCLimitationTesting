@@ -9,6 +9,7 @@ service ClientInstances
 	rpc StreamClientInstances(stream StreamClientInstanceRequest) returns (StreamClientInstanceResponse);
 	rpc StreamClientClears(stream ClearClientInstancesRequest) returns (ClearClientInstancesResponse); 
 	rpc GetClientInstances(GetClientInstancesFromSessionUniqueRequest) returns (stream GetClientInstancesFromSessionUniqueResponse);
+	rpc GetClientInstancesUnary(GetClientInstancesFromSessionUniqueRequest) returns (GetClientInstancesFromSessionUniqueResponse);
 }
 
 message CreateClientInstanceRequest

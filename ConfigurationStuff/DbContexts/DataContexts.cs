@@ -51,7 +51,9 @@ namespace ConfigurationStuff.DbContexts
 
             clientInstance.Property(a => a.ClientUnique).ValueGeneratedNever();
             clientInstance.Property(a => a.SessionUnique).ValueGeneratedNever();
-
+            clientInstance.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken();
 
             //key 
 
@@ -60,8 +62,7 @@ namespace ConfigurationStuff.DbContexts
 
         }
 
-        
-
+      
         //public DbSet<CommunicationDelay> CommunicationDelay { get; set; }
 
         public DbSet<Account> Account { get; set; }

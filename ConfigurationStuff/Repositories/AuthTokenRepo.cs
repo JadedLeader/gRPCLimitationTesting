@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using ConfigurationStuff.DbModels;
 using ConfigurationStuff.Interfaces.Repos;
 using ConfigurationStuff.Abstracts;
+using ConfigurationStuff.DbContexts;
 
 namespace DbManagerWorkerService.Repositories
 {
@@ -18,7 +19,7 @@ namespace DbManagerWorkerService.Repositories
 
         private readonly IDataContexts _dataContext;
 
-        public AuthTokenRepo(IDataContexts dataContext) : base(dataContext as DbContext)
+        public AuthTokenRepo(IDataContexts dataContext) : base(dataContext as DataContexts)
         {
             _dataContext = dataContext;
         }

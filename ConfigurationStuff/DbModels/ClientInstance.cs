@@ -18,6 +18,9 @@ namespace ConfigurationStuff.DbModels
 
         public ICollection<DelayCalc?> DelayCalcs { get; set; }
 
+        [Timestamp]
+        public byte[] RowVersion { get; set; }
+
 
     }
 }

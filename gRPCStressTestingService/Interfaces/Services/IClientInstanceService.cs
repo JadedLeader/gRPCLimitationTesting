@@ -14,5 +14,6 @@ namespace gRPCStressTestingService.Interfaces.Services
 
         public Task GetClientInstances(GetClientInstancesFromSessionUniqueRequest request, IServerStreamWriter<GetClientInstancesFromSessionUniqueResponse> responseStream, ServerCallContext context);
 
+        public Task<GetClientInstancesFromSessionUniqueResponse> GetClientInstancesUnary(GetClientInstancesFromSessionUniqueRequest request, ServerCallContext context);
     }
 }
