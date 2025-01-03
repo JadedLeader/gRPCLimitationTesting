@@ -1,19 +1,28 @@
 ﻿using Grpc.Core;
+using Grpc.Net.Client;
+using gRPCToolFrontEnd.Helpers;
+using gRPCToolFrontEnd.LocalStorage;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Serilog;
+using System.Threading.Channels;
 
 namespace gRPCToolFrontEnd.Services
 {
     public class UnaryRequestService
     {
-        private readonly Unary.UnaryClient _unaryClient;
-        public UnaryRequestService(Unary.UnaryClient unaryClient)
+        private readonly AccountDetailsStore _accountDetailsStore;
+        public UnaryRequestService(AccountDetailsStore accountDetailsStore)
         {
-            _unaryClient = unaryClient;
+            _accountDetailsStore = accountDetailsStore;
         }
 
 
-        public async Task<DataResponse> UnaryResponseAsync(DataRequest dataRequest)
+        public async Task<DataResponse> UnaryResponseAsync(DataRequest dataRequest, Guid channelId)
         {
+            KeyValuePair<Guid, GrpcChannel> getChannel = _accountDetailsStore.GetGrpcChannel(channelId);
+
+            Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(getChannel.Value);
+
             Metadata metaData = new Metadata();
 
             metaData.Add("request-type", "Unary");
@@ -21,11 +30,17 @@ namespace gRPCToolFrontEnd.Services
             metaData.Add("active-clients", 0.ToString());
             metaData.Add("data-iterations", "1");
 
-           return await _unaryClient.UnaryResponseAsync(dataRequest, metaData);
+            Log.Information($"Sending single unary request on channel ID : {getChannel.Key} ");
+
+           return await newUnaryClient.UnaryResponseAsync(dataRequest, metaData);
         }
 
-        public async Task<BatchDataResponse> UnaryBatchResponseAsync(BatchDataRequest batchDataRequest, int batchIterations)
+        public async Task<BatchDataResponse> UnaryBatchResponseAsync(BatchDataRequest batchDataRequest, int batchIterations, Guid channelId)
         {
+            KeyValuePair<Guid, GrpcChannel> getChannel = _accountDetailsStore.GetGrpcChannel(channelId);
+
+            Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(getChannel.Value);
+
             Metadata metaData = new Metadata();
 
             string batchRequestId = Guid.NewGuid().ToString();
@@ -41,7 +56,9 @@ namespace gRPCToolFrontEnd.Services
             metaData.Add("batch-request-count", batchDataRequest.BatchDataRequest_.Count.ToString());
             metaData.Add("active-clients", "0");
 
-            return await _unaryClient.BatchUnaryResponseAsync(batchDataRequest, metaData);
+            Log.Information($"Sending batch unary request on channel ID: {getChannel.Key}");
+
+            return await newUnaryClient.BatchUnaryResponseAsync(batchDataRequest, metaData);
         }
 
     }

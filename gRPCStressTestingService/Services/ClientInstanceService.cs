@@ -60,6 +60,7 @@ namespace gRPCStressTestingService.Services
 
             return new CreateClientInstanceResponse
             {
+                ClientUnique = newClientInstance.ClientUnique.ToString(),
                 SessionUnique = account.Session.SessionUnique.ToString(),
                 TimeOfClientCreation= DateTime.Now.ToString()
             };

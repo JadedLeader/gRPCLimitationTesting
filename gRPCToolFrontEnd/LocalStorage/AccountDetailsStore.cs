@@ -1,17 +1,24 @@
-﻿namespace gRPCToolFrontEnd.LocalStorage
+﻿using Grpc.Net.Client;
+
+namespace gRPCToolFrontEnd.LocalStorage
 {
     public class AccountDetailsStore
     {
 
+        public Dictionary<Guid, GrpcChannel> channels = new Dictionary<Guid, GrpcChannel>();
 
-        public string Username { get; set; }
-
-        public string SessionUnique { get; set; }
-        public AccountDetailsStore(string username, string sessionUnique)
+        public AccountDetailsStore()
         {
-            Username = username;
-            SessionUnique = sessionUnique;
+            
         }
+
+        public KeyValuePair<Guid, GrpcChannel> GetGrpcChannel(Guid channelUnique)
+        {
+            return channels.FirstOrDefault(x => x.Key == channelUnique);
+        }
+
+        
+
 
     }
 }

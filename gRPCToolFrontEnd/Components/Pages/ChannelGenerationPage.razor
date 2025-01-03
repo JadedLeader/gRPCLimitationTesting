@@ -1,0 +1,52 @@
+﻿@using gRPCToolFrontEnd.Components.Layout
+@using gRPCToolFrontEnd.Helpers
+@using gRPCToolFrontEnd.LocalStorage
+@using Serilog
+@page "/ChannelGeneration"
+@layout MainLayout
+@inject ClientHelper ClientHelper
+@inject AccountDetailsStore AccountDetailsStore
+
+<HeadContent>
+    <link href="/Style/LoginPage.css" rel="stylesheet" />
+    <link href="/Style/ConfigurationPage.css" rel="stylesheet" />
+</HeadContent>
+
+<body class="MyCustomBody">
+</body>
+
+<MudGrid Justify="Justify.Center" Spacing="4">
+    <MudItem xs="12" sm="7">
+        <MudForm @ref="form" Class="MyMudForm">
+
+            <!-- Corrected binding -->
+            <MudTextField font-style="Montserrat" @bind-Value="@_NumOfChannels" Class="MyMudTextField" T="int" Label="# of channels" Required="true" RequiredError="A number of channels is required!" HelperText="Input amount of channels above:" Margin="Margin.Dense"></MudTextField>
+
+
+            <MudPaper Class="pa-4 mt-4">
+                <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@GenerateChannels">Generate Channels</MudButton>
+            </MudPaper>
+
+        </MudForm>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+
+    
+
+    private int _NumOfChannels;
+
+    MudForm form;
+
+    private async Task GenerateChannels()
+    {
+        var list = await ClientHelper.GeneratingMutlipleChannels(_NumOfChannels, "https://localhost:5000");
+
+        AccountDetailsStore.channels = list;
+    }
+
+    
+
+}

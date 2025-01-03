@@ -20,7 +20,8 @@ message CreateClientInstanceRequest
 message CreateClientInstanceResponse
 { 
 	string SessionUnique = 1; 
-	string TimeOfClientCreation = 2;
+	string ClientUnique = 2;
+	string TimeOfClientCreation = 3;
 }
 
 message StreamClientInstanceRequest

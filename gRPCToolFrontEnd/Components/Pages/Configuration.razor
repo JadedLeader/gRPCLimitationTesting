@@ -17,22 +17,32 @@
 
 <body class="MyCustomBody"></body>
 
+<MudSelect T="string" Label="Reqeuest flow" MultiSelection="false" ValueChanged="@OnRequestFlowChanged">
+
+    @foreach (string options in _RequestFlowOptions)
+    {
+        <MudSelectItem T="string" Value="@options">@options</MudSelectItem>
+    }
+
+</MudSelect>
+
 <MudGrid Justify="Justify.Center" Spacing="4">
     <MudItem xs="12" sm="7">
         <MudForm @ref="form" Class="MyMudForm">
             
             <!-- Corrected binding -->
-            <MudTextField font-style="Montserrat" @bind-value="@AmountOfClients"  Class="MyMudTextField" T="int" Label="Client Number" Required="true" RequiredError="A client number is required!" HelperText="Input amount of client above:" Margin="Margin.Dense"></MudTextField>
-            <MudTextField font-style="Montserrat" @bind-value="@_ClientUnique" Class="MyMudTextField" T="string" Label="Client Instance Unique" Required="true" RequiredError="A client instance is required!" HelperText="Input client instance ID above:" Margin="Margin.Dense"></MudTextField>
+            <MudTextField font-style="Montserrat" Disabled="@_IsClientNumberDisabled" @bind-value="@AmountOfClients"  Class="MyMudTextField" T="int" Label="Client Number" Required="true" RequiredError="A client number is required!" HelperText="Input amount of client above:" Margin="Margin.Dense"></MudTextField>
+            <MudTextField font-style="Montserrat" Disabled="@_IsClientInstanceDisabled" @bind-value="@_ClientUnique" Class="MyMudTextField" T="string" Label="Client Instance Unique" Required="true" RequiredError="A client instance is required!" HelperText="Input client instance ID above:" Margin="Margin.Dense"></MudTextField>
             <MudTextField font-style="Montserrat" @bind-value="@_FileSize" Class="MyMudTextField" T="string" Label="File Size" Required="true" RequiredError="A file size of small, medium or large is required!" HelperText="Input file size above:" Margin="Margin.Dense"></MudTextField>
-            <MudTextField font-style="Montserrat" @bind-value="@_Iterations" Class="MyMudTextField" T="int" Label="Batch Iterations" Required="true" RequiredError="A number of batch iterations is required!" HelperText="Input number of batch iterations above:" Margin="Margin.Dense"></MudTextField>
+            <MudTextField font-style="Montserrat" Disabled="@_IsBatchIterationsDisabled" @bind-value="@_Iterations" Class="MyMudTextField" T="int" Label="Batch Iterations" Required="true" RequiredError="A number of batch iterations is required!" HelperText="Input number of batch iterations above:" Margin="Margin.Dense"></MudTextField>
+            <MudTextField font-style="Montserrat" @bind-value="@_ChannelId" Class="MyMudTextField" T="string" Label="Channel ID" Required="true" RequiredError="A channel ID is required!" HelperText="Input channel ID above:" Margin="Margin.Dense"></MudTextField>
 
 
             <MudPaper Class="pa-4 mt-4">
-                <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@GenerateClients">Apply Configuration Settings</MudButton>
+                <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@GenerateClients" Disabled="@_IsApplyConfigDisabled">Apply Configuration Settings</MudButton>
                 <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@ClearClientInstances">Clear Client Instances</MudButton>
-                <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@SendUnaryRequest">Send single unary request</MudButton>
-                <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@SendBatchUnaryRequest">Send batch unary request</MudButton>
+                <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@SendUnaryRequest" Disabled="@_IsUnaryRequestDisabled">Send single unary request</MudButton>
+                <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@SendBatchUnaryRequest" Disabled="@_IsBatchRequestDisabled">Send batch unary request</MudButton>
             </MudPaper>
 
         </MudForm>
@@ -47,6 +57,7 @@
 
     MudForm form;
 
+
     private int AmountOfClients;
 
     private int _Iterations;
@@ -55,10 +66,85 @@
 
     private string _FileSize;
 
+    private string _ChannelId;
+
+    private string _RequestFlow;
+
+    private bool _IsBatchRequestDisabled;
+
+    private bool _IsUnaryRequestDisabled;
+
+    private bool _IsApplyConfigDisabled;
+
+    private bool _IsClientInstanceDisabled; 
+
+    private bool _IsBatchIterationsDisabled; 
+
+    private bool _IsClientNumberDisabled;
+
+    /// <summary>
+    /// This list holds all of the options for the mudblazor mudselect 
+    /// one : one -> one channel, one client instance, one request (single unary)
+    /// one : many -> one channel, one client instance, one batch request (batch request unary)
+    /// many : one -> many channels, many client instances, one request on each channel 
+    /// many : many -> many channels, many client instances, many requests on each channel (can be a mix of batch / single / sequential)
+    /// </summary>
+    private List<string> _RequestFlowOptions = new List<string>()
+    {
+        "one : one",
+        "one : many",
+        "many : one",
+        "many : many"
+    };
+
+
     private List<Guid> ClientList = new List<Guid>();
 
     private List<Guid> ClientListFromDb = new List<Guid>();
 
+
+    private async Task OnRequestFlowChanged(string value)
+    {
+        Log.Information($"Selected Request Flow: {value}");
+        _RequestFlow = value;
+        await HandlingCommunications();
+    }
+
+    /// <summary>
+    /// This is used on the batch unary request and the single unary request 
+    /// Since we only really need to generate mass amount of clients for one to many or many to many request types 
+    /// Singular requests should just have a client instance created for them
+    /// </summary>
+    /// <returns></returns>
+    private async Task<string> CreateSingularClientInstance()
+    {
+
+        string username = await GetStringFromStringFromLocalStorage("username");
+
+        string sessionUnique = await GetStringFromStringFromLocalStorage("session-unique");
+
+        CreateClientInstanceRequest newClientInstance = new CreateClientInstanceRequest
+        {
+             Username = username,
+             SessionUnique = sessionUnique
+        };
+
+        CreateClientInstanceResponse serverResponse = await ClientInstanceService.CreateClientInstanceAsync(newClientInstance);
+
+        if(serverResponse.SessionUnique == null)
+        {
+            Log.Warning($"Something went wrong when creating a singular client instance");
+        }
+
+        return serverResponse.ClientUnique;
+    }
+
+    /// <summary>
+    /// this is used as the overhead method for generating clients
+    /// All it does is generate a number of clients determined by the client 
+    /// And then sends them to the server to be stored in the database
+    /// </summary>
+    /// <returns></returns>
     private async Task GenerateClients()
     {
         await GeneratingClientInstances();
@@ -66,16 +152,96 @@
         await SendClientsToBackend();
     }
 
+    /// <summary>
+    /// This is used for sending a single unary request on a single channel
+    /// A new unary client instance is generated in the service of this method call every time the endpoint is activated
+    /// </summary>
+    /// <returns></returns>
     private async Task SendUnaryRequest()
     {
+        string clientUnique = await CreateSingularClientInstance();
+
+        _ClientUnique = clientUnique;
+
         await GenerateUnaryRequest();
     }
 
+    /// <summary>
+    /// This is used for sending a batch unary request on a single channel
+    /// A new unary client instance is generated in the service of this method call every tim the endpoint is activated
+    /// </summary>
+    /// <returns></returns>
     private async Task SendBatchUnaryRequest()
     {
+        string clientUnique = await CreateSingularClientInstance();
+
+        _ClientUnique = clientUnique; 
+
         await GenerateBatchUnaryRequest();
     }
 
+    //we need to create the functionality for hanlding the different types of communication flow
+
+    /// <summary>
+    /// Handles the communication flow of the forms on the front end depending on what drop down option is currently selected 
+    /// Essentially just flips between true and false to disable buttons and input fields
+    /// Then calls StateHasChanged to force a page refresh
+    /// </summary>
+    /// <returns></returns>
+    public async Task HandlingCommunications()
+    {
+        Log.Information($"HandlingCommunications called with _RequestFlow: {_RequestFlow}");
+
+        switch (_RequestFlow)
+        {
+            case "one : one":
+                _IsBatchRequestDisabled = true;
+                _IsUnaryRequestDisabled = false;
+                _IsApplyConfigDisabled = true;
+                _IsClientInstanceDisabled = true;
+                _IsBatchIterationsDisabled = true;
+                _IsClientNumberDisabled = true;
+                break;
+
+            case "one : many":
+                _IsUnaryRequestDisabled = false;
+                _IsBatchRequestDisabled = false;
+                _IsApplyConfigDisabled = true;
+                _IsClientNumberDisabled = true; 
+                _IsClientInstanceDisabled = true;
+                _IsBatchIterationsDisabled = false;
+                break;
+
+            case "many : one":
+                _IsBatchRequestDisabled = false;
+                _IsUnaryRequestDisabled = false;
+                _IsClientInstanceDisabled = true;
+                _IsBatchIterationsDisabled = true;
+                _IsClientNumberDisabled = true;
+                _IsBatchRequestDisabled = true;
+                break;
+
+            case "many : many":
+                _IsBatchRequestDisabled = false;
+                _IsUnaryRequestDisabled = false;
+                _IsClientInstanceDisabled = true;
+                _IsBatchIterationsDisabled = false;
+                break;
+
+            default:
+                _IsBatchRequestDisabled = false;
+                _IsUnaryRequestDisabled = false;
+                break;
+        }
+
+        StateHasChanged();
+    } 
+
+    /// <summary>
+    /// This method is in charge of generating handling a list of BatchDataRequestDetails, adding them to the request as this is a repeated field (bulk upload to the server)
+    /// 
+    /// </summary>
+    /// <returns></returns>
     private async Task GenerateBatchUnaryRequest()
     {
 
@@ -88,14 +254,15 @@
              BatchDataRequest_ = { dataRequestDetails }
         };
 
-        await UnaryRequestService.UnaryBatchResponseAsync(batchDataRequestUnary, _Iterations);
+        await UnaryRequestService.UnaryBatchResponseAsync(batchDataRequestUnary, _Iterations, Guid.Parse(_ChannelId));
     }
 
     /// <summary>
-    /// 
+    /// This method is in charge of generating each request that goes into the batch of unary requests 
+    /// While loop to generate the requests until we reach the amount of requests required in the batch
     /// </summary>
     /// <param name="requestIterations"> is how many messages you want to be in the batch</param>
-    /// <returns></returns>
+    /// <returns>A list of BatchDataRequestDetails populated with as many requests stated in the parameter</returns>
     private async Task<List<BatchDataRequestDetails>> GeneratingBatchOfRequests(int requestIterations)
     {
         List<BatchDataRequestDetails> dataRequestDetails = new List<BatchDataRequestDetails>();
@@ -137,6 +304,11 @@
         return dataRequestDetails;
     }
 
+    /// <summary>
+    /// This function is in charge of gathering all the parameters to generate a DataRequest
+    /// This is a unary-unary request so it's straight forward
+    /// </summary>
+    /// <returns></returns>
     private async Task GenerateUnaryRequest()
     {
         string filePath = ClientHelper.FileSize(_FileSize);
@@ -151,6 +323,8 @@
         long ticks = now.Ticks;
         string preciseTime = now.ToString("HH:mm:ss.ffffff");
 
+        var thing = _ClientUnique;
+
         DataRequest newDataRequest = new DataRequest
         {
             ClientUnique = _ClientUnique, 
@@ -164,16 +338,20 @@
 
         Log.Information($"Client ID: {newDataRequest.ClientUnique} has sent message ID: {newDataRequest.RequestId} at {newDataRequest.RequestTimestamp}");
 
-        DataResponse serverResponse = await UnaryRequestService.UnaryResponseAsync(newDataRequest);
+        DataResponse serverResponse = await UnaryRequestService.UnaryResponseAsync(newDataRequest, Guid.Parse(_ChannelId));
 
         if(serverResponse.RequestId == null || serverResponse.ClientUnique == null)
         {
             Log.Information($"Something went wrong, the server responded with no requestID or clientID"); 
         }
 
-        
+
     }
 
+    /// <summary>
+    /// Clears all the client instances within the database based on the session unique 
+    /// </summary>
+    /// <returns></returns>
     private async Task ClearClientInstances()
     {
         string sessionUnique = await GetStringFromStringFromLocalStorage("session-unique");
@@ -187,7 +365,7 @@
 
         //await ClientInstanceService.GetClientInstancesViaSessionUnique(request, ClientListFromDb);
 
-        //THIS DELETES THE CURRENT RECORDS IN A UNARY MATTER
+        //THIS DELETES THE CURRENT RECORDS IN A UNARY MATTER - i want to try and get this to work in a streaming fashion
         await ClientInstanceService.GetClientInstancesAsync(request);
 
         //await ClientInstanceService.ClearingClientInstancesStreamedAsync(sessionUnique, ClientListFromDb);
@@ -206,6 +384,7 @@
             i++;
         }
     }
+
 
     private async Task SendClientsToBackend()
     {

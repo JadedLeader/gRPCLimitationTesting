@@ -78,6 +78,8 @@ namespace gRPCToolFrontEnd
 
             builder.Services.AddScoped<ClientHelper>();
 
+            builder.Services.AddSingleton<AccountDetailsStore>();
+
             var app = builder.Build();
 
             Console.WriteLine("APP HAS BEEN BUILT");

@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Runtime;
 using gRPCToolFrontEnd;
+using Grpc.Net.Client.Balancer;
+using Serilog;
 
 namespace gRPCToolFrontEnd.Helpers
 {
@@ -29,22 +31,25 @@ namespace gRPCToolFrontEnd.Helpers
         /// </summary>
         /// <param name="amountOfChannels"></param>
         /// <returns>A list of channels that were created</returns>
-        public async Task<List<GrpcChannel>> GeneratingMutlipleChannels(int amountOfChannels)
+        public async Task<Dictionary<Guid, GrpcChannel>> GeneratingMutlipleChannels(int amountOfChannels, string forAddress)
         {
             int i = 0;
 
-            List<GrpcChannel> channels = new List<GrpcChannel>();
+            Dictionary<Guid, GrpcChannel> channels = new Dictionary<Guid, GrpcChannel>();
            
             while(amountOfChannels > i)
             {
-                var newChannel = GrpcChannel.ForAddress("http://localhost:5000",  new GrpcChannelOptions
+                var newChannel = GrpcChannel.ForAddress(forAddress,  new GrpcChannelOptions
                 {
                     MaxSendMessageSize = 100 * 1024 * 1024, 
                     MaxReceiveMessageSize = 100 * 1024 * 1024,
                 });
 
-                channels.Add(newChannel);
-                
+                Guid channelUnique = Guid.NewGuid();
+
+                channels.Add(channelUnique, newChannel);
+
+                Log.Information($"Channel created with ID {channelUnique}");
 
                // Settings.IncrementActiveChannels();
 
