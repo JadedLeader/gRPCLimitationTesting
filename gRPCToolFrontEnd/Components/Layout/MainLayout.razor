@@ -4,20 +4,32 @@
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
-<MudLayout>
-    <MudAppBar Elevation="1">
+<MudLayout Style="background-image: url(/Images/3d-rendering-abstract-black-white-waves.png);
+                  background-size: cover;
+                  background-position: center;
+                  height: 100vh;
+                  width: 100vw;
+                  margin: 0;
+                  padding: 0;
+                  overflow: hidden;">
+
+    <MudAppBar Elevation="1" Style="background: #121212;">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
+        <MudText Typo="Typo.h5" Class="ml-3">Stress Testing Service</MudText>
         <MudSpacer />
         <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
         <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2" Style="background: #121212;">
         <NavMenu />
     </MudDrawer>
-    <MudMainContent Class="mt-16 pa-4">
+
+    <MudMainContent>
         @Body
     </MudMainContent>
+
+
 </MudLayout>
 
 

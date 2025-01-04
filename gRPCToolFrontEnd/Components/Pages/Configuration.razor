@@ -2,22 +2,25 @@
 @using gRPCToolFrontEnd.Services
 @using gRPCToolFrontEnd.Helpers
 @using Serilog
-@page "/Configuration"
+@using Grpc.Net.Client
+@using gRPCToolFrontEnd.LocalStorage
+@page "/"
 @layout MainLayout
 @inject ClientInstanceService ClientInstanceService
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject UnaryRequestService UnaryRequestService
 @inject ClientHelper ClientHelper
-
+@inject AccountDetailsStore AccountDetailsStore
 
 <HeadContent>
     <link href="/Style/LoginPage.css" rel="stylesheet" />
-    <link href="/Style/ConfigurationPage.css" rel="stylesheet" />
 </HeadContent>
 
-<body class="MyCustomBody"></body>
 
-<MudSelect T="string" Label="Reqeuest flow" MultiSelection="false" ValueChanged="@OnRequestFlowChanged">
+
+<MudPaper Class="d-flex justify-start flex-grow-1 gap-4" Elevation="15" Style="width: 300px; padding-left: 20px; background-color: transparent;" Square="true" >
+
+    <MudSelect T="string" Label="Request flow" MultiSelection="false" ValueChanged="@OnRequestFlowChanged" >
 
     @foreach (string options in _RequestFlowOptions)
     {
@@ -26,29 +29,115 @@
 
 </MudSelect>
 
-<MudGrid Justify="Justify.Center" Spacing="4">
-    <MudItem xs="12" sm="7">
-        <MudForm @ref="form" Class="MyMudForm">
+</MudPaper>
+
+
+<MudPaper Class="d-flex justify-start flex-grow-1 gap-4" Elevation="15" Style="width: 300px; background-color: transparent; padding-top: 30px;" Square="true">
+
+<MudToggleIconButton @bind-Toggled="@_StreamingOn" Icon="Icons.Material.Filled.AlarmOff" Color="@Color.Primary" ToggledIcon="@Icons.Material.Filled.AlarmOn"
+                     ToggledColor="@Color.Success" title="@(_StreamingOn ? "On" : "Off")" Style="margin-top: 0; padding: 0;" />
+
+<span>Streaming is @(_StreamingOn? "On" : "Off")</span>
+
+    <MudToggleIconButton @bind-Toggled="@_UnaryOrBatch" Icon="Icons.Material.Filled.AlarmOff" Color="@Color.Primary" ToggledIcon="@Icons.Material.Filled.AlarmOn"
+                         ToggledColor="@Color.Success" title="@(_UnaryOrBatch ? "Unary" : "Batch")" Style="margin-top: 0; padding: 0;" />
+
+    <span>Communication type is @(_UnaryOrBatch ? "Unary" : "Batch")</span>
+
+</MudPaper>
+
+
+<MudGrid Spacing="4" Justify="Justify.Center">
+    <MudItem xs="12" sm="7" >
+        <MudForm @ref="form" Style="background-color: #1A1A1D" >
+
+            <MudCard Style="background: #252525">
+                <MudPaper Style="background: rgba(20, 20, 20, 0.9)">
+                    <MudPaper Style="background: rgba(20, 20, 20, 0.9)">
+                        <MudGrid Spacing="2" >
+                            <MudItem xs="12" sm="6" >
+                            <MudTextField font-style="Montserrat" Class="MyMudTextField" Disabled="@_IsClientNumberDisabled" @bind-value="@AmountOfClients" T="int" Label="Client Number" Required="true" RequiredError="A client number is required!" HelperText="Input amount of client above:" Margin="Margin.Dense"></MudTextField>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+
+                <MudPaper Style="background: rgba(20, 20, 20, 0.9)">
+                        <MudGrid Spacing="2"> 
+                        <MudItem xs="12" sm="6">
+
+                                <MudTextField font-style="Montserrat" Disabled="@_IsClientInstanceDisabled" @bind-value="@_ClientUnique" Class="MyMudTextField" T="string" Label="Client Instance Unique" Required="true" RequiredError="A client instance is required!" HelperText="Input client instance ID above:" Margin="Margin.Dense"></MudTextField>
+
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+
+                <MudPaper Style="background: rgba(20, 20, 20, 0.9)">
+                        <MudGrid Spacing="2"> 
+                        <MudItem xs="12" sm="6">
+
+                            <MudTextField font-style="Montserrat" @bind-value="@_FileSize" Class="MyMudTextField" T="string" Label="File Size" Required="true" RequiredError="A file size of small, medium or large is required!" HelperText="Input file size above:" Margin="Margin.Dense"></MudTextField>
+
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+
+                <MudPaper Style="background: rgba(20, 20, 20, 0.9)">
+                        <MudGrid Spacing="2"> 
+                        <MudItem xs="12" sm="6">
+
+                            <MudTextField font-style="Montserrat" Disabled="@_IsBatchIterationsDisabled" @bind-value="@_Iterations" Class="MyMudTextField" T="int" Label="Batch Iterations" Required="true" RequiredError="A number of batch iterations is required!" HelperText="Input number of batch iterations above:" Margin="Margin.Dense"></MudTextField>
+
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </MudPaper>
+            </MudCard>
+
+            <MudPaper Style="background: rgba(20, 20, 20, 0.9)">
+                <MudGrid Spacing="2"> 
+                    <MudItem xs="12" sm="6">
+
+                        <MudTextField font-style="Montserrat" @bind-value="@_ChannelId" Class="MyMudTextField" T="string" Label="Channel ID" Required="true" RequiredError="A channel ID is required!" HelperText="Input channel ID above:" Margin="Margin.Dense"></MudTextField>
+
+                    </MudItem>
+                </MudGrid>
+            </MudPaper>
+
+            <MudPaper Class="pa-4 mt-4 justify-start" Style="background: rgba(20, 20, 20, 0.9)">
+                <MudGrid Spacing="6" Justify="Justify.SpaceEvenly">
+
+                    <MudItem>
+                        <MudTooltip Text="This will apply the current configuration settings"> 
+                            <MudButton Style="width: 200px;" FullWidth="true" Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="true" @onclick="@GenerateClients" Disabled="@_IsApplyConfigDisabled">Apply Configuration Settings</MudButton>
+                        </MudTooltip>
+                    </MudItem>
+
+
+                    <MudItem> 
+                        <MudTooltip Text="This will clear all of the client instances"> 
+                            <MudButton Style="width: 200px;" FullWidth="true" Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@ClearClientInstances">Clear Client Instances</MudButton>
+                        </MudTooltip>
+                    </MudItem>
+
+                    <MudItem>
+                        <MudButton Style="width: 200px;" FullWidth="true" Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@SendUnaryRequest" Disabled="@_IsUnaryRequestDisabled">Send single unary request</MudButton>
+                    </MudItem>
+
+                    <MudItem> 
+                        <MudButton Style="width: 200px;" FullWidth="true" Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@SendBatchUnaryRequest" Disabled="@_IsBatchRequestDisabled">Send batch unary request</MudButton>
+                    </MudItem>
+
+                    <MudItem>
+                        <MudButton Style="width: 200px;" FullWidth="true" Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@ManyClientsUnaryRequestAsync">Send many to one request</MudButton>
+                    </MudItem>
+                
             
-            <!-- Corrected binding -->
-            <MudTextField font-style="Montserrat" Disabled="@_IsClientNumberDisabled" @bind-value="@AmountOfClients"  Class="MyMudTextField" T="int" Label="Client Number" Required="true" RequiredError="A client number is required!" HelperText="Input amount of client above:" Margin="Margin.Dense"></MudTextField>
-            <MudTextField font-style="Montserrat" Disabled="@_IsClientInstanceDisabled" @bind-value="@_ClientUnique" Class="MyMudTextField" T="string" Label="Client Instance Unique" Required="true" RequiredError="A client instance is required!" HelperText="Input client instance ID above:" Margin="Margin.Dense"></MudTextField>
-            <MudTextField font-style="Montserrat" @bind-value="@_FileSize" Class="MyMudTextField" T="string" Label="File Size" Required="true" RequiredError="A file size of small, medium or large is required!" HelperText="Input file size above:" Margin="Margin.Dense"></MudTextField>
-            <MudTextField font-style="Montserrat" Disabled="@_IsBatchIterationsDisabled" @bind-value="@_Iterations" Class="MyMudTextField" T="int" Label="Batch Iterations" Required="true" RequiredError="A number of batch iterations is required!" HelperText="Input number of batch iterations above:" Margin="Margin.Dense"></MudTextField>
-            <MudTextField font-style="Montserrat" @bind-value="@_ChannelId" Class="MyMudTextField" T="string" Label="Channel ID" Required="true" RequiredError="A channel ID is required!" HelperText="Input channel ID above:" Margin="Margin.Dense"></MudTextField>
-
-
-            <MudPaper Class="pa-4 mt-4">
-                <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@GenerateClients" Disabled="@_IsApplyConfigDisabled">Apply Configuration Settings</MudButton>
-                <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@ClearClientInstances">Clear Client Instances</MudButton>
-                <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@SendUnaryRequest" Disabled="@_IsUnaryRequestDisabled">Send single unary request</MudButton>
-                <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@SendBatchUnaryRequest" Disabled="@_IsBatchRequestDisabled">Send batch unary request</MudButton>
+                </MudGrid>
             </MudPaper>
 
         </MudForm>
     </MudItem>
 </MudGrid>
-
 
 @code {
 
@@ -82,6 +171,11 @@
 
     private bool _IsClientNumberDisabled;
 
+    public bool _StreamingOn { get; set; } = true;
+
+    public bool _UnaryOrBatch { get; set; } = true;
+
+
     /// <summary>
     /// This list holds all of the options for the mudblazor mudselect 
     /// one : one -> one channel, one client instance, one request (single unary)
@@ -102,12 +196,56 @@
 
     private List<Guid> ClientListFromDb = new List<Guid>();
 
-
     private async Task OnRequestFlowChanged(string value)
     {
         Log.Information($"Selected Request Flow: {value}");
         _RequestFlow = value;
         await HandlingCommunications();
+    }
+
+    //need to create a load balancer, this currently handles one channel - one requets / bulk request
+    //iterate over the channels list based on streaming state use unary batch -> once / unary once
+
+    private async Task ManyClientsUnaryRequestAsync()
+    {
+
+        //need a dropdown thing for unary or batch ig
+
+        Log.Information($"Many to one logs");
+        Log.Information($"Streaming state: {_StreamingOn}");
+        Log.Information($"Request flow: {_RequestFlow}"); 
+        Log.Information($"Unary or batch state: {_UnaryOrBatch}"); 
+        Log.Information($"Num of channels in list: {AccountDetailsStore.channels.Count}");
+
+        await ManyClientsUnaryRequest(_StreamingOn, _RequestFlow, _UnaryOrBatch, AccountDetailsStore.channels);
+    }
+
+    //we need some determinant for if we send a unary or batch
+    public async Task ManyClientsUnaryRequest(bool isStreaming, string dropDownState, bool unaryOrBatch, Dictionary<Guid, GrpcChannel> channelDict)
+    {
+        if (!isStreaming && dropDownState == "many : one" )
+        {
+          
+             foreach (var channel in channelDict)
+             {
+                 await DetermingUnaryOrBatchRequest(unaryOrBatch);
+             }
+            
+        }
+        
+    }
+
+    private async Task DetermingUnaryOrBatchRequest(bool unaryOrBatch)
+    {
+        if (unaryOrBatch)
+        {
+            await SendUnaryRequest();
+        }
+        else
+        {
+            await SendBatchUnaryRequest();
+        }
+
     }
 
     /// <summary>
@@ -216,7 +354,7 @@
                 _IsBatchRequestDisabled = false;
                 _IsUnaryRequestDisabled = false;
                 _IsClientInstanceDisabled = true;
-                _IsBatchIterationsDisabled = true;
+                _IsBatchIterationsDisabled = false;
                 _IsClientNumberDisabled = true;
                 _IsBatchRequestDisabled = true;
                 break;
@@ -408,4 +546,9 @@
 
         return localStorageUsername;
     }
+
+    
+
+        
+    
 }

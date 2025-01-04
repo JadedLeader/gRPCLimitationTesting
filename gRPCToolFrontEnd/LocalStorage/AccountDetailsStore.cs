@@ -1,4 +1,5 @@
 ﻿using Grpc.Net.Client;
+using gRPCToolFrontEnd.Services;
 
 namespace gRPCToolFrontEnd.LocalStorage
 {
@@ -6,6 +7,8 @@ namespace gRPCToolFrontEnd.LocalStorage
     {
 
         public Dictionary<Guid, GrpcChannel> channels = new Dictionary<Guid, GrpcChannel>();
+
+        
 
         public AccountDetailsStore()
         {
@@ -16,6 +19,22 @@ namespace gRPCToolFrontEnd.LocalStorage
         {
             return channels.FirstOrDefault(x => x.Key == channelUnique);
         }
+
+        public Dictionary<Guid, GrpcChannel> GetChannels()
+        {
+            return channels;
+        }
+
+        public async Task<int> ClearChannels()
+        {
+            channels.Clear();
+
+            return channels.Count;
+        }
+
+      
+
+        
 
         
 

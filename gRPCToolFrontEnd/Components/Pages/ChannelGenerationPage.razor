@@ -2,50 +2,235 @@
 @using gRPCToolFrontEnd.Helpers
 @using gRPCToolFrontEnd.LocalStorage
 @using Serilog
+@using Grpc.Net.Client
+@using System.Reactive.Subjects
 @page "/ChannelGeneration"
 @layout MainLayout
 @inject ClientHelper ClientHelper
 @inject AccountDetailsStore AccountDetailsStore
 
-<HeadContent>
-    <link href="/Style/LoginPage.css" rel="stylesheet" />
-    <link href="/Style/ConfigurationPage.css" rel="stylesheet" />
-</HeadContent>
 
-<body class="MyCustomBody">
-</body>
+<MudGrid Justify="Justify.SpaceBetween" Spacing="4">
 
-<MudGrid Justify="Justify.Center" Spacing="4">
-    <MudItem xs="12" sm="7">
-        <MudForm @ref="form" Class="MyMudForm">
+    <!-- Left Column: Tree View -->
+    <MudItem xs="12" sm="4">
+        <MudPaper Class="MyTreeViewContainer">
+            <MudTreeView T="string" SelectionMode="SelectionMode.SingleSelection" SelectedValueChanged="@ItemSelected" >
+                <MudTreeViewItem Value='"Channel IDs: "'>
 
-            <!-- Corrected binding -->
-            <MudTextField font-style="Montserrat" @bind-Value="@_NumOfChannels" Class="MyMudTextField" T="int" Label="# of channels" Required="true" RequiredError="A number of channels is required!" HelperText="Input amount of channels above:" Margin="Margin.Dense"></MudTextField>
+                    @foreach(var channel in _ChannelGuids)
+                    {
+                        <MudTreeViewItem Text="@channel.Key.ToString()" Value="channel.Value.Target" />
+                    }
 
-
-            <MudPaper Class="pa-4 mt-4">
-                <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@GenerateChannels">Generate Channels</MudButton>
-            </MudPaper>
-
-        </MudForm>
+                </MudTreeViewItem>
+            </MudTreeView>
+        </MudPaper>
     </MudItem>
+
+    <!-- Right Column: Centered Form -->
+    <MudItem xs="12" sm="7" Class="CenterFormContainer">
+        <MudPaper Class="MyFormContainer">
+            <MudForm @ref="form" Class="MyMudForm">
+
+                <MudTextField font-style="Montserrat"
+                              @bind-Value="@_NumOfChannels"
+                              Class="MyMudTextField"
+                              T="int"
+                              Label="# of channels"
+                              Required="true"
+                              RequiredError="A number of channels is required!"
+                              HelperText="Input amount of channels above:"
+                              Margin="Margin.Dense"
+                              HelperTextOnFocus="true"
+                              >
+                             
+                              </MudTextField>
+
+                <MudTextField font-style="Montserrat"
+                              @bind-Value="@_TargetAddress"
+                              Class="MyMudTextField"
+                              T="string"
+                              Label="Target Address"
+                              Required="true"
+                              RequiredError="A target address is required!"
+                              HelperText="Input target address above:"
+                              Margin="Margin.Dense"
+                              HelperTextOnFocus="true"
+                              >
+                              </MudTextField>
+
+
+                <MudPaper Class="pa-4 mt-4" Style=" background: rgba(20, 20, 20, 0.95)">
+
+                    <MudGrid Spacing="6" Justify="Justify.SpaceEvenly"> 
+                        <MudTooltip Text="This button will generate channels"> 
+                            <MudButton Class="MyLoginMudButton"
+                                    Variant="Variant.Filled"
+                                    DropShadow="false"
+                                    @onclick="@GenerateChannels">Generate Channels</MudButton>
+                        </MudTooltip>
+
+                        <MudTooltip Text="This button will clear all the current channels stored locally"> 
+                            <MudButton Class="MyLoginMudButton"
+                                    Variant="Variant.Filled"
+                                    DropShadow="false"
+                                    @onclick="@ClearChannels">Clear Channels</MudButton>
+                        </MudTooltip>
+                    </MudGrid>
+
+                    
+                </MudPaper>
+
+            </MudForm>
+        </MudPaper>
+    </MudItem>
+
 </MudGrid>
 
+<style>
+   
+    .MyTreeViewContainer {
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+        height: 100%; 
+        backdrop-filter: blur(16px);
+        max-height: 80vh; /* Limits the height to 80% of the viewport height */
+        overflow-y: auto; /* Enables vertical scrolling */
+        scrollbar-width: thin; /* For Firefox */
+        scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    }
+
+    MyTreeViewContainer::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .MyTreeViewContainer::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+    }
+
+    .MyTreeViewContainer::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.4);
+    }
+
+    .CenterFormContainer {
+        display: flex;
+        justify-content: center; 
+        align-items: center; 
+        height: 100vh; 
+        padding: 20px;
+    }
+
+    .MyFormContainer {
+        background: rgba(20, 20, 20, 0.95);
+        border-radius: 12px;
+        padding: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+        width: 400px; 
+    }
+
+   
+    .MyLoginMudButton {
+        background-color: #2196F3;
+        color: white;
+        border-radius: 8px;
+        width: 100%;
+        font-weight: bold; 
+        margin-top: 20px;
+        width: 150px;
+        height: 30px;
+        margin-left: 20px;
+        margin-right: 20px;
+        font-size: 10px;
+    }
+
+        .MyLoginMudButton:hover {
+            background-color: #1565C0;
+        }
+</style>
 
 @code {
 
-    
+    private Dictionary<Guid, GrpcChannel> _ChannelGuids = new();
 
-    private int _NumOfChannels;
+    private BehaviorSubject<Dictionary<Guid, GrpcChannel>> _ChannelSubject;
+
+    private IDisposable _ChannelSubscription;
+
+    private int _NumOfChannels = 1;
+
+    private string _SelectedChannel;
+
+    private string _TargetAddress { get; set; } = "https://localhost:5000";
 
     MudForm form;
 
+    protected override void OnInitialized()
+    {
+
+        Dictionary<Guid, GrpcChannel> channelsFromSingleton = AccountDetailsStore.GetChannels();
+
+        _ChannelGuids = channelsFromSingleton;
+
+        _ChannelSubject = new BehaviorSubject<Dictionary<Guid, GrpcChannel>>(_ChannelGuids);
+
+        _ChannelSubscription = _ChannelSubject.Subscribe(updateDictionary =>
+        {
+            _ChannelGuids = updateDictionary;
+            InvokeAsync(StateHasChanged);
+
+        });
+
+        Log.Information(AccountDetailsStore.channels.Count().ToString());
+        Log.Information($"Current target address: {_TargetAddress}");
+    }
+
+    private async Task ItemSelected(string selectedItem)
+    {
+        _SelectedChannel = selectedItem; 
+        Log.Information($"Selected channel: {_SelectedChannel}");
+        await InvokeAsync(StateHasChanged);
+
+    }
+
+    private async Task ClearChannels()
+    {
+        int remainingChannels = await AccountDetailsStore.ClearChannels();
+
+        _ChannelGuids.Clear();
+
+        Log.Information($"Number of channels after channel clearance: {remainingChannels}");
+
+        await InvokeAsync(StateHasChanged);
+    }
+
     private async Task GenerateChannels()
     {
-        var list = await ClientHelper.GeneratingMutlipleChannels(_NumOfChannels, "https://localhost:5000");
+        if(_NumOfChannels == 0)
+        {
+            Log.Warning($"The number of channels generated cannot be zero");
+        }
 
-        AccountDetailsStore.channels = list;
+        Dictionary<Guid, GrpcChannel> channelDict = await ClientHelper.GeneratingMutlipleChannels(_NumOfChannels, _TargetAddress);
+
+        _ChannelGuids = channelDict;
+
+        AccountDetailsStore.channels = channelDict;
+
+        _ChannelSubject.OnNext(new Dictionary<Guid, GrpcChannel>(_ChannelGuids));
     }
+
+    public void Dispose()
+    {
+        _ChannelSubscription?.Dispose();
+    }
+
+    
 
     
 

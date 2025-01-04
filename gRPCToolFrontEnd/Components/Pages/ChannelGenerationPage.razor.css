@@ -1,0 +1,12 @@
+﻿body {
+    color: aqua
+}
+
+MyMudTextField {
+    border: 1px solid aqua;
+}
+
+MyMudForm {
+    background-color: #121212;
+    color: white;
+}

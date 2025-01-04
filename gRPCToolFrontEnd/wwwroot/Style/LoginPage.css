@@ -1,4 +1,8 @@
 ﻿
+.MyCustomBackground {
+    background-image: url(/Images/3d-rendering-abstract-black-white-waves.png)
+}
+
 .PageHeader {
     background-color: #1976d2;
     color: #fff;
@@ -46,6 +50,8 @@
     background-image: url(/Images/3d-rendering-abstract-black-white-waves.png)
 }
 
+
+
 .MyMudText {
 
     margin-top: 20px;
@@ -89,4 +95,13 @@
     padding-left: 50px;
     color: lightblue; 
 
+}
+
+.TopRightControls {
+    position: absolute; /* Force it to the top-right corner */
+    top: 0;
+    right: 0;
+    padding: 10px;
+    display: flex;
+    gap: 10px;
 }
