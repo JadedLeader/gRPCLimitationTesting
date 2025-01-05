@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,6 +15,16 @@ namespace SharedCommonalities.Abstracts
             dictionaryName.Add(dataToAddKey, dataToAddValue);
         }
 
+        public virtual void AddToConcurrentDict(ConcurrentDictionary<Key, Value> dictionaryName, Key dataToAddKey, Value dataToAddValue)
+        {
+            dictionaryName.TryAdd(dataToAddKey, dataToAddValue);
+        }
+
+        public virtual void RemoveFromConcurrentDict(ConcurrentDictionary<Key, Value> dictionaryName, Key dataToAddKey)
+        {
+            dictionaryName.TryRemove(dataToAddKey, out var removedItem);
+        }
+
         public virtual void RemoveFromDictionary(Dictionary<Key, Value> dictionaryName, Key dataKey)
         {
             dictionaryName.Remove(dataKey);
@@ -26,6 +37,11 @@ namespace SharedCommonalities.Abstracts
                 return null;
             }
 
+            return dictionaryName;
+        }
+
+        public virtual ConcurrentDictionary<Key, Value> ReturnConcurrentDict(ConcurrentDictionary<Key, Value> dictionaryName)
+        {
             return dictionaryName;
         }
 

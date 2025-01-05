@@ -41,12 +41,13 @@ message BatchDataRequest
 message BatchDataRequestDetails
 { 
 	string ClientUnique = 1;
-	string RequestId = 2;
-	string RequestType = 3; 
-	string RequestTimestamp = 4; 
-	string DataSize = 5;
-	string DataContent = 6;
-	bool ConnectionAlive = 7;
+	string BatchRequestId = 2;
+	string RequestId = 3;
+	string RequestType = 4; 
+	string RequestTimestamp = 5; 
+	string DataSize = 6;
+	string DataContent = 7;
+	bool ConnectionAlive = 8;
 }
 
 message BatchDataResponse

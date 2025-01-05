@@ -85,7 +85,7 @@ namespace gRPCStressTestingService
             builder.Services.AddScoped<IUnaryService, UnaryService>();
             builder.Services.AddScoped<UnaryImplementation>();
             builder.Services.AddSingleton<DelayCalculations>(); 
-            builder.Services.AddHostedService<DbManagerWorker>();
+           // builder.Services.AddHostedService<DbManagerWorker>();
 
             builder.Services.AddSingleton<IClientManagementService, ClientManagementService>();
             //builder.Services.AddHostedService<ClientManagerWorker>();
@@ -110,8 +110,9 @@ namespace gRPCStressTestingService
             builder.Services.AddScoped<IAdminService, AdminService>();
 
             builder.Services.AddScoped<ObjectCreation>();
+            builder.Services.AddScoped<delayCalcRepo>();
          
-            builder.Services.AddHostedService<DelayWorker>();
+            //builder.Services.AddHostedService<DelayWorker>();
 
             var app = builder.Build();
             

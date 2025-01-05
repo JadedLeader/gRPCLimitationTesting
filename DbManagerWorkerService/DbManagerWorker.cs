@@ -11,8 +11,7 @@ namespace DbManagerWorkerService
      
         public DbManagerWorker(IServiceProvider scope)
         {
-            
-            
+          
             _serviceProvider = scope;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)

@@ -2,6 +2,7 @@
 using SharedCommonalities.Interfaces.TimeStorage;
 using SharedCommonalities.ReturnModels.ReturnTypes;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
@@ -19,10 +20,10 @@ namespace SharedCommonalities.TimeStorage
         /// Client message ID holds a string for a client id and a string for a message id
         /// Unary info holds information about the request made
         /// </summary>
-        public Dictionary<ClientMessageId, UnaryInfo> _ClientRequestTiming = new Dictionary<ClientMessageId, UnaryInfo>();
+        public ConcurrentDictionary<ClientMessageId, UnaryInfo> _ClientRequestTiming = new ConcurrentDictionary<ClientMessageId, UnaryInfo>();
 
         //largely the same as the client
-        public Dictionary<ClientMessageId, UnaryInfo> _ServerResponseTiming = new Dictionary<ClientMessageId, UnaryInfo>();
+        public ConcurrentDictionary<ClientMessageId, UnaryInfo> _ServerResponseTiming = new ConcurrentDictionary<ClientMessageId, UnaryInfo>();
         
         /// <summary>
         /// This is a volatile list and should only be populated once a delay calculation has been made
@@ -30,11 +31,40 @@ namespace SharedCommonalities.TimeStorage
         /// ClientMessageId holds two strings, one for the client id and one for the message id
         /// UnaryInfo holds various information about the requests itself 
         /// </summary>
-        public Dictionary<ClientMessageId, UnaryInfo> _ActualDelayCalculations = new Dictionary<ClientMessageId, UnaryInfo>();
+        public ConcurrentDictionary<ClientMessageId, UnaryInfo> _ActualDelayCalculations = new ConcurrentDictionary<ClientMessageId, UnaryInfo>();
 
+        private readonly object _lock = new object();
         public RequestResponseTimeStorage()
         {
            
+        }
+
+        public void AddToConcurrentDictLock(ConcurrentDictionary<ClientMessageId, UnaryInfo> dictionary, ClientMessageId key, UnaryInfo value)
+        {
+            lock (_lock)
+            {
+                if (!dictionary.ContainsKey(key))
+                {
+                    dictionary.TryAdd(key, value);
+                }
+            }
+        }
+
+        public bool RemoveFromConcurrentDictLock(ConcurrentDictionary<ClientMessageId, UnaryInfo> dictionary, ClientMessageId key)
+        {
+            lock (_lock)
+            {
+                return dictionary.TryRemove(key, out _);
+            }
+        }
+
+        public ConcurrentDictionary<ClientMessageId, UnaryInfo> ReturnConcurrentDictLock(ConcurrentDictionary<ClientMessageId, UnaryInfo> dictionary)
+        {
+            lock (_lock)
+            {
+                // Return a shallow copy for iteration safety
+                return new ConcurrentDictionary<ClientMessageId, UnaryInfo>(dictionary);
+            }
         }
 
         public override void AddToDictionary(Dictionary<ClientMessageId, UnaryInfo> dictionaryName, ClientMessageId dataToAddKey, UnaryInfo dataToAddValue)

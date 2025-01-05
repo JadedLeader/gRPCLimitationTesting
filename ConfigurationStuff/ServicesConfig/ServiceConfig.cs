@@ -34,6 +34,7 @@ namespace ConfigurationStuff.ServicesConfig
             
             services.AddSingleton<ClientStorage>();
             services.AddSingleton<RequestResponseTimeStorage>();
+            
 
 
              var connectionString = configuration.GetConnectionString("DbConnection");
@@ -41,13 +42,13 @@ namespace ConfigurationStuff.ServicesConfig
               {
                   options.UseSqlServer(connectionString);
                   options.UseSqlServer(connectionString);
-                  options.EnableSensitiveDataLogging();
-                  options.EnableDetailedErrors();
-                  options.LogTo(
+                 // options.EnableSensitiveDataLogging();
+                 // options.EnableDetailedErrors();
+                  /*options.LogTo(
                       Console.WriteLine,
                       new[] { Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuted },
                       LogLevel.Information
-                      );
+                      ); */
               }); 
 
             services.AddScoped<IDataContexts>(sp => sp.GetRequiredService<DataContexts>());

@@ -14,8 +14,9 @@ namespace SharedCommonalities.ReturnModels.ReturnTypes
         public string? TypeOfData { get; set; }
         public int? LengthOfData { get; set; }
         public string DataContents { get; set; }
+        public string RequestType { get; set ; }
 
-        private string TypeOfRequest = "Unary";
+        public string? BatchRequestId { get; set; }
 
 
     }

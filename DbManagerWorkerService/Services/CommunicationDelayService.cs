@@ -8,6 +8,7 @@ using SharedCommonalities.TimeStorage;
 using ConfigurationStuff.Interfaces.Repos;
 using ConfigurationStuff.DbModels;
 using Serilog;
+using System.Collections.Concurrent;
 
 namespace DbManagerWorkerService.Services
 {
@@ -27,9 +28,9 @@ namespace DbManagerWorkerService.Services
             _requestResponseTimeStorage = requestResponseTimeStorage;
         }
 
-        private Dictionary<ClientMessageId, UnaryInfo> ReturningDict()
+        private ConcurrentDictionary<ClientMessageId, UnaryInfo> ReturningDict()
         {
-            var delayCalculationsDict = _requestResponseTimeStorage.ReturnDictionary(_requestResponseTimeStorage._ActualDelayCalculations);
+            var delayCalculationsDict = _requestResponseTimeStorage.ReturnConcurrentDictLock(_requestResponseTimeStorage._ActualDelayCalculations);
 
             return delayCalculationsDict;
         } 
@@ -40,16 +41,14 @@ namespace DbManagerWorkerService.Services
             {
                 var delayCalculationsDict = ReturningDict();
 
-
-
-                if (delayCalculationsDict.Count == 0)
+              /*  if (delayCalculationsDict.Count == 0)
                 {
                     Console.WriteLine($"nothing to add to db");
                 }
                 else
                 {
                     Console.WriteLine("SOMETHING TO ADD TO DB");
-                }
+                } */
                     
 
                 //this needs to be edited for streaming requests as right now for a batch we dont care about each item in the list as they all have the same timestamp 
@@ -59,12 +58,12 @@ namespace DbManagerWorkerService.Services
                 {
                     var gettingKeys = delayCalculationsDict.Keys.FirstOrDefault(keyEntry => keyEntry.ClientId == item.Key.ClientId);
 
-                    if (gettingKeys != null && delayCalculationsDict.ContainsKey(gettingKeys))
+                   /* if (gettingKeys != null && delayCalculationsDict.ContainsKey(gettingKeys))
                     {
                         Console.WriteLine($"Existing client ID needs to be removed from the delay calculations dict, removing now -> {item.Key.ClientId}");
 
-                        _requestResponseTimeStorage.RemoveFromDictionary(_requestResponseTimeStorage._ActualDelayCalculations, gettingKeys);
-                    }
+                        _requestResponseTimeStorage.RemoveFromConcurrentDict(_requestResponseTimeStorage._ActualDelayCalculations, gettingKeys);
+                    } */
 
                     DelayCalc transportingToDb = new DelayCalc
                     {

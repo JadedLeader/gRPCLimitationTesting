@@ -13,7 +13,7 @@ namespace ConfigurationStuff.DbContexts
         {
             _config = config;
 
-            Console.WriteLine($"DB CONTEXT INSTANCE CREATED : {this.GetHashCode()}");
+            //Console.WriteLine($"DB CONTEXT INSTANCE CREATED : {this.GetHashCode()}");
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

@@ -15,9 +15,9 @@ namespace DelayCalculationWorkerService
 
             ConfigurationStuff.ServicesConfig.ServiceConfig.AddSharedServices(builder.Services, builder.Configuration);
 
-            builder.Services.AddHostedService<DelayWorker>();
+            //builder.Services.AddHostedService<DelayWorker>();
             
-            builder.Services.AddSingleton<RequestResponseTimeStorage>();
+            //builder.Services.AddSingleton<RequestResponseTimeStorage>();
 
             var host = builder.Build();
             host.Run();

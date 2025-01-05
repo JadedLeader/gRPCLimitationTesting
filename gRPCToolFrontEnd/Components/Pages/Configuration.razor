@@ -1,4 +1,5 @@
-﻿@using gRPCToolFrontEnd.Components.Layout
+﻿@using Grpc.Core
+@using gRPCToolFrontEnd.Components.Layout
 @using gRPCToolFrontEnd.Services
 @using gRPCToolFrontEnd.Helpers
 @using Serilog
@@ -52,15 +53,7 @@
         <MudForm @ref="form" Style="background-color: #1A1A1D" >
 
             <MudCard Style="background: #252525">
-                <MudPaper Style="background: rgba(20, 20, 20, 0.9)">
-                    <MudPaper Style="background: rgba(20, 20, 20, 0.9)">
-                        <MudGrid Spacing="2" >
-                            <MudItem xs="12" sm="6" >
-                            <MudTextField font-style="Montserrat" Class="MyMudTextField" Disabled="@_IsClientNumberDisabled" @bind-value="@AmountOfClients" T="int" Label="Client Number" Required="true" RequiredError="A client number is required!" HelperText="Input amount of client above:" Margin="Margin.Dense"></MudTextField>
-                        </MudItem>
-                    </MudGrid>
-                </MudPaper>
-
+                
                 <MudPaper Style="background: rgba(20, 20, 20, 0.9)">
                         <MudGrid Spacing="2"> 
                         <MudItem xs="12" sm="6">
@@ -75,7 +68,7 @@
                         <MudGrid Spacing="2"> 
                         <MudItem xs="12" sm="6">
 
-                            <MudTextField font-style="Montserrat" @bind-value="@_FileSize" Class="MyMudTextField" T="string" Label="File Size" Required="true" RequiredError="A file size of small, medium or large is required!" HelperText="Input file size above:" Margin="Margin.Dense"></MudTextField>
+                            <MudTextField font-style="Montserrat" @bind-value="@_FileSize" Class="MyMudTextField" T="string" Label="File Size" Required="true" RequiredError="A file size of small, medium or large is required to determine the payload size!" HelperText="Input file size above:" Margin="Margin.Dense"></MudTextField>
 
                         </MudItem>
                     </MudGrid>
@@ -85,12 +78,23 @@
                         <MudGrid Spacing="2"> 
                         <MudItem xs="12" sm="6">
 
-                            <MudTextField font-style="Montserrat" Disabled="@_IsBatchIterationsDisabled" @bind-value="@_Iterations" Class="MyMudTextField" T="int" Label="Batch Iterations" Required="true" RequiredError="A number of batch iterations is required!" HelperText="Input number of batch iterations above:" Margin="Margin.Dense"></MudTextField>
+                            <MudTextField font-style="Montserrat"  @bind-value="@_Iterations" Class="MyMudTextField" T="int" Label="Batch Iterations" Required="true" RequiredError="A number of batch iterations is required, to determine the amount of requests in a single batch!" HelperText="Input number of batch iterations above:" Margin="Margin.Dense"></MudTextField>
 
                         </MudItem>
                     </MudGrid>
                 </MudPaper>
-            </MudPaper>
+
+                <MudPaper Style="background: rgba(20, 20, 20, 0.9)">
+                    <MudGrid Spacing="2">
+                         <MudItem xs="12" sm="6">
+
+                             <MudTextField font-style="Montserrat" Disabled="@_IsBatchIterationsDisabled" @bind-value="@_RequestCount" Class="MyMudTextField" T="int" Label="Amount Of Request" Required="true" RequiredError="An amount of requests is required to determine how many requests to be sent!" HelperText="Input amount of requests above:" Margin="Margin.Dense"></MudTextField>
+
+                         </MudItem>
+                    </MudGrid>
+                </MudPaper>
+
+            
             </MudCard>
 
             <MudPaper Style="background: rgba(20, 20, 20, 0.9)">
@@ -120,15 +124,21 @@
                     </MudItem>
 
                     <MudItem>
+                        <MudTooltip Text="This will send a single unary request (only use for one : one)">
                         <MudButton Style="width: 200px;" FullWidth="true" Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@SendUnaryRequest" Disabled="@_IsUnaryRequestDisabled">Send single unary request</MudButton>
+                        </MudTooltip>
                     </MudItem>
 
                     <MudItem> 
+                        <MudTooltip Text="This will send a single batch request (only use for one : one)">
                         <MudButton Style="width: 200px;" FullWidth="true" Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@SendBatchUnaryRequest" Disabled="@_IsBatchRequestDisabled">Send batch unary request</MudButton>
+                        </MudTooltip>
                     </MudItem>
 
                     <MudItem>
-                        <MudButton Style="width: 200px;" FullWidth="true" Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@ManyClientsUnaryRequestAsync">Send many to one request</MudButton>
+                        <MudTooltip Text="This should be used for all requests excluding one : one, this dynamically generates the requests">
+                        <MudButton Style="width: 200px;" FullWidth="true" Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@ManyClientsUnaryRequestAsync" >Send different types of request</MudButton>
+                        </MudTooltip>
                     </MudItem>
                 
             
@@ -149,6 +159,8 @@
 
     private int AmountOfClients;
 
+    private int _RequestCount;
+
     private int _Iterations;
 
     private string _ClientUnique;
@@ -159,7 +171,7 @@
 
     private string _RequestFlow;
 
-    private bool _IsBatchRequestDisabled;
+    private bool _IsBatchRequestDisabled { get; set; } = false;
 
     private bool _IsUnaryRequestDisabled;
 
@@ -171,9 +183,13 @@
 
     private bool _IsClientNumberDisabled;
 
+    private bool _OtherRequests { get; set;} = true;
+
     public bool _StreamingOn { get; set; } = true;
 
     public bool _UnaryOrBatch { get; set; } = true;
+
+
 
 
     /// <summary>
@@ -208,31 +224,127 @@
 
     private async Task ManyClientsUnaryRequestAsync()
     {
-
-        //need a dropdown thing for unary or batch ig
-
-        Log.Information($"Many to one logs");
         Log.Information($"Streaming state: {_StreamingOn}");
         Log.Information($"Request flow: {_RequestFlow}"); 
         Log.Information($"Unary or batch state: {_UnaryOrBatch}"); 
-        Log.Information($"Num of channels in list: {AccountDetailsStore.channels.Count}");
 
-        await ManyClientsUnaryRequest(_StreamingOn, _RequestFlow, _UnaryOrBatch, AccountDetailsStore.channels);
+        await ManyClientsUnaryRequest(_StreamingOn, _RequestFlow, _UnaryOrBatch, _RequestCount, AccountDetailsStore.channels);
     }
 
-    //we need some determinant for if we send a unary or batch
-    public async Task ManyClientsUnaryRequest(bool isStreaming, string dropDownState, bool unaryOrBatch, Dictionary<Guid, GrpcChannel> channelDict)
+    /// <summary>
+    /// This method is in charge of what message types can be sent based on the UI state
+    /// if streaming is false, we know that it can only be unary requests, if streaming is true, we know that it will be streaming requests (no current support for both)
+    /// Drop down state is a string that gets returned based on the dropdown box on the UI which has four different states depicated in the _RequestFlowOptions property 
+    /// The general idea is that one -> "X" requests, require a channel ID to be performed (as there may be more than one channel generated)
+    /// one -> "X" requests can be both unary or streaming, determined by the UI state
+    /// many -> "X" requests require a list of channels to iterate over in order to send the requests (no channel ID is required to be passed)
+    /// again, many -> "X" requests can be both unary or streaming, determined by the UI state
+    /// </summary>
+    /// <param name="isStreaming">true for streaming requests, false for unary requests</param>
+    /// <param name="dropDownState">string returned from the dropdown box on the UI component</param>
+    /// <param name="unaryOrBatch">true for unary, false for batch</param>
+    /// <param name="channelDict">the dictionary of channels currently in local storage</param>
+    /// <returns></returns>
+    public async Task ManyClientsUnaryRequest(bool isStreaming, string dropDownState, bool unaryOrBatch, int requestCount ,Dictionary<Guid, GrpcChannel> channelDict)
     {
         if (!isStreaming && dropDownState == "many : one" )
         {
-          
-             foreach (var channel in channelDict)
-             {
-                 await DetermingUnaryOrBatchRequest(unaryOrBatch);
-             }
-            
+            Log.Information($"Many to one request detected");
+            Log.Information($"Amount of clients to generate requests for {channelDict.Count}");
+
+            foreach (var channel in channelDict)
+            {
+                await HandlingManyToOneRequests(channelDict, unaryOrBatch);
+            }
         }
-        
+        else if (!isStreaming && dropDownState == "one : many")
+        {
+            Log.Information($"One to many request detected");
+            await HandlingOneToManyRequests(requestCount, unaryOrBatch);
+
+        }
+        else if (!isStreaming && dropDownState == "many : many")
+        {
+            Log.Information($"many to many request detected");
+            Log.Information($"Amount of clients to generate requests for {channelDict.Count}");
+            await HandlingManyToManyRequests(channelDict, requestCount, unaryOrBatch);
+        }
+
+    }
+
+    private async Task HandlingManyToOneRequests(Dictionary<Guid, GrpcChannel> channelDict, bool unaryOrBatch)
+    {
+
+
+        if(unaryOrBatch)
+        {
+            await SendUnaryRequest(); 
+        }
+        else
+        {
+            string clientUnique = await CreateSingularClientInstance();
+
+            await SendUnaryBatchIterativeRequest(clientUnique);
+
+        }
+    }
+
+    private async Task HandlingManyToManyRequests(Dictionary<Guid, GrpcChannel> channelDict, int requestCount, bool unaryOrBatch)
+    {
+        Log.Information($"Request count for many to many request : {requestCount} ");
+
+        int i = 0;
+
+        if(unaryOrBatch)
+        {
+            await SendUnaryIterativeRequest();
+        }
+        else
+        {
+            while(i < requestCount)
+            {
+                string newClientInstance = await CreateSingularClientInstance();
+
+                await SendUnaryBatchIterativeRequest(newClientInstance);
+
+                i++;
+            }
+        }
+
+    }
+
+    private async Task HandlingOneToManyRequests(int requestCount, bool unaryOrBatch)
+    {
+        int i = 0; 
+
+        if(unaryOrBatch)
+        {
+            Log.Information($"unary request detected");
+
+            while(i < requestCount)
+            {
+                await SendUnaryIterativeRequest();
+
+                Log.Information($"Unary request: {i} created");
+
+                i++;
+            }
+        }
+        else
+        {
+            Log.Information($"Batch request detected");
+
+            while(i < requestCount)
+            {
+                string clientUnique = await CreateSingularClientInstance();
+
+                await SendUnaryBatchIterativeRequest(clientUnique);
+
+                Log.Information($"Batch request: {i} created");
+
+                i++;
+            }
+        }
     }
 
     private async Task DetermingUnaryOrBatchRequest(bool unaryOrBatch)
@@ -243,7 +355,7 @@
         }
         else
         {
-            await SendBatchUnaryRequest();
+            await GenerateBatchUnaryRequestIterative();
         }
 
     }
@@ -304,6 +416,64 @@
         await GenerateUnaryRequest();
     }
 
+    private async Task SendUnaryIterativeRequest()
+    {
+        string clientUnique = await CreateSingularClientInstance();
+
+        _ClientUnique = clientUnique;
+
+        await GenerateUnaryRequestIterative();
+    }
+
+    private async Task SendUnaryBatchIterativeRequest(string clientUnique)
+    {
+        var channels = AccountDetailsStore.GetChannels();
+
+        string filePath = ClientHelper.FileSize(_FileSize);
+
+        string content = File.ReadAllText(filePath);
+
+        string dataContent = ClientHelper.DataContentCalc(_FileSize);
+
+        foreach (var channel in channels)
+        {
+            Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(channel.Value);
+
+            Metadata metaData = new Metadata();
+
+            // 🆕 Generate a unique batch request ID for each batch iteration
+            string batchRequestId = Guid.NewGuid().ToString();
+            string preciseTime = DateTime.UtcNow.ToString("HH:mm:ss.ffffff");
+
+            metaData.Add("batch-request-id", batchRequestId);
+            metaData.Add("batch-request-timestamp", preciseTime);
+            metaData.Add("request-type", "BatchUnary");
+            metaData.Add("batch-request-count", "1");
+            metaData.Add("active-clients", "1");
+
+            List<BatchDataRequestDetails> batchRequests = new List<BatchDataRequestDetails>
+            {
+                new BatchDataRequestDetails
+                {
+                    ClientUnique = clientUnique, // 🆕 Using the newly generated client instance
+                    RequestId = Guid.NewGuid().ToString(),
+                    DataSize = "1MB",
+                    RequestTimestamp = preciseTime,
+                    RequestType = "BatchUnary",
+                    DataContent = dataContent,
+
+
+                }
+            };
+
+            BatchDataRequest batchDataRequest = new BatchDataRequest { BatchDataRequest_ = { batchRequests } };
+
+            Log.Information($"Sending batch unary request on channel {channel.Key} with client ID {clientUnique}");
+
+            await newUnaryClient.BatchUnaryResponseAsync(batchDataRequest, metaData);
+        }
+    }
+
     /// <summary>
     /// This is used for sending a batch unary request on a single channel
     /// A new unary client instance is generated in the service of this method call every tim the endpoint is activated
@@ -333,12 +503,14 @@
         switch (_RequestFlow)
         {
             case "one : one":
-                _IsBatchRequestDisabled = true;
+                _IsBatchRequestDisabled = false;
                 _IsUnaryRequestDisabled = false;
                 _IsApplyConfigDisabled = true;
                 _IsClientInstanceDisabled = true;
-                _IsBatchIterationsDisabled = true;
                 _IsClientNumberDisabled = true;
+                _IsBatchIterationsDisabled = true;
+                _OtherRequests = true;
+
                 break;
 
             case "one : many":
@@ -348,6 +520,8 @@
                 _IsClientNumberDisabled = true; 
                 _IsClientInstanceDisabled = true;
                 _IsBatchIterationsDisabled = false;
+                _IsUnaryRequestDisabled = true;
+                _IsBatchRequestDisabled = true;
                 break;
 
             case "many : one":
@@ -357,6 +531,8 @@
                 _IsBatchIterationsDisabled = false;
                 _IsClientNumberDisabled = true;
                 _IsBatchRequestDisabled = true;
+                _IsUnaryRequestDisabled = true;
+                _IsBatchRequestDisabled = true;
                 break;
 
             case "many : many":
@@ -364,6 +540,8 @@
                 _IsUnaryRequestDisabled = false;
                 _IsClientInstanceDisabled = true;
                 _IsBatchIterationsDisabled = false;
+                _IsUnaryRequestDisabled = true;
+                _IsBatchRequestDisabled = true;
                 break;
 
             default:
@@ -395,6 +573,52 @@
         await UnaryRequestService.UnaryBatchResponseAsync(batchDataRequestUnary, _Iterations, Guid.Parse(_ChannelId));
     }
 
+    private async Task GenerateBatchUnaryRequestIterative()
+    {
+        List<BatchDataRequestDetails> dataRequestDetails = await GeneratingBatchOfRequests(_Iterations);
+
+        Log.Information($"Amount of requests in the data request list: {dataRequestDetails.Count}");
+
+        BatchDataRequest batchDataRequestUnary = new BatchDataRequest
+            {
+                BatchDataRequest_ = { dataRequestDetails }
+            };
+
+        var thing = await UnaryRequestService.UnaryBatchIterativeAsync(batchDataRequestUnary, _Iterations);
+    }
+
+    private async Task GenerateUnaryRequestIterative()
+    {
+        string filePath = ClientHelper.FileSize(_FileSize);
+
+        string content = File.ReadAllText(filePath);
+
+        string dataContent = ClientHelper.DataContentCalc(_FileSize);
+
+        string newGuid = Guid.NewGuid().ToString();
+
+        var now = DateTime.UtcNow;
+        long ticks = now.Ticks;
+        string preciseTime = now.ToString("HH:mm:ss.ffffff");
+
+        DataRequest newDataRequest = new DataRequest
+            {
+                ClientUnique = _ClientUnique,
+                ConnectionAlive = false,
+                DataContent = dataContent,
+                RequestType = "Unary",
+                DataSize = _FileSize,
+                RequestId = newGuid,
+                RequestTimestamp = preciseTime
+            };
+
+        Log.Information($"Client ID: {newDataRequest.ClientUnique} has sent message ID: {newDataRequest.RequestId} at {newDataRequest.RequestTimestamp}");
+
+        var serverResponse = await UnaryRequestService.UnaryResponseIterativeAsync(newDataRequest);
+
+     
+    }
+
     /// <summary>
     /// This method is in charge of generating each request that goes into the batch of unary requests 
     /// While loop to generate the requests until we reach the amount of requests required in the batch
@@ -409,7 +633,7 @@
 
         string dataContent = ClientHelper.DataContentCalc(_FileSize);
 
-        string requestId = Guid.NewGuid().ToString();
+        string batchRequestId = Guid.NewGuid().ToString();
 
         var now = DateTime.UtcNow;
         long ticks = now.Ticks;
@@ -419,20 +643,23 @@
 
         while(i < requestIterations)
         {
-
+            
+            
             BatchDataRequestDetails singleRequest = new BatchDataRequestDetails
             {
                 ClientUnique = _ClientUnique, 
                 ConnectionAlive = true, 
                 DataContent = dataContent, 
                 DataSize = _FileSize, 
-                RequestId = requestId, 
+                RequestId = Guid.NewGuid().ToString(), 
                 RequestTimestamp = preciseTime, 
-                RequestType = "BatchUnary"
+                RequestType = "BatchUnary",
+                BatchRequestId = batchRequestId
+               
 
             };
 
-            Log.Information($"New batch data request has been added to the batch, request is owned by client ID {singleRequest.ClientUnique} handles message {singleRequest.RequestId}");
+            Log.Information($"New batch data request has been added to the batch, request is owned by client ID {singleRequest.ClientUnique} with over-arching ID : {singleRequest.BatchRequestId} handles {singleRequest.RequestId}");
 
             dataRequestDetails.Add(singleRequest);
 

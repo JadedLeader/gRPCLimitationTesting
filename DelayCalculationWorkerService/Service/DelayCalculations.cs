@@ -15,6 +15,7 @@ namespace DelayCalculationWorkerService.Service
     {
 
         private readonly RequestResponseTimeStorage _requestResponseTimeStorage;
+        private readonly object _dictLock = new object(); // Shared lock object for consistency
 
         public DelayCalculations(RequestResponseTimeStorage requestResponseTimeStorage)
         {
@@ -23,57 +24,63 @@ namespace DelayCalculationWorkerService.Service
 
         public void CalculatingDelayFromTimeStorageDict()
         {
-            var clientRequests = _requestResponseTimeStorage.ReturnDictionary(_requestResponseTimeStorage._ClientRequestTiming);
-
-            Console.WriteLine($"amount of things in clients request -> {clientRequests.Count}");
-
-            var serverResponses = _requestResponseTimeStorage.ReturnDictionary(_requestResponseTimeStorage._ServerResponseTiming);
-
-            Console.WriteLine($"amunt of things in server responses -> {clientRequests.Count}");
-
-            if (clientRequests.Count == 0 || serverResponses.Count == 0)
+            // Lock to ensure consistency when accessing both dictionaries
+            lock (_dictLock)
             {
-                Console.WriteLine($"Nothing to calculate - dict size of final calculations {_requestResponseTimeStorage.ReturnDictionary(_requestResponseTimeStorage._ServerResponseTiming).Count()}");
-            }
+                var clientRequests = _requestResponseTimeStorage.ReturnConcurrentDictLock(_requestResponseTimeStorage._ClientRequestTiming);
+                var serverResponses = _requestResponseTimeStorage.ReturnConcurrentDictLock(_requestResponseTimeStorage._ServerResponseTiming);
 
-            foreach (var timing in clientRequests)
-            {
+                Console.WriteLine($"Client Requests Count -> {clientRequests.Count}");
+                Console.WriteLine($"Server Responses Count -> {serverResponses.Count}");
 
-                var verifyingServerResponseId = serverResponses.Keys.FirstOrDefault(entry =>
-                entry.ClientId == timing.Key.ClientId && entry.MessageId == timing.Key.MessageId);
-
-                if (verifyingServerResponseId != null && serverResponses.TryGetValue(verifyingServerResponseId, out var timingValue))
+                if (clientRequests.Count == 0 || serverResponses.Count == 0)
                 {
-    
-                    var calc = Convert.ToDateTime(timingValue.TimeOfRequest.Value) - Convert.ToDateTime(timing.Value.TimeOfRequest.Value);
-
-                    Log.Information($"Client ID : {timing.Key.ClientId} with message ID { timing.Key.MessageId} had delay {calc}");
-
-                    var unaryRequest = new UnaryInfo()
-                    {
-                        Delay = calc.Duration(),
-                        LengthOfData = timingValue.LengthOfData,
-                        TypeOfData = timing.Value.TypeOfData,
-                        DataContents = timing.Value.DataContents,
-                    };
-
-                    ClientMessageId actualDelayKeys = new ClientMessageId()
-                    {
-                        ClientId = timing.Key.ClientId,
-                        MessageId = timing.Key.MessageId,
-                    };
-
-
-                    _requestResponseTimeStorage.AddToDictionary(_requestResponseTimeStorage._ActualDelayCalculations, actualDelayKeys, unaryRequest);
-
-                    clientRequests.Remove(timing.Key);
-                    serverResponses.Remove(timing.Key);
-
-                    Console.WriteLine($"THIS IS THE AMOUNT OF THINGS IN THE CLIENT REQUESTS {clientRequests.Count}");
-                    Console.WriteLine($"THIS IS THE AMOUNT OF THINGS IN THE SERVER RESPONSES {serverResponses.Count}");
+                    Console.WriteLine($"No data to calculate. Skipping delay calculations.");
+                    return;
                 }
+
+                var keysToRemove = new List<ClientMessageId>();
+
+                // Iterate through client requests and calculate delay safely
+                foreach (var timing in clientRequests)
+                {
+                    var verifyingServerResponseId = serverResponses.Keys
+                        .FirstOrDefault(entry =>
+                            entry.ClientId == timing.Key.ClientId && entry.MessageId == timing.Key.MessageId);
+
+                    if (verifyingServerResponseId != null && serverResponses.TryGetValue(verifyingServerResponseId, out var timingValue))
+                    {
+                        var calc = Convert.ToDateTime(timingValue.TimeOfRequest.Value) - Convert.ToDateTime(timing.Value.TimeOfRequest.Value);
+                        Log.Information($"Client ID : {timing.Key.ClientId} with message ID {timing.Key.MessageId} had delay {calc}");
+
+                        // Ensure thread safety when updating the shared dictionary
+                        if (!_requestResponseTimeStorage._ActualDelayCalculations.ContainsKey(timing.Key))
+                        {
+                            var unaryRequest = new UnaryInfo
+                            {
+                                Delay = calc.Duration(),
+                                LengthOfData = timingValue.LengthOfData,
+                                TypeOfData = timing.Value.TypeOfData,
+                                DataContents = timing.Value.DataContents
+                            };
+
+                            _requestResponseTimeStorage.AddToConcurrentDictLock(_requestResponseTimeStorage._ActualDelayCalculations, timing.Key, unaryRequest);
+                        }
+
+                        keysToRemove.Add(timing.Key);
+                    }
+                }
+
+                // Remove keys after calculation inside the same lock
+                foreach (var key in keysToRemove)
+                {
+                    _requestResponseTimeStorage.RemoveFromConcurrentDictLock(_requestResponseTimeStorage._ClientRequestTiming, key);
+                    _requestResponseTimeStorage.RemoveFromConcurrentDictLock(_requestResponseTimeStorage._ServerResponseTiming, key);
+                }
+
+                Console.WriteLine($"Final Client Requests Count -> {_requestResponseTimeStorage._ClientRequestTiming.Count}");
+                Console.WriteLine($"Final Server Responses Count -> {_requestResponseTimeStorage._ServerResponseTiming.Count}");
             }
         }
-
     }
 }
