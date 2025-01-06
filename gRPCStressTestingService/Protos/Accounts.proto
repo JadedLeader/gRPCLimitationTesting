@@ -46,6 +46,5 @@ message AccountLoginResponse
 	bool State = 2;
 	string Role = 3;
 	string AccountUnique = 4; 
-	string SessionUnique = 5;
 }
 

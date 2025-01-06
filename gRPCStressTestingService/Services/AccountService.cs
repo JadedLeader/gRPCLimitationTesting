@@ -117,7 +117,6 @@ namespace gRPCStressTestingService.Services
                 State = true,
                 Role = userAccount.Role,
                 AccountUnique = userAccount.AccountUnique.ToString(),
-                SessionUnique = userAccount.Session.SessionUnique.ToString()
             };
 
             Log.Information($"Account login successfull for user : {serverResponse.Username}");

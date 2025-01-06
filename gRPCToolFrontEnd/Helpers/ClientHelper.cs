@@ -51,13 +51,10 @@ namespace gRPCToolFrontEnd.Helpers
 
                 Log.Information($"Channel created with ID {channelUnique}");
 
-               // Settings.IncrementActiveChannels();
-
                 i++;
             }
 
-            //Console.WriteLine($"amount of Channels open : {Settings.GetNumberOfActiveChannels()}");
-
+         
             return channels;
         }
 
@@ -124,15 +121,12 @@ namespace gRPCToolFrontEnd.Helpers
             {
                 case "small":
                     fileReturn = "C:\\Users\\joshy\\source\\repos\\gRPCLimitationTesting\\gRPCToolFrontEnd\\DataSizes\\text_1MB.txt";
-                    //fileReturn = "C:\\Users\\joshy\\source\\repos\\gRPCLimitationTesting\\GrpcTestingLimitationsClient\\DataSizes\\text_1MB.txt";
                     break;
                 case "medium":
-                    fileReturn = "C:\\Users\\joshy\\source\\repos\\gRPCLimitationTesting\\gRPCToolFrontEnd\\DataSizes\\text_30MB.txt";
-                    //fileReturn = "C:\\Users\\joshy\\source\\repos\\gRPCLimitationTesting\\GrpcTestingLimitationsClient\\DataSizes\\text_30MB.txt";
+                    fileReturn = "C:\\Users\\joshy\\source\\repos\\gRPCLimitationTesting\\gRPCToolFrontEnd\\DataSizes\\text_30MB.txt";      
                     break;
                 case "large":
                     fileReturn = "C:\\Users\\joshy\\source\\repos\\gRPCLimitationTesting\\gRPCToolFrontEnd\\DataSizes\\text_100MB.txt";
-                   // fileReturn = "C:\\Users\\joshy\\source\\repos\\gRPCLimitationTesting\\GrpcTestingLimitationsClient\\DataSizes\\text_100MB.txt";
                     break;
             }
 

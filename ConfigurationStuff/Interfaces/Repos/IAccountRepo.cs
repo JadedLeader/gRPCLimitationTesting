@@ -20,7 +20,7 @@ namespace ConfigurationStuff.Interfaces.Repos
 
         public Task<Account> GetAccountViaId(Guid recordId);
 
-        public Task<Account> GetAccountViaUsername(string username);
+        public Task<Account> GetAccountViaUsernameWithSession(string username);
 
         public Task<Account> UpdateAuthUnique(Account entity, Guid? tokenUnique, AuthToken tokenInstance);
 
@@ -35,6 +35,8 @@ namespace ConfigurationStuff.Interfaces.Repos
         public Task<Account> GetSessionAndAccountViaSessionId(Guid sessionUnique);
 
         public Task<Account> GetAccountWithSessionClientInstance(string username);
+
+        public Task<Account> GetAccountViaUsername(string username);
         public Task SaveAsync();
 
 

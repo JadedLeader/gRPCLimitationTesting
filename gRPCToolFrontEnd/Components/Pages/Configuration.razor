@@ -151,11 +151,8 @@
 
 @code {
 
-    //essentially what we're going to want on this page is for the user to be able to generate as many clients as he wants
-    //stores them in a DS locally which we can then call to populate the database with the clients that are created
 
     MudForm form;
-
 
     private int AmountOfClients;
 
@@ -189,13 +186,10 @@
 
     public bool _UnaryOrBatch { get; set; } = true;
 
-
-
-
     /// <summary>
     /// This list holds all of the options for the mudblazor mudselect 
-    /// one : one -> one channel, one client instance, one request (single unary)
-    /// one : many -> one channel, one client instance, one batch request (batch request unary)
+    /// one : one -> one channel, one client instance, one request (single unary / batch unary)
+    /// one : many -> one channel, many client instance, many requests (be this single unary or batch unary)
     /// many : one -> many channels, many client instances, one request on each channel 
     /// many : many -> many channels, many client instances, many requests on each channel (can be a mix of batch / single / sequential)
     /// </summary>
@@ -212,6 +206,12 @@
 
     private List<Guid> ClientListFromDb = new List<Guid>();
 
+    /// <summary>
+    /// This method handles the request flow of the page based on the UI state
+    /// Effectively just enables/disables text fields and buttons
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
     private async Task OnRequestFlowChanged(string value)
     {
         Log.Information($"Selected Request Flow: {value}");
@@ -219,9 +219,12 @@
         await HandlingCommunications();
     }
 
-    //need to create a load balancer, this currently handles one channel - one requets / bulk request
-    //iterate over the channels list based on streaming state use unary batch -> once / unary once
-
+    /// <summary>
+    /// This has turned into the over-arching implementation method for sending several different types of request
+    /// This currently handles many : one , one : many and many : many
+    /// one : one is handled in a more simplistic fashion
+    /// </summary>
+    /// <returns></returns>
     private async Task ManyClientsUnaryRequestAsync()
     {
         Log.Information($"Streaming state: {_StreamingOn}");
@@ -272,10 +275,15 @@
 
     }
 
+    /// <summary>
+    /// Function for handling the many to one request types
+    /// Decides between unary and batch based on the UI state
+    /// </summary>
+    /// <param name="channelDict">Dictionary of channels that are currently created locally</param>
+    /// <param name="unaryOrBatch">true for unary, false for batch</param>
+    /// <returns></returns>
     private async Task HandlingManyToOneRequests(Dictionary<Guid, GrpcChannel> channelDict, bool unaryOrBatch)
     {
-
-
         if(unaryOrBatch)
         {
             await SendUnaryRequest(); 
@@ -289,6 +297,16 @@
         }
     }
 
+    /// <summary>
+    /// This function is by far the most complex and handles many : many requests 
+    /// Chooses between unary and batch
+    /// If it's unary, the encompassing function handles the logic
+    /// If it's batch, we use a while loop to iterate over the sending a batch, this ensures we get the correct amount of requests
+    /// </summary>
+    /// <param name="channelDict">Dictionary containing the channels currently created locally</param>
+    /// <param name="requestCount">The amount of requests the user wants to send of that request type</param>
+    /// <param name="unaryOrBatch">true for unary, false for batch</param>
+    /// <returns></returns>
     private async Task HandlingManyToManyRequests(Dictionary<Guid, GrpcChannel> channelDict, int requestCount, bool unaryOrBatch)
     {
         Log.Information($"Request count for many to many request : {requestCount} ");
@@ -313,6 +331,14 @@
 
     }
 
+    /// <summary>
+    /// This function handles the one : many case
+    /// It chooses between unary or batch
+    /// Dependant upon the request type, we iterate over the different request types
+    /// </summary>
+    /// <param name="requestCount">The amount of requests the user wants to send</param>
+    /// <param name="unaryOrBatch">true for unary, false for batch</param>
+    /// <returns></returns>
     private async Task HandlingOneToManyRequests(int requestCount, bool unaryOrBatch)
     {
         int i = 0; 
@@ -347,18 +373,6 @@
         }
     }
 
-    private async Task DetermingUnaryOrBatchRequest(bool unaryOrBatch)
-    {
-        if (unaryOrBatch)
-        {
-            await SendUnaryRequest();
-        }
-        else
-        {
-            await GenerateBatchUnaryRequestIterative();
-        }
-
-    }
 
     /// <summary>
     /// This is used on the batch unary request and the single unary request 
@@ -368,7 +382,6 @@
     /// <returns></returns>
     private async Task<string> CreateSingularClientInstance()
     {
-
         string username = await GetStringFromStringFromLocalStorage("username");
 
         string sessionUnique = await GetStringFromStringFromLocalStorage("session-unique");
@@ -441,7 +454,7 @@
 
             Metadata metaData = new Metadata();
 
-            // 🆕 Generate a unique batch request ID for each batch iteration
+            //GENERATE A NEW BATCH REQUEST ID FOR EVERY NEW REQUEST
             string batchRequestId = Guid.NewGuid().ToString();
             string preciseTime = DateTime.UtcNow.ToString("HH:mm:ss.ffffff");
 
@@ -455,7 +468,7 @@
             {
                 new BatchDataRequestDetails
                 {
-                    ClientUnique = clientUnique, // 🆕 Using the newly generated client instance
+                    ClientUnique = clientUnique, 
                     RequestId = Guid.NewGuid().ToString(),
                     DataSize = "1MB",
                     RequestTimestamp = preciseTime,
@@ -488,7 +501,7 @@
         await GenerateBatchUnaryRequest();
     }
 
-    //we need to create the functionality for hanlding the different types of communication flow
+
 
     /// <summary>
     /// Handles the communication flow of the forms on the front end depending on what drop down option is currently selected 
@@ -616,7 +629,7 @@
 
         var serverResponse = await UnaryRequestService.UnaryResponseIterativeAsync(newDataRequest);
 
-     
+
     }
 
     /// <summary>
@@ -643,8 +656,7 @@
 
         while(i < requestIterations)
         {
-            
-            
+
             BatchDataRequestDetails singleRequest = new BatchDataRequestDetails
             {
                 ClientUnique = _ClientUnique, 
@@ -655,7 +667,7 @@
                 RequestTimestamp = preciseTime, 
                 RequestType = "BatchUnary",
                 BatchRequestId = batchRequestId
-               
+
 
             };
 
@@ -714,7 +726,8 @@
     }
 
     /// <summary>
-    /// Clears all the client instances within the database based on the session unique 
+    /// Clears all the client instances within the database based on the session unique
+    /// This is currently a unary -> unary implementation
     /// </summary>
     /// <returns></returns>
     private async Task ClearClientInstances()
@@ -724,18 +737,18 @@
         ClientListFromDb.Clear();
 
         GetClientInstancesFromSessionUniqueRequest request = new GetClientInstancesFromSessionUniqueRequest
-            {
+        {
                 SessionUnique = sessionUnique
-            };
-
-        //await ClientInstanceService.GetClientInstancesViaSessionUnique(request, ClientListFromDb);
+        };
 
         //THIS DELETES THE CURRENT RECORDS IN A UNARY MATTER - i want to try and get this to work in a streaming fashion
         await ClientInstanceService.GetClientInstancesAsync(request);
-
-        //await ClientInstanceService.ClearingClientInstancesStreamedAsync(sessionUnique, ClientListFromDb);
     }
 
+    /// <summary>
+    /// Generates a list of clients, adds them to the private list with their new guid
+    /// </summary>
+    /// <returns></returns>
     private async Task GeneratingClientInstances()
     {
         int i = 0;
@@ -762,6 +775,11 @@
         await ClientInstanceService.CreatingClientInstancesStreamedAsync(sessionUnique, accountUnique, ClientList);
     }
 
+    /// <summary>
+    /// Allows for the retrieval of a string from the local storage
+    /// </summary>
+    /// <param name="storagekey">the key identifier of the item in local storage</param>
+    /// <returns>The string value of they key specified</returns>
     private async Task<string> GetStringFromStringFromLocalStorage(string storagekey)
     {
         string? localStorageUsername = await LocalStorage.GetItemAsync<string>(storagekey);
@@ -769,13 +787,10 @@
         if(string.IsNullOrEmpty(localStorageUsername))
         {
             Log.Information($"key {storagekey} cannot be found in the local storage");
+            return "";
         }
 
         return localStorageUsername;
-    }
-
-    
-
-        
+    }     
     
 }

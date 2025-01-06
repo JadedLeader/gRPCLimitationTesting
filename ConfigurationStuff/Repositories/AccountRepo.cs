@@ -60,6 +60,19 @@ namespace ConfigurationStuff.Repositories
             throw new NotImplementedException();
         }
 
+        public async Task<Account> GetAccountViaUsername(string username)
+        {
+            Account? getAccount = await _dataContext.Account.FirstOrDefaultAsync(x => x.Username == username);
+
+            if(getAccount == null)
+            {
+                Log.Information($"Could not retrieve an account via the username: {username}");
+            }
+
+            return getAccount;
+
+        }
+
         public async Task<Account> GetAccountViaId(Guid recordId)
         {
             Account? accountViaId = await _dataContext.Account.FirstOrDefaultAsync(u => u.AccountUnique == recordId);
@@ -74,7 +87,7 @@ namespace ConfigurationStuff.Repositories
 
         }
 
-        public async Task<Account> GetAccountViaUsername(string username)
+        public async Task<Account> GetAccountViaUsernameWithSession(string username)
         {
             Account? accountViaUsername = await _dataContext.Account
                 .Include(s => s.Session)

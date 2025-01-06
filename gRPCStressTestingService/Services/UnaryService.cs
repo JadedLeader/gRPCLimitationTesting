@@ -47,7 +47,8 @@ namespace gRPCStressTestingService.Services
         /// <returns></returns>
         public async Task<DataResponse> UnaryResponse(DataRequest request, ServerCallContext context)
         {
-           
+            string preciseTime = GetPreciseTimeNow();
+
             string? typeOfDataFromMetaData = context.RequestHeaders.GetValue("request-type");
             string? numOfOpenChannels = context.RequestHeaders.GetValue("open-channels");
             string? numOfActiveClients = context.RequestHeaders.GetValue("active-clients");
@@ -56,8 +57,7 @@ namespace gRPCStressTestingService.Services
             Log.Information($"Unary request message ID : {request.RequestId}");
             Log.Information($"this is the unary client request client count : {Settings.GetNumberOfActiveClients()}");
 
-            string preciseTime = GetPreciseTimeNow();
-
+            
             DataResponse dataReturn = new DataResponse()
             {
                 ConnectionAlive = false,
@@ -112,12 +112,8 @@ namespace gRPCStressTestingService.Services
                 ClientId = dataReturn.ClientUnique,
                 MessageId = request.RequestId,
             };
-            
-            //_timeStorage.AddToDictionary(_timeStorage._ClientRequestTiming, requestKeys, requestUnaryInfo);
 
             _timeStorage.AddToConcurrentDict(_timeStorage._ClientRequestTiming, requestKeys, requestUnaryInfo);
-
-            //_timeStorage.AddToDictionary(_timeStorage._ServerResponseTiming, responseKeys, responseUnaryInfo);
 
             _timeStorage.AddToConcurrentDict(_timeStorage._ServerResponseTiming, responseKeys, responseUnaryInfo );
 
@@ -125,14 +121,9 @@ namespace gRPCStressTestingService.Services
 
             Log.Information($"This is the request send time for the unary request : {requestUnaryInfo.TimeOfRequest} -> {request.RequestTimestamp}");
             Log.Information($"This is the server response time for the unary request : {responseUnaryInfo.TimeOfRequest} -> {preciseTime}");
-
-           //var thing = _timeStorage.ReturnDictionary(_timeStorage._ClientRequestTiming);
-           //var thing1 = _timeStorage.ReturnDictionary(_timeStorage._ServerResponseTiming);
            
             var clientRequests = _timeStorage.ReturnConcurrentDict(_timeStorage._ClientRequestTiming);
             var responseTimings = _timeStorage.ReturnConcurrentDict(_timeStorage._ServerResponseTiming);
-
-            var thing2 = _timeStorage.ReturnConcurrentDict( _timeStorage._ActualDelayCalculations);
 
             await CalculatingDelay(requestKeys, responseKeys);
 
@@ -150,7 +141,8 @@ namespace gRPCStressTestingService.Services
         /// <returns></returns>
         public async Task<BatchDataResponse> BatchUnaryResponse(BatchDataRequest request, ServerCallContext context)
         {
-            
+            string preciseTime = GetPreciseTimeNow();
+
             string? batchTimestampFromMetaData = context.RequestHeaders.GetValue("batch-request-timestamp");
             string? typeOfDataFromMetaData = context.RequestHeaders.GetValue("request-type");
             int batchFromMetaData = Convert.ToInt32(context.RequestHeaders.GetValue("batch-request-count"));
@@ -171,8 +163,6 @@ namespace gRPCStressTestingService.Services
               Log.Information($"this is the batch client request client count -> {Settings.GetNumberOfActiveClients()}");
 
             Settings.SetNumberOfActiveClients(numOfActiveClients);
-
-            string preciseTime = GetPreciseTimeNow();
 
             BatchDataResponse batchDataResponse = new BatchDataResponse()
             {
@@ -224,12 +214,11 @@ namespace gRPCStressTestingService.Services
             Log.Information($"This is the request send time for the unary batch request : {requestUnaryInfo.TimeOfRequest} -> {batchTimestampFromMetaData}");
             Log.Information($"This is the server response time for the unary batch request : {responseUnaryInfo.TimeOfRequest} -> {preciseTime}");
 
-            var thing = _timeStorage.ReturnConcurrentDictLock(_timeStorage._ClientRequestTiming);
-            var thing1 = _timeStorage.ReturnConcurrentDictLock(_timeStorage._ServerResponseTiming);
-            var thing2 = _timeStorage.ReturnConcurrentDictLock(_timeStorage._ActualDelayCalculations);
+            var clientRequestTimings = _timeStorage.ReturnConcurrentDictLock(_timeStorage._ClientRequestTiming);
+            var serverResponseTimings = _timeStorage.ReturnConcurrentDictLock(_timeStorage._ServerResponseTiming);
 
-            Log.Information($"Amount of things in client request timing {thing.Count}");
-            Log.Information($"Amount of things in server response timing {thing1.Count}");
+            Log.Information($"Amount of things in client request timing {clientRequestTimings.Count}");
+            Log.Information($"Amount of things in server response timing {serverResponseTimings.Count}");
 
             await CalculatingDelay(requestKeys, responseKeys);
 
@@ -247,12 +236,10 @@ namespace gRPCStressTestingService.Services
             if (clientRequests.TryGetValue(requestKeys, out var clientTiming) &&
                 serverResponses.TryGetValue(responseKeys, out var serverTiming))
             {
-                var calc = Convert.ToDateTime(serverTiming.TimeOfRequest.Value)
-                         - Convert.ToDateTime(clientTiming.TimeOfRequest.Value);
+                var calc = Convert.ToDateTime(serverTiming.TimeOfRequest.Value) - Convert.ToDateTime(clientTiming.TimeOfRequest.Value);
 
                 Log.Information($"Client ID: {requestKeys.ClientId} with message ID {requestKeys.MessageId} had delay {calc}");
 
-                // ✅ Check for Batch Request (shared IDs)
                 if (clientTiming.RequestType == "BatchUnary")
                 {
                     if (!_timeStorage._ActualDelayCalculations.ContainsKey(requestKeys))
@@ -272,8 +259,6 @@ namespace gRPCStressTestingService.Services
                     }
                 }
 
-
-                // ✅ Handling Single Requests (Unique IDs)
                 else if (clientTiming.RequestType == "Unary")
                 {
                     var delayResult = new UnaryInfo
@@ -287,11 +272,9 @@ namespace gRPCStressTestingService.Services
                         TimeOfRequest = clientTiming.TimeOfRequest,
                     };
 
-                    // Save single request calculation (since each has a unique ID)
                     _timeStorage.AddToConcurrentDictLock(_timeStorage._ActualDelayCalculations, requestKeys, delayResult);
                 }
 
-                // ✅ Remove from dictionaries after processing
                 _timeStorage.RemoveFromConcurrentDictLock(_timeStorage._ClientRequestTiming, requestKeys);
                 _timeStorage.RemoveFromConcurrentDictLock(_timeStorage._ServerResponseTiming, responseKeys);
             }

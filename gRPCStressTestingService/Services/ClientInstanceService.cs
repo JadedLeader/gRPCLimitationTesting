@@ -73,7 +73,7 @@ namespace gRPCStressTestingService.Services
 
             try
             {
-                //it means there are no client instances
+                
                 if (session.ClientInstance.Count == 0)
                 {
                     session.ClientInstance.Add(clientInstance);
