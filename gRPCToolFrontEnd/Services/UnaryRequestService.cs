@@ -145,9 +145,5 @@ namespace gRPCToolFrontEnd.Services
             return responseList;
         }
 
-
-        //we need to create a method that takes a list of grpc channels and then produces a unary batch request
-
-
     }
 }

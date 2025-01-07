@@ -367,12 +367,12 @@ namespace gRPCStressTestingService.Services
 
         }
 
-        private UnaryInfo MapToRequest(DateTime? timeOfRequest, string? typeOfData, int? lengthOfData, string? dataContent, string requestType, string? batchRequestId, TimeSpan? delay = null )
+        private UnaryInfo MapToRequest(DateTime? timeOfRequest, string? typeOfData, int lengthOfData, string? dataContent, string requestType, string? batchRequestId, TimeSpan? delay = null )
         {
            return _objectCreation.MappingToUnaryInfo(timeOfRequest, delay, typeOfData, lengthOfData, dataContent, requestType, batchRequestId );
         }
 
-        private UnaryInfo MapToResponse(DateTime? timeOfRequest, string? typeOfData, int? lengthOfData, string? dataContent, string requestType, string? batchRequestId, TimeSpan? delay = null)
+        private UnaryInfo MapToResponse(DateTime? timeOfRequest, string? typeOfData, int lengthOfData, string? dataContent, string requestType, string? batchRequestId, TimeSpan? delay = null)
         {
             return _objectCreation.MappingToUnaryInfo(timeOfRequest, delay, typeOfData, lengthOfData, dataContent, requestType, batchRequestId);
         }

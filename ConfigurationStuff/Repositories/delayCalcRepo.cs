@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using ConfigurationStuff.DbModels;
 using ConfigurationStuff.Interfaces.Repos;
 using ConfigurationStuff.DbContexts;
+using Serilog;
 
 namespace DbManagerWorkerService.Repositories
 {
@@ -50,6 +51,20 @@ namespace DbManagerWorkerService.Repositories
         public override Task SaveAsync()
         {
             return base.SaveAsync();
+        }
+
+        public async Task<Dictionary<Guid, List<DelayCalc>>> GetAllDelays()
+        {
+            var thing = _dataContext.DelayCalc
+                        .Where(calc => calc.ClientUnique.HasValue)
+                        .GroupBy(calc => calc.ClientUnique.Value)
+                        .ToDictionary(
+                            group => group.Key,
+                            group => group.Distinct().ToList()
+                            );
+
+
+            return thing;
         }
     }
 }

@@ -72,7 +72,14 @@ namespace gRPCToolFrontEnd
             builder.Services.AddGrpcClient<Unary.UnaryClient>(o =>
             {
                 o.Address = new Uri("https://localhost:5000");
-            }); 
+            });
+
+            builder.Services.AddGrpcClient<Utilities.UtilitiesClient>(o =>
+            {
+                o.Address = new Uri("https://localhost:5000");
+            });
+
+            builder.Services.AddScoped<UtilitiesService>();
 
             builder.Services.AddScoped<UnaryRequestService>();
 

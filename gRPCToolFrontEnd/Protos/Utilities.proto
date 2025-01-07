@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option csharp_namespace = "gRPCToolFrontEnd";
+
+
+service Utilities
+{ 
+	rpc GetClientsWithMessages(GetClientsWithMessagesRequest) returns (stream GetClientsWithMessagesResponse);
+}
+
+message GetClientsWithMessagesRequest
+{ 
+
+}
+
+message GetClientsWithMessagesResponse
+{ 
+	string ClientUnique = 1; 
+	string MessageId = 2; 
+	string RequestType = 3; 
+	string CommunicationType = 4; 
+	int32 DataIterations = 5; 
+	string Datacontent = 6;
+	string Delay = 7;
+}

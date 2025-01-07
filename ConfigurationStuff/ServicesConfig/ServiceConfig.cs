@@ -1,5 +1,7 @@
 ﻿using ConfigurationStuff.DbContexts;
+using ConfigurationStuff.Interfaces.Queries;
 using ConfigurationStuff.Interfaces.Repos;
+using ConfigurationStuff.Queries;
 using ConfigurationStuff.Repositories;
 using DbManagerWorkerService.Interfaces.DataContext;
 using DbManagerWorkerService.Repositories;
@@ -59,6 +61,7 @@ namespace ConfigurationStuff.ServicesConfig
             services.AddScoped<IClientInstanceRepo, ClientInstanceRepo>();
             services.AddScoped<ISessionRepo, SessionRepo>();
             services.AddScoped<IDelayCalcRepo, delayCalcRepo>();
+            services.AddScoped<IDataQueries, DataQueries>();
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()

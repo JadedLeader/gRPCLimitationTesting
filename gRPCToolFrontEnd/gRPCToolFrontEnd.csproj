@@ -13,6 +13,7 @@
     <None Remove="Protos\ClientInstances.proto" />
     <None Remove="Protos\Sessions.proto" />
     <None Remove="Protos\UnaryLatency.proto" />
+    <None Remove="Protos\Utilities.proto" />
   </ItemGroup>
 
   <ItemGroup>
@@ -46,6 +47,7 @@
 		<Protobuf Include="Protos\ClientInstances.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\Sessions.proto" GrpcServices="Client " />
 		<Protobuf Include="Protos\UnaryLatency.proto" GrpcServices="Client " />
+		<Protobuf Include="Protos\Utilities.proto" GrpcServices="Client" />
 	</ItemGroup>
 
 	<ItemGroup>

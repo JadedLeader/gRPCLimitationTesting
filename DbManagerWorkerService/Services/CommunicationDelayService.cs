@@ -71,7 +71,7 @@ namespace DbManagerWorkerService.Services
                         RequestType = item.Value.TypeOfData,
                         ClientUnique = Guid.Parse(item.Key.ClientId),
                         CommunicationType = item.Value.TypeOfData,
-                        DataIterations = item.Value.LengthOfData,
+                        //DataIterations = item.Value.LengthOfData,
                         DataContent = item.Value.DataContents,
                         Delay = item.Value.Delay,
                         ClientInstance = null,

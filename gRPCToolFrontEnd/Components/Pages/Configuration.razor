@@ -5,6 +5,9 @@
 @using Serilog
 @using Grpc.Net.Client
 @using gRPCToolFrontEnd.LocalStorage
+@using System.Reactive.Subjects
+@using gRPCToolFrontEnd.DictionaryModel
+@using System.Collections.Concurrent
 @page "/"
 @layout MainLayout
 @inject ClientInstanceService ClientInstanceService
@@ -12,142 +15,172 @@
 @inject UnaryRequestService UnaryRequestService
 @inject ClientHelper ClientHelper
 @inject AccountDetailsStore AccountDetailsStore
+@inject UtilitiesService UtilitiesService
 
-<HeadContent>
-    <link href="/Style/LoginPage.css" rel="stylesheet" />
-</HeadContent>
+<MudGrid Class="d-flex" Style="padding: 20px; height: 100vh; overflow: hidden;">
+    <!-- Left Tree View Section -->
+    <MudItem xs="12" sm="4" Style="height: 100%;">
+        <MudPaper Elevation="10" Class="MyTreeViewContainer">
+            <MudTreeView T="string" SelectionMode="SelectionMode.SingleSelection">
+                <MudTreeViewItem Value='"Client instances with messages"'>
+                    @foreach (var clientInstance in _ClientsWithMessages)
+                    {
+                        <MudTreeViewItem Text="@clientInstance.Key.ToString()" Expanded="false">
+                            @foreach (var messageDelay in clientInstance.Value)
+                            {
+                                <MudTreeViewItem Text="@($"{messageDelay.MessageId} : RequestType {messageDelay.RequestType} : Delay : {messageDelay.MessageDelay}")" />
+                            }
+                        </MudTreeViewItem>
+                    }
+                </MudTreeViewItem>
+            </MudTreeView>
+        </MudPaper>
+    </MudItem>
 
+    <!-- Right Content Section -->
+    <MudItem xs="12" sm="8" Style="height: 100%; overflow-y: auto;">
+        <!-- Dropdown and Toggle Buttons Section -->
+        <MudGrid Class="d-flex justify-end align-center" Style="margin-bottom: 20px;">
+            <MudItem>
+                <MudSelect T="string" Label="Request flow" MultiSelection="false" ValueChanged="@OnRequestFlowChanged" Style="margin-right: 20px; min-width: 200px;">
+                    @foreach (string options in _RequestFlowOptions)
+                    {
+                        <MudSelectItem T="string" Value="@options">@options</MudSelectItem>
+                    }
+                </MudSelect>
 
+                <MudToggleIconButton @bind-Toggled="@_StreamingOn"
+                                     Icon="Icons.Material.Filled.AlarmOff"
+                                     ToggledIcon="@Icons.Material.Filled.AlarmOn"
+                                     ToggledColor="@Color.Success"
+                                     title="@(_StreamingOn ? "Streaming On" : "Streaming Off")"
+                                     Style="margin-right: 20px;" />
 
-<MudPaper Class="d-flex justify-start flex-grow-1 gap-4" Elevation="15" Style="width: 300px; padding-left: 20px; background-color: transparent;" Square="true" >
+                <span>Streaming is @(_StreamingOn ? "On" : "Off")</span>
 
-    <MudSelect T="string" Label="Request flow" MultiSelection="false" ValueChanged="@OnRequestFlowChanged" >
+                <MudToggleIconButton @bind-Toggled="@_UnaryOrBatch"
+                                     Icon="Icons.Material.Filled.AlarmOff"
+                                     ToggledIcon="@Icons.Material.Filled.AlarmOn"
+                                     ToggledColor="@Color.Success"
+                                     title="@(_UnaryOrBatch ? "Unary" : "Batch")"
+                                     Style="margin-right: 20px;" />
 
-    @foreach (string options in _RequestFlowOptions)
-    {
-        <MudSelectItem T="string" Value="@options">@options</MudSelectItem>
-    }
+                <span>Communication type is @(_UnaryOrBatch ? "Unary" : "Batch")</span>
 
-</MudSelect>
+                <button @onclick="StartReceivingStream">Start Receiving Messages</button>
 
-</MudPaper>
+            </MudItem>
+        </MudGrid>
 
+        <!-- Form Section -->
+        <MudPaper Elevation="10" Class="pa-4 mt-4" Style="background: rgba(20, 20, 20, 0.9);">
+            <MudForm @ref="form">
+                <MudCard Style="background: #252525; padding: 20px;">
+                    <!-- Input Fields -->
+                    <MudTextField Label="Client Instance Unique"
+                                  @bind-Value="_ClientUnique"
+                                  Required="true"
+                                  Class="MyMudTextField"
+                                  Style="margin-bottom: 20px;" />
 
-<MudPaper Class="d-flex justify-start flex-grow-1 gap-4" Elevation="15" Style="width: 300px; background-color: transparent; padding-top: 30px;" Square="true">
+                    <MudTextField Label="File Size"
+                                  @bind-Value="_FileSize"
+                                  Required="true"
+                                  Class="MyMudTextField"
+                                  Style="margin-bottom: 20px;" />
 
-<MudToggleIconButton @bind-Toggled="@_StreamingOn" Icon="Icons.Material.Filled.AlarmOff" Color="@Color.Primary" ToggledIcon="@Icons.Material.Filled.AlarmOn"
-                     ToggledColor="@Color.Success" title="@(_StreamingOn ? "On" : "Off")" Style="margin-top: 0; padding: 0;" />
+                    <MudTextField Label="Batch Iterations"
+                                  @bind-Value="_Iterations"
+                                  T="int"
+                                  Required="true"
+                                  Class="MyMudTextField"
+                                  Style="margin-bottom: 20px;" />
 
-<span>Streaming is @(_StreamingOn? "On" : "Off")</span>
+                    <MudTextField Label="Amount Of Request"
+                                  @bind-Value="_RequestCount"
+                                  T="int"
+                                  Required="true"
+                                  Class="MyMudTextField"
+                                  Style="margin-bottom: 20px;" />
 
-    <MudToggleIconButton @bind-Toggled="@_UnaryOrBatch" Icon="Icons.Material.Filled.AlarmOff" Color="@Color.Primary" ToggledIcon="@Icons.Material.Filled.AlarmOn"
-                         ToggledColor="@Color.Success" title="@(_UnaryOrBatch ? "Unary" : "Batch")" Style="margin-top: 0; padding: 0;" />
+                    <MudTextField Label="Channel ID"
+                                  @bind-Value="_ChannelId"
+                                  Required="true"
+                                  Class="MyMudTextField"
+                                  Style="margin-bottom: 20px;" />
+                </MudCard>
 
-    <span>Communication type is @(_UnaryOrBatch ? "Unary" : "Batch")</span>
-
-</MudPaper>
-
-
-<MudGrid Spacing="4" Justify="Justify.Center">
-    <MudItem xs="12" sm="7" >
-        <MudForm @ref="form" Style="background-color: #1A1A1D" >
-
-            <MudCard Style="background: #252525">
-                
-                <MudPaper Style="background: rgba(20, 20, 20, 0.9)">
-                        <MudGrid Spacing="2"> 
-                        <MudItem xs="12" sm="6">
-
-                                <MudTextField font-style="Montserrat" Disabled="@_IsClientInstanceDisabled" @bind-value="@_ClientUnique" Class="MyMudTextField" T="string" Label="Client Instance Unique" Required="true" RequiredError="A client instance is required!" HelperText="Input client instance ID above:" Margin="Margin.Dense"></MudTextField>
-
-                        </MudItem>
-                    </MudGrid>
+                <!-- Buttons Section -->
+                <MudPaper Class="mt-4 pa-2 d-flex justify-space-between flex-wrap" Style="background: rgba(20, 20, 20, 0.9);">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@GenerateClients" Style="flex: 1; margin: 5px; color: white;">Apply Configuration</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="@ClearClientInstances" Style="flex: 1; margin: 5px; color: white;">Clear Clients</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="@SendUnaryRequest" Style="flex: 1; margin: 5px; color: white;">Send Unary</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="@SendBatchUnaryRequest" Style="flex: 1; margin: 5px; color: white;">Send Batch Unary</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="@ManyClientsUnaryRequestAsync" Style="flex: 1; margin: 5px; color: white;">Send Different Requests</MudButton>
                 </MudPaper>
-
-                <MudPaper Style="background: rgba(20, 20, 20, 0.9)">
-                        <MudGrid Spacing="2"> 
-                        <MudItem xs="12" sm="6">
-
-                            <MudTextField font-style="Montserrat" @bind-value="@_FileSize" Class="MyMudTextField" T="string" Label="File Size" Required="true" RequiredError="A file size of small, medium or large is required to determine the payload size!" HelperText="Input file size above:" Margin="Margin.Dense"></MudTextField>
-
-                        </MudItem>
-                    </MudGrid>
-                </MudPaper>
-
-                <MudPaper Style="background: rgba(20, 20, 20, 0.9)">
-                        <MudGrid Spacing="2"> 
-                        <MudItem xs="12" sm="6">
-
-                            <MudTextField font-style="Montserrat"  @bind-value="@_Iterations" Class="MyMudTextField" T="int" Label="Batch Iterations" Required="true" RequiredError="A number of batch iterations is required, to determine the amount of requests in a single batch!" HelperText="Input number of batch iterations above:" Margin="Margin.Dense"></MudTextField>
-
-                        </MudItem>
-                    </MudGrid>
-                </MudPaper>
-
-                <MudPaper Style="background: rgba(20, 20, 20, 0.9)">
-                    <MudGrid Spacing="2">
-                         <MudItem xs="12" sm="6">
-
-                             <MudTextField font-style="Montserrat" Disabled="@_IsBatchIterationsDisabled" @bind-value="@_RequestCount" Class="MyMudTextField" T="int" Label="Amount Of Request" Required="true" RequiredError="An amount of requests is required to determine how many requests to be sent!" HelperText="Input amount of requests above:" Margin="Margin.Dense"></MudTextField>
-
-                         </MudItem>
-                    </MudGrid>
-                </MudPaper>
-
-            
-            </MudCard>
-
-            <MudPaper Style="background: rgba(20, 20, 20, 0.9)">
-                <MudGrid Spacing="2"> 
-                    <MudItem xs="12" sm="6">
-
-                        <MudTextField font-style="Montserrat" @bind-value="@_ChannelId" Class="MyMudTextField" T="string" Label="Channel ID" Required="true" RequiredError="A channel ID is required!" HelperText="Input channel ID above:" Margin="Margin.Dense"></MudTextField>
-
-                    </MudItem>
-                </MudGrid>
-            </MudPaper>
-
-            <MudPaper Class="pa-4 mt-4 justify-start" Style="background: rgba(20, 20, 20, 0.9)">
-                <MudGrid Spacing="6" Justify="Justify.SpaceEvenly">
-
-                    <MudItem>
-                        <MudTooltip Text="This will apply the current configuration settings"> 
-                            <MudButton Style="width: 200px;" FullWidth="true" Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="true" @onclick="@GenerateClients" Disabled="@_IsApplyConfigDisabled">Apply Configuration Settings</MudButton>
-                        </MudTooltip>
-                    </MudItem>
-
-
-                    <MudItem> 
-                        <MudTooltip Text="This will clear all of the client instances"> 
-                            <MudButton Style="width: 200px;" FullWidth="true" Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@ClearClientInstances">Clear Client Instances</MudButton>
-                        </MudTooltip>
-                    </MudItem>
-
-                    <MudItem>
-                        <MudTooltip Text="This will send a single unary request (only use for one : one)">
-                        <MudButton Style="width: 200px;" FullWidth="true" Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@SendUnaryRequest" Disabled="@_IsUnaryRequestDisabled">Send single unary request</MudButton>
-                        </MudTooltip>
-                    </MudItem>
-
-                    <MudItem> 
-                        <MudTooltip Text="This will send a single batch request (only use for one : one)">
-                        <MudButton Style="width: 200px;" FullWidth="true" Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@SendBatchUnaryRequest" Disabled="@_IsBatchRequestDisabled">Send batch unary request</MudButton>
-                        </MudTooltip>
-                    </MudItem>
-
-                    <MudItem>
-                        <MudTooltip Text="This should be used for all requests excluding one : one, this dynamically generates the requests">
-                        <MudButton Style="width: 200px;" FullWidth="true" Class="MyLoginMudButton" Variant="Variant.Filled" DropShadow="false" @onclick="@ManyClientsUnaryRequestAsync" >Send different types of request</MudButton>
-                        </MudTooltip>
-                    </MudItem>
-                
-            
-                </MudGrid>
-            </MudPaper>
-
-        </MudForm>
+            </MudForm>
+        </MudPaper>
     </MudItem>
 </MudGrid>
+
+
+<style>
+
+    .MyTreeViewContainer {
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+        height: 100%; /* Ensure it stretches only within the parent */
+        max-height: 80vh; /* Limits the height to 80% of the viewport height */
+        overflow-y: auto; /* Enables vertical scrolling for overflow */
+        scrollbar-width: thin; /* For Firefox */
+        scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    }
+
+    .MyTreeViewContainer::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .MyTreeViewContainer::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+    }
+
+    .MyTreeViewContainer::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.4);
+    }
+  
+    .MyMudTextField {
+        width: 100%;
+    }
+
+    .MyLoginMudButton {
+        flex: 1;
+        margin: 5px;
+    }
+
+    .d-flex {
+        display: flex;
+    }
+
+    .justify-end {
+        justify-content: flex-end;
+    }
+
+    .justify-space-between {
+        justify-content: space-between;
+    }
+
+    .align-center {
+        align-items: center;
+    }
+
+    button {
+        color: white !important;
+    }
+</style>
 
 @code {
 
@@ -185,6 +218,38 @@
     public bool _StreamingOn { get; set; } = true;
 
     public bool _UnaryOrBatch { get; set; } = true;
+
+    private bool _UiUpdating = true;
+
+    private ConcurrentDictionary<Guid, List<Delay>> _ClientsWithMessages = new();
+
+    private BehaviorSubject<Dictionary<Guid, List<Delay>>> _ClientWithMessagesSubject;
+
+    private IDisposable _ClientWithMessagesSubscription;
+
+    protected override async void OnInitialized()
+    {
+        _ClientWithMessagesSubject = new BehaviorSubject<Dictionary<Guid, List<Delay>>>(new Dictionary<Guid, List<Delay>>());
+
+        
+        _ClientWithMessagesSubscription = _ClientWithMessagesSubject.Subscribe(updatedDict =>
+        {
+            InvokeAsync(StateHasChanged); 
+        });
+
+        await StartReceivingStream();
+    }
+
+    private async Task StartReceivingStream()
+    {
+        Log.Information($"Starting the stream");
+
+        var request = new GetClientsWithMessagesRequest(); 
+
+        await UtilitiesService.ReceivingMessageStream(request, _ClientsWithMessages, _UiUpdating, _ClientWithMessagesSubject);
+
+        _ClientWithMessagesSubject.OnNext(new Dictionary<Guid, List<Delay>>(_ClientsWithMessages));
+    }
 
     /// <summary>
     /// This list holds all of the options for the mudblazor mudselect 

@@ -12,7 +12,7 @@ namespace SharedCommonalities.ObjectMapping
     {
 
 
-        public UnaryInfo MappingToUnaryInfo(DateTime? timeOfRequest, TimeSpan? delay, string? typeOfData, int? lengthOfData, string? dataContents, string RequestType, string batchRequestId)
+        public UnaryInfo MappingToUnaryInfo(DateTime? timeOfRequest, TimeSpan? delay, string? typeOfData, int lengthOfData, string? dataContents, string RequestType, string batchRequestId)
         {
             UnaryInfo unaryInfo = new UnaryInfo()
             {

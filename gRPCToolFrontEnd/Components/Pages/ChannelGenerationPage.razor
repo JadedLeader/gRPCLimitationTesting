@@ -181,6 +181,7 @@
 
         _ChannelSubscription = _ChannelSubject.Subscribe(updateDictionary =>
         {
+            Log.Information($"State has changed worked");
             _ChannelGuids = updateDictionary;
             InvokeAsync(StateHasChanged);
 

@@ -21,6 +21,8 @@ namespace ConfigurationStuff.Interfaces.Repos
 
         public Task<IEnumerable<DelayCalc>> GetDbContent();
 
+        public Task<Dictionary<Guid, List<DelayCalc>>> GetAllDelays();
+
         public Task SaveAsync();
 
 

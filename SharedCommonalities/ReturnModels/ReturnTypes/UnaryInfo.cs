@@ -12,7 +12,7 @@ namespace SharedCommonalities.ReturnModels.ReturnTypes
         public DateTime? TimeOfRequest { get; set; }
         public TimeSpan? Delay { get; set; }
         public string? TypeOfData { get; set; }
-        public int? LengthOfData { get; set; }
+        public int LengthOfData { get; set; }
         public string DataContents { get; set; }
         public string RequestType { get; set ; }
 

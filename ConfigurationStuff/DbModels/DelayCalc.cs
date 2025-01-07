@@ -21,7 +21,7 @@ namespace ConfigurationStuff.DbModels
 
         public string? CommunicationType { get; set; }
 
-        public int? DataIterations { get; set; } 
+        public int DataIterations { get; set; } 
 
         public string? DataContent { get; set; }
 
