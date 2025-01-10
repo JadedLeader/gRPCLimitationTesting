@@ -3,6 +3,7 @@ using ConfigurationStuff.Interfaces.Repos;
 using SharedCommonalities.TimeStorage;
 using Serilog;
 using System.Collections.Concurrent;
+using Grpc.Core.Interceptors;
 
 namespace gRPCStressTestingService.Services
 {
@@ -50,7 +51,7 @@ namespace gRPCStressTestingService.Services
                             DataIterations = item.Value.LengthOfData,
                             DataContent = item.Value.DataContentSize,
                             Delay = item.Value.Delay,
-                            ClientInstance = null,
+                            ClientInstance = (ClientInstance)item.Value.ClientInstance,
                             RecordCreation = DateTime.Now,
                         };
 
@@ -76,7 +77,7 @@ namespace gRPCStressTestingService.Services
                         DataIterations = item.Value.LengthOfData,
                         DataContent = item.Value.DataContentSize,
                         Delay = item.Value.Delay,
-                        ClientInstance = null,
+                        ClientInstance = (ClientInstance)item.Value.ClientInstance,
                         RecordCreation = DateTime.Now,
                     };
 
@@ -101,8 +102,9 @@ namespace gRPCStressTestingService.Services
                         DataIterations = item.Value.LengthOfData,
                         DataContent = item.Value.DataContentSize,
                         Delay = item.Value.Delay,
-                        ClientInstance = null,
+                        ClientInstance = (ClientInstance)item.Value.ClientInstance,
                         RecordCreation = DateTime.Now,
+                        
                     };
 
 

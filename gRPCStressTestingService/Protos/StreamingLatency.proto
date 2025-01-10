@@ -19,6 +19,7 @@ message StreamingSingleLatencyRequest
 	string dataContent = 5; 
 	string dataSize = 6; 
 	bool connectionAlive = 7;
+	string dataContentSize = 8;
 }
 
 message StreamingSingleLatencyResponse
@@ -45,6 +46,7 @@ message StreamingBatchDetails
 	string dataSize = 6; 
 	string dataContent = 7; 
 	bool connectionAlive = 8;
+	string dataContentSize = 9;
 }
 
 message StreamingBatchLatencyResponse

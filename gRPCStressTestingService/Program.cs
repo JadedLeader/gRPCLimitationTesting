@@ -41,8 +41,8 @@ namespace gRPCStressTestingService
             builder.WebHost.ConfigureKestrel(serverOptions =>
             {
                
-                serverOptions.Limits.MaxRequestBodySize = int.MaxValue;
-
+                serverOptions.Limits.MaxRequestBodySize = 1000 * 1024 * 1024;
+               
                 serverOptions.Listen(System.Net.IPAddress.Loopback, 5000, listenOptions =>
                 {
                     listenOptions.UseHttps(); 
@@ -78,7 +78,8 @@ namespace gRPCStressTestingService
             // Add services to the container.
             builder.Services.AddGrpc(options =>
             {
-                options.MaxReceiveMessageSize = 100 * 1024 * 1024;
+                options.MaxReceiveMessageSize = 1000 * 1024 * 1024;
+                options.MaxSendMessageSize = 1000 * 1024 * 1024;
             });
 
             ServiceConfig.AddSharedServices(builder.Services, builder.Configuration);

@@ -18,14 +18,16 @@ namespace gRPCStressTestingService.Services
         private readonly IDelayCalcRepo _delayCalcRepo;
         private readonly DelayCalculation _delayCalculation;
         private readonly DatabaseTransportationService _dbTransportationService;
+        private readonly IClientInstanceRepo _clientInstanceRepo;
 
         public StreamingLatencyService(RequestResponseTimeStorage responseTimeStorage, delayCalcRepo delayCalcRepo, DelayCalculation delayCalculation,
-            DatabaseTransportationService databaseTransportationService)
+            DatabaseTransportationService databaseTransportationService, IClientInstanceRepo clientInstanceRepo)
         {
             _responseTimeStorage = responseTimeStorage;
             _delayCalcRepo = delayCalcRepo;
             _delayCalculation = delayCalculation;
             _dbTransportationService = databaseTransportationService;
+            _clientInstanceRepo = clientInstanceRepo;
         }
 
 
@@ -54,6 +56,8 @@ namespace gRPCStressTestingService.Services
 
                 //when we read a request from the stream, we're going to want to adad it to the request response time dict
 
+                ClientInstance findingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(Guid.Parse(request.ClientUnique));
+
                 ClientMessageId requestKeys = new ClientMessageId
                 {
                     ClientId = request.ClientUnique,
@@ -68,7 +72,9 @@ namespace gRPCStressTestingService.Services
                     RequestType = request.RequestType,
                     LengthOfData = 0,
                     BatchRequestId = null, 
-                    Delay = null
+                    Delay = null, 
+                    DataContentSize = request.DataContentSize,
+                    ClientInstance = findingClientInstance,
 
                 };
 
@@ -101,7 +107,9 @@ namespace gRPCStressTestingService.Services
                     RequestType = request.RequestType,
                     LengthOfData = 0,
                     BatchRequestId = null,
-                    Delay = null
+                    Delay = null, 
+                    DataContentSize= request.DataContentSize,
+                    ClientInstance = findingClientInstance,
 
                 };
 

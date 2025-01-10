@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace SharedCommonalities.ReturnModels.ReturnTypes
 {
     public class UnaryInfo
@@ -20,6 +21,8 @@ namespace SharedCommonalities.ReturnModels.ReturnTypes
         public string DataContentSize { get; set; }
 
         public string? BatchRequestId { get; set; }
+
+        public object? ClientInstance { get; set; }
 
 
     }

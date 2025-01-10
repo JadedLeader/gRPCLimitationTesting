@@ -92,6 +92,13 @@ namespace DbManagerWorkerService.Repositories
             return base.RemoveRangeAsync(clientList);
         }
 
+        public async Task<ClientInstance> GetClientInstanceViaClientUnique(Guid clientUnique)
+        {
+            ClientInstance? clientFromUnique = await _dataContext.ClientInstance.FirstOrDefaultAsync(x => x.ClientUnique == clientUnique);
+
+            return clientFromUnique;
+        }
+
         public override Task SaveAsync()
         {
             return base.SaveAsync();

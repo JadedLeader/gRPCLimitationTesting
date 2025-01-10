@@ -70,34 +70,40 @@ namespace DbManagerWorkerService.Repositories
             return thing;
         }
 
-        public async Task<Dictionary<Guid, List<DelayCalc>>> GetNewDelays()
+        public async Task<Dictionary<Guid, List<DelayCalc>>> GetNewDelays(Guid sessionUnique)
         {
-            var newDelays = await _dataContext.DelayCalc
-                 .Where(calc => calc.ClientUnique.HasValue && calc.RecordCreation > _lastFetchedTime).ToListAsync();
-
-            Log.Information($"last fetched time was {_lastFetchedTime}");
-
-             if(!newDelays.Any())
-             {
-                 return new Dictionary<Guid, List<DelayCalc>> ();
-             }
-
-             var setMaxTime = newDelays.Max(x => x.RecordCreation);
-
-             _lastFetchedTime = setMaxTime;
-
-             var groupingItemViaClientUnique = newDelays
-                 .GroupBy(calc => calc.ClientUnique.Value)
-                 .ToDictionary(
-                 group => group.Key,
-                 group => group.ToList()
-                 );
+            var clientInstances = await _dataContext.ClientInstance
+                .Where(c => c.SessionUnique == sessionUnique)
+                .Include(c => c.DelayCalcs)
+                .ToListAsync();
 
 
-             return groupingItemViaClientUnique; 
-            
+            Log.Information($"fetched client instances with session unique {sessionUnique} ");
+
+            var groupingItemsViaClientUnique = new Dictionary<Guid, List<DelayCalc>>();
+
+            foreach(var clientInstance in clientInstances)
+            {
+                var newDelayCalcs = clientInstance.DelayCalcs
+                    .Where(c => c.RecordCreation > _lastFetchedTime)
+                    .ToList();
+
+                if(newDelayCalcs.Any())
+                {
+                    groupingItemsViaClientUnique[clientInstance.ClientUnique] = newDelayCalcs;
+                }
+            }
+
+            if(groupingItemsViaClientUnique.Any())
+            {
+                _lastFetchedTime = groupingItemsViaClientUnique
+                    .SelectMany(kv => kv.Value)
+                    .Max(dc => dc.RecordCreation);
+            }
+
+             
+            return groupingItemsViaClientUnique;
                 
-
         }
 
         public async Task EmptyDelayCalcTable()

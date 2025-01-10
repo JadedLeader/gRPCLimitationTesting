@@ -23,7 +23,9 @@ namespace gRPCStressTestingService.Services
            
             while(!context.CancellationToken.IsCancellationRequested)
             {
-                var getNewDelays = await _delayCalcRepo.GetNewDelays();
+                string? sessionUnique = context.RequestHeaders.GetValue("session-unique");
+
+                var getNewDelays = await _delayCalcRepo.GetNewDelays(Guid.Parse(sessionUnique));
 
                 if(getNewDelays == null)
                 {

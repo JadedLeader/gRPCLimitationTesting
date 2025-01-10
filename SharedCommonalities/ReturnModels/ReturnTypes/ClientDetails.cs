@@ -21,5 +21,7 @@ namespace SharedCommonalities.ReturnModels.ReturnTypes
 
         public string DataContentSize { get; set; }
 
+        
+
     }
 }

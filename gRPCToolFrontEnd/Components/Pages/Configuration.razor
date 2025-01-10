@@ -236,7 +236,9 @@
 
         }; 
 
-        UtilitiesService.StartReceivingMessages(request);
+        string sessionUnique = await GetStringFromStringFromLocalStorage("session-unique");
+
+        UtilitiesService.StartReceivingMessages(request, sessionUnique);
 
         await base.OnInitializedAsync();
     }
@@ -255,7 +257,7 @@
 
         string dataContent = ClientHelper.DataContentCalc(_FileSize);
 
-        await StreamingLatencyService.SendingSingleUnaryRequestStream(Guid.Parse(_ChannelId), _ClientUnique, content, _FileSize);
+        await StreamingLatencyService.SendingSingleUnaryRequestStream(Guid.Parse(_ChannelId), _ClientUnique, _FileSize);
     }
 
     private async void HandleUpdateReceived(GetClientsWithMessagesResponse update)

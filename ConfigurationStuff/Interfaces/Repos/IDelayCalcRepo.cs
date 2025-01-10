@@ -23,7 +23,7 @@ namespace ConfigurationStuff.Interfaces.Repos
 
         public Task<Dictionary<Guid, List<DelayCalc>>> GetAllDelays();
 
-        public Task<Dictionary<Guid, List<DelayCalc>>> GetNewDelays();
+        public Task<Dictionary<Guid, List<DelayCalc>>> GetNewDelays(Guid sessionUnique);
 
         public Task EmptyDelayCalcTable();
 

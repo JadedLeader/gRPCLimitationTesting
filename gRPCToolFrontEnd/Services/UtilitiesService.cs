@@ -22,11 +22,11 @@ namespace gRPCToolFrontEnd.Services
             _utilitiesClient = utilitiesClient;
         }
 
-        public void StartReceivingMessages(GetClientsWithMessagesRequest request)
+        public void StartReceivingMessages(GetClientsWithMessagesRequest request, string sessionUnique)
         {
             _cancellationToken = new CancellationTokenSource();
 
-            Task.Run(() => ReceivingMessageStream(request, _cancellationToken.Token));
+            Task.Run(() => ReceivingMessageStream(request, _cancellationToken.Token, sessionUnique));
         }
 
         public void StopReceivingMessages()
@@ -37,12 +37,16 @@ namespace gRPCToolFrontEnd.Services
             }
         }
 
-        public async Task ReceivingMessageStream(GetClientsWithMessagesRequest messageRequest, CancellationToken cancellationToken)
+        public async Task ReceivingMessageStream(GetClientsWithMessagesRequest messageRequest, CancellationToken cancellationToken, string sessionUnique)
         {
             Log.Information("Started receiving messages from gRPC stream.");
             try
             {
-                using var call = _utilitiesClient.GetClientsWithMessages(messageRequest);
+                Metadata metaData = new Metadata();
+
+                metaData.Add("session-unique", sessionUnique);
+
+                using var call = _utilitiesClient.GetClientsWithMessages(messageRequest, metaData);
 
                 while (await call.ResponseStream.MoveNext(cancellationToken))
                 {
