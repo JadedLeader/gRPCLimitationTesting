@@ -8,6 +8,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Interfaces\Services\NewFolder\**" />
+    <Compile Remove="Migrations\**" />
+    <Content Remove="Interfaces\Services\NewFolder\**" />
+    <Content Remove="Migrations\**" />
+    <EmbeddedResource Remove="Interfaces\Services\NewFolder\**" />
+    <EmbeddedResource Remove="Migrations\**" />
+    <None Remove="Interfaces\Services\NewFolder\**" />
+    <None Remove="Migrations\**" />
+  </ItemGroup>
+
+  
+  <ItemGroup>
     <Protobuf Include="Protos\greet.proto" GrpcServices="Server" />
 	<Protobuf Include="Protos\UnaryLatency.proto" GrpcServices="Server" />
 	<Protobuf Include="Protos\Admin.proto" GrpcServices="Server" />
@@ -16,6 +28,8 @@
     <Protobuf Include="Protos\Sessions.proto" GrpcServices="Server" />
 	<Protobuf Include="Protos\ClientInstances.proto" GrpcServices="Server" />
 	<Protobuf Include="Protos\Utilities.proto" GrpcServices="Server" />
+	<Protobuf Include="Protos\StreamingLatency.proto" GrpcServices="Server" />
+	  
   </ItemGroup>
 
   <ItemGroup>
@@ -44,11 +58,6 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.3.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Interfaces\Services\NewFolder\" />
-    <Folder Include="Migrations\" />
   </ItemGroup>
 
   <ItemGroup>

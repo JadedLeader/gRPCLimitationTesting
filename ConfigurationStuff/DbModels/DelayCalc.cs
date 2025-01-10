@@ -27,6 +27,8 @@ namespace ConfigurationStuff.DbModels
 
         public TimeSpan? Delay { get ; set; }
 
+        public DateTime RecordCreation { get; set; }  
+
         public ClientInstance? ClientInstance { get; set; }  
 
     }

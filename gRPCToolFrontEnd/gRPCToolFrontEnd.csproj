@@ -12,6 +12,7 @@
     <None Remove="Protos\AuthTokens.proto" />
     <None Remove="Protos\ClientInstances.proto" />
     <None Remove="Protos\Sessions.proto" />
+    <None Remove="Protos\StreamingLatency.proto" />
     <None Remove="Protos\UnaryLatency.proto" />
     <None Remove="Protos\Utilities.proto" />
   </ItemGroup>
@@ -46,6 +47,7 @@
 		<Protobuf Include="Protos\AuthTokens.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\ClientInstances.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\Sessions.proto" GrpcServices="Client " />
+		<Protobuf Include="Protos\StreamingLatency.proto" GrpcServices="Client " />
 		<Protobuf Include="Protos\UnaryLatency.proto" GrpcServices="Client " />
 		<Protobuf Include="Protos\Utilities.proto" GrpcServices="Client" />
 	</ItemGroup>

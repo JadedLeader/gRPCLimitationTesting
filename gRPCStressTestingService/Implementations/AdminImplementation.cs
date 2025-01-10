@@ -89,5 +89,19 @@ namespace gRPCStressTestingService.Implementations
             return revokeClientInstances;
         }
 
+        public override async Task<WipeDelayCalcResponse> ClearDelayCalc(WipeDelayCalcRequest request, ServerCallContext context)
+        {
+            WipeDelayCalcResponse wipeDelayCalc = await _adminService.ClearDelayCalc(request, context);
+
+            if(wipeDelayCalc == null)
+            {
+                Log.Error($"The wiping of the delay calc table could not be performed");
+
+                throw new RpcException(new Status(StatusCode.Internal, $"could not empty database table")); 
+            }
+
+            return wipeDelayCalc;
+        }
+
     }
 }

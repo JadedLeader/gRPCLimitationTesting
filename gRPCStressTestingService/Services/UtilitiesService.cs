@@ -19,32 +19,48 @@ namespace gRPCStressTestingService.Services
 
         public async Task GetClientsWithMessages(GetClientsWithMessagesRequest request, IServerStreamWriter<GetClientsWithMessagesResponse> responseStream, ServerCallContext context)
         {
-            var getAllDelays = await _delayCalcRepo.GetAllDelays();
 
-            foreach (var kvp in getAllDelays)
+           
+            while(!context.CancellationToken.IsCancellationRequested)
             {
-                Guid ClientUnique = kvp.Key;
-                List<DelayCalc> delayCalcs = kvp.Value;
+                var getNewDelays = await _delayCalcRepo.GetNewDelays();
 
-                foreach (var calc in delayCalcs)
+                if(getNewDelays == null)
                 {
-                    GetClientsWithMessagesResponse serverResponse = new GetClientsWithMessagesResponse
-                    {
-                        ClientUnique = ClientUnique.ToString(),
-                        MessageId = calc.messageId.ToString(),
-                        RequestType = calc.RequestType,
-                        CommunicationType = calc.CommunicationType,
-                        DataIterations = calc.DataIterations,
-                        Datacontent = calc.DataContent,
-                        Delay = calc.Delay.ToString(),
-
-                    };
-
-                    //Log.Information($"Client with message server response {serverResponse.ClientUnique} : {serverResponse.MessageId}");
-
-                    await responseStream.WriteAsync(serverResponse);
+                    Log.Information($"No new delays");
                 }
+
+                Log.Information($"this is the count on the new delays grabbed {getNewDelays.Count} ");
+
+                if(getNewDelays.Any())
+                {
+                    foreach(var kvp in getNewDelays)
+                    {
+                        foreach(var calc in kvp.Value)
+                        {
+                            var serverResponse = new GetClientsWithMessagesResponse 
+                            {
+                                ClientUnique = calc.ClientUnique.ToString(),
+                                MessageId = calc.messageId.ToString(),
+                                RequestType = calc.RequestType,
+                                CommunicationType = calc.CommunicationType,
+                                DataIterations = calc.DataIterations,
+                                Datacontent = calc.DataContent,
+                                Delay = calc.Delay.ToString(),
+
+                            };
+
+                            await responseStream.WriteAsync(serverResponse);
+                        }
+                    }
+                }
+
+
+                await Task.Delay(500);
             }
+
+
+
         }
     }
 }

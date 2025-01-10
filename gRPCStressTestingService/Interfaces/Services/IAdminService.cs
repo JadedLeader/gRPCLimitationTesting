@@ -18,6 +18,8 @@ namespace gRPCStressTestingService.Interfaces.Services
 
         public Task<RevokeClientInstanceResponse> RevokeClientInstances(RevokeClientInstanceRequest request, ServerCallContext context);
 
+        public Task<WipeDelayCalcResponse> ClearDelayCalc(WipeDelayCalcRequest request, ServerCallContext context);
+
 
     }
 }

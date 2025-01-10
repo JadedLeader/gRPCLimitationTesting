@@ -18,7 +18,7 @@ namespace gRPCToolFrontEnd.Services
         }
 
 
-        public async Task<DataResponse> UnaryResponseAsync(DataRequest dataRequest, Guid channelId)
+        public async Task<DataResponse> UnaryResponseAsync(DataRequest dataRequest, Guid channelId, string dataContentSize)
         {
             KeyValuePair<Guid, GrpcChannel> getChannel = _accountDetailsStore.GetGrpcChannel(channelId);
 
@@ -30,13 +30,14 @@ namespace gRPCToolFrontEnd.Services
             metaData.Add("open-channels", 0.ToString());
             metaData.Add("active-clients", 0.ToString());
             metaData.Add("data-iterations", "1");
+            //metaData.Add("data-content-size", dataContentSize);
 
             Log.Information($"Sending single unary request on channel ID : {getChannel.Key} ");
 
            return await newUnaryClient.UnaryResponseAsync(dataRequest, metaData);
         }
 
-        public async Task<List<DataResponse>> UnaryResponseIterativeAsync(DataRequest dataRequest)
+        public async Task<List<DataResponse>> UnaryResponseIterativeAsync(DataRequest dataRequest, string dataContentSize)
         {
             List<DataResponse> responseList = new List<DataResponse>();
 
@@ -51,7 +52,7 @@ namespace gRPCToolFrontEnd.Services
                     { "request-type", "Unary" },
                     { "open-channels", channels.Count.ToString() },
                     { "active-clients", "0" },
-                    { "data-iterations", "1" }
+                    { "data-iterations", "1" },
                 };
 
                 string uniqueRequestId = Guid.NewGuid().ToString();
@@ -91,7 +92,7 @@ namespace gRPCToolFrontEnd.Services
             metaData.Add("request-type", "BatchUnary");
             metaData.Add("batch-request-count", batchDataRequest.BatchDataRequest_.Count.ToString());
             metaData.Add("active-clients", "0");
-
+            
             Log.Information($"Sending batch unary request on channel ID: {getChannel.Key}");
 
             return await newUnaryClient.BatchUnaryResponseAsync(batchDataRequest, metaData);
@@ -129,7 +130,6 @@ namespace gRPCToolFrontEnd.Services
                 metaData.Add("request-type", "BatchUnary");
                 metaData.Add("batch-request-count", batchDataRequest.BatchDataRequest_.Count.ToString());
                 metaData.Add("active-clients", "0");
-
 
                 var id = batchDataRequest.BatchDataRequest_[0];
 

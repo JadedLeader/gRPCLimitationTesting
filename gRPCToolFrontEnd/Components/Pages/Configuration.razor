@@ -8,7 +8,8 @@
 @using System.Reactive.Subjects
 @using gRPCToolFrontEnd.DictionaryModel
 @using System.Collections.Concurrent
-@page "/"
+@using System.Collections.ObjectModel
+@page "/Configuration"
 @layout MainLayout
 @inject ClientInstanceService ClientInstanceService
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
@@ -16,16 +17,17 @@
 @inject ClientHelper ClientHelper
 @inject AccountDetailsStore AccountDetailsStore
 @inject UtilitiesService UtilitiesService
+@inject StreamingLatencyService StreamingLatencyService
 
 <MudGrid Class="d-flex" Style="padding: 20px; height: 100vh; overflow: hidden;">
     <!-- Left Tree View Section -->
     <MudItem xs="12" sm="4" Style="height: 100%;">
         <MudPaper Elevation="10" Class="MyTreeViewContainer">
-            <MudTreeView T="string" SelectionMode="SelectionMode.SingleSelection">
-                <MudTreeViewItem Value='"Client instances with messages"'>
+            <MudTreeView T="string" SelectionMode="SelectionMode.SingleSelection" >
+                <MudTreeViewItem Value='"Client instances with messages"' >
                     @foreach (var clientInstance in _ClientsWithMessages)
                     {
-                        <MudTreeViewItem Text="@clientInstance.Key.ToString()" Expanded="false">
+                        <MudTreeViewItem Text="@clientInstance.Key.ToString()" >
                             @foreach (var messageDelay in clientInstance.Value)
                             {
                                 <MudTreeViewItem Text="@($"{messageDelay.MessageId} : RequestType {messageDelay.RequestType} : Delay : {messageDelay.MessageDelay}")" />
@@ -67,7 +69,7 @@
 
                 <span>Communication type is @(_UnaryOrBatch ? "Unary" : "Batch")</span>
 
-                <button @onclick="StartReceivingStream">Start Receiving Messages</button>
+                
 
             </MudItem>
         </MudGrid>
@@ -117,6 +119,7 @@
                     <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="@SendUnaryRequest" Style="flex: 1; margin: 5px; color: white;">Send Unary</MudButton>
                     <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="@SendBatchUnaryRequest" Style="flex: 1; margin: 5px; color: white;">Send Batch Unary</MudButton>
                     <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="@ManyClientsUnaryRequestAsync" Style="flex: 1; margin: 5px; color: white;">Send Different Requests</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="@SingleStreamingRequest" Style="flex: 1; margin: 5px; color: white;">Send stream</MudButton>
                 </MudPaper>
             </MudForm>
         </MudPaper>
@@ -132,10 +135,10 @@
         padding: 20px;
         border: 1px solid rgba(255, 255, 255, 0.1);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
-        height: 100%; /* Ensure it stretches only within the parent */
-        max-height: 80vh; /* Limits the height to 80% of the viewport height */
-        overflow-y: auto; /* Enables vertical scrolling for overflow */
-        scrollbar-width: thin; /* For Firefox */
+        height: 100%; 
+        max-height: 80vh; 
+        overflow-y: auto; 
+        scrollbar-width: thin;
         scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
     }
 
@@ -221,34 +224,94 @@
 
     private bool _UiUpdating = true;
 
-    private ConcurrentDictionary<Guid, List<Delay>> _ClientsWithMessages = new();
+    private Dictionary<Guid, List<Delay>> _ClientsWithMessages = new();
 
-    private BehaviorSubject<Dictionary<Guid, List<Delay>>> _ClientWithMessagesSubject;
-
-    private IDisposable _ClientWithMessagesSubscription;
-
-    protected override async void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        _ClientWithMessagesSubject = new BehaviorSubject<Dictionary<Guid, List<Delay>>>(new Dictionary<Guid, List<Delay>>());
 
-        
-        _ClientWithMessagesSubscription = _ClientWithMessagesSubject.Subscribe(updatedDict =>
+        UtilitiesService.OnUpdateReceived += HandleUpdateReceived; 
+
+        var request = new GetClientsWithMessagesRequest
         {
-            InvokeAsync(StateHasChanged); 
-        });
 
-        await StartReceivingStream();
+        }; 
+
+        UtilitiesService.StartReceivingMessages(request);
+
+        await base.OnInitializedAsync();
     }
 
-    private async Task StartReceivingStream()
+    private async Task SingleStreamingRequest()
     {
-        Log.Information($"Starting the stream");
+        Log.Information($"Single stream request detected");
 
-        var request = new GetClientsWithMessagesRequest(); 
+        string clientUnique = await CreateSingularClientInstance();
 
-        await UtilitiesService.ReceivingMessageStream(request, _ClientsWithMessages, _UiUpdating, _ClientWithMessagesSubject);
+        _ClientUnique = clientUnique;
 
-        _ClientWithMessagesSubject.OnNext(new Dictionary<Guid, List<Delay>>(_ClientsWithMessages));
+        string filePath = ClientHelper.FileSize(_FileSize);
+
+        string content = File.ReadAllText(filePath);
+
+        string dataContent = ClientHelper.DataContentCalc(_FileSize);
+
+        await StreamingLatencyService.SendingSingleUnaryRequestStream(Guid.Parse(_ChannelId), _ClientUnique, content, _FileSize);
+    }
+
+    private async void HandleUpdateReceived(GetClientsWithMessagesResponse update)
+    {
+        try
+        {
+            Log.Information("HandleUpdateReceived invoked.");
+
+            var clientId = Guid.Parse(update.ClientUnique);
+
+            if (!_ClientsWithMessages.ContainsKey(clientId))
+            {
+                _ClientsWithMessages[clientId] = new List<Delay> { MapToDelay(update) };
+            }
+            else
+            {
+                var existingList = _ClientsWithMessages[clientId];
+                if (!existingList.Any(d => d.MessageId == update.MessageId))
+                {
+                    existingList.Add(MapToDelay(update));
+                }
+                else
+                {
+                    Log.Warning($"Duplicate Message ID detected: {update.MessageId}. Skipping...");
+                }
+            }
+
+            Log.Information($"Client with messages count: {_ClientsWithMessages.Count}");
+
+            await InvokeAsync(StateHasChanged);
+            Log.Information("StateHasChanged invoked.");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error in HandleUpdateReceived.");
+        }
+        Log.Information("StateHasChanged invoked."); 
+    }
+
+    private Delay MapToDelay(GetClientsWithMessagesResponse response)
+    {
+        return new Delay
+        {
+             MessageId = response.MessageId,
+             RequestType = response.RequestType,
+             CommunicationType = response.CommunicationType,
+             DataIterations = response.DataIterations,
+             DataContent = response.Datacontent,
+             MessageDelay = TimeSpan.Parse(response.Delay),
+        };
+    }
+
+    public void Dispose()
+    {
+        UtilitiesService.OnUpdateReceived -= HandleUpdateReceived;
+        UtilitiesService.StopReceivingMessages();
     }
 
     /// <summary>
@@ -338,6 +401,7 @@
             await HandlingManyToManyRequests(channelDict, requestCount, unaryOrBatch);
         }
 
+
     }
 
     /// <summary>
@@ -357,7 +421,7 @@
         {
             string clientUnique = await CreateSingularClientInstance();
 
-            await SendUnaryBatchIterativeRequest(clientUnique);
+            await SendUnaryBatchIterativeRequest(clientUnique, _Iterations.ToString());
 
         }
     }
@@ -384,11 +448,12 @@
         }
         else
         {
+
             while(i < requestCount)
             {
                 string newClientInstance = await CreateSingularClientInstance();
 
-                await SendUnaryBatchIterativeRequest(newClientInstance);
+                await SendUnaryBatchIterativeRequest(newClientInstance, _Iterations.ToString());
 
                 i++;
             }
@@ -425,11 +490,13 @@
         {
             Log.Information($"Batch request detected");
 
+            Log.Information($"Numnber of iterations {_Iterations}");
+
             while(i < requestCount)
             {
                 string clientUnique = await CreateSingularClientInstance();
 
-                await SendUnaryBatchIterativeRequest(clientUnique);
+                await SendUnaryBatchIterativeRequest(clientUnique, _Iterations.ToString());
 
                 Log.Information($"Batch request: {i} created");
 
@@ -503,7 +570,7 @@
         await GenerateUnaryRequestIterative();
     }
 
-    private async Task SendUnaryBatchIterativeRequest(string clientUnique)
+    private async Task SendUnaryBatchIterativeRequest(string clientUnique, string iterations)
     {
         var channels = AccountDetailsStore.GetChannels();
 
@@ -528,6 +595,8 @@
             metaData.Add("request-type", "BatchUnary");
             metaData.Add("batch-request-count", "1");
             metaData.Add("active-clients", "1");
+            metaData.Add("data-content-size", dataContent);
+            metaData.Add("batch-iteration", iterations);
 
             List<BatchDataRequestDetails> batchRequests = new List<BatchDataRequestDetails>
             {
@@ -535,10 +604,11 @@
                 {
                     ClientUnique = clientUnique, 
                     RequestId = Guid.NewGuid().ToString(),
-                    DataSize = "1MB",
+                    DataSize = dataContent,
                     RequestTimestamp = preciseTime,
                     RequestType = "BatchUnary",
-                    DataContent = dataContent,
+                    DataContent = content,
+                    DataContentSize = dataContent
 
 
                 }
@@ -662,6 +732,8 @@
                 BatchDataRequest_ = { dataRequestDetails }
             };
 
+            Log.Information($"amount of iterations: {_Iterations}");
+
         var thing = await UnaryRequestService.UnaryBatchIterativeAsync(batchDataRequestUnary, _Iterations);
     }
 
@@ -683,16 +755,18 @@
             {
                 ClientUnique = _ClientUnique,
                 ConnectionAlive = false,
-                DataContent = dataContent,
+                DataContent = content,
                 RequestType = "Unary",
                 DataSize = _FileSize,
                 RequestId = newGuid,
-                RequestTimestamp = preciseTime
+                RequestTimestamp = preciseTime,
+                DataContentSize = dataContent
+                
             };
 
         Log.Information($"Client ID: {newDataRequest.ClientUnique} has sent message ID: {newDataRequest.RequestId} at {newDataRequest.RequestTimestamp}");
 
-        var serverResponse = await UnaryRequestService.UnaryResponseIterativeAsync(newDataRequest);
+        var serverResponse = await UnaryRequestService.UnaryResponseIterativeAsync(newDataRequest, dataContent);
 
 
     }
@@ -707,7 +781,11 @@
     {
         List<BatchDataRequestDetails> dataRequestDetails = new List<BatchDataRequestDetails>();
 
+        Log.Information($"Request iterations for the batch : {requestIterations}");
+
         string filePath = ClientHelper.FileSize(_FileSize);
+
+        string content = File.ReadAllText(filePath);
 
         string dataContent = ClientHelper.DataContentCalc(_FileSize);
 
@@ -721,19 +799,17 @@
 
         while(i < requestIterations)
         {
-
             BatchDataRequestDetails singleRequest = new BatchDataRequestDetails
             {
                 ClientUnique = _ClientUnique, 
                 ConnectionAlive = true, 
-                DataContent = dataContent, 
+                DataContent = content, 
                 DataSize = _FileSize, 
                 RequestId = Guid.NewGuid().ToString(), 
                 RequestTimestamp = preciseTime, 
                 RequestType = "BatchUnary",
-                BatchRequestId = batchRequestId
-
-
+                BatchRequestId = batchRequestId, 
+                DataContentSize = dataContent
             };
 
             Log.Information($"New batch data request has been added to the batch, request is owned by client ID {singleRequest.ClientUnique} with over-arching ID : {singleRequest.BatchRequestId} handles {singleRequest.RequestId}");
@@ -771,16 +847,18 @@
         {
             ClientUnique = _ClientUnique, 
             ConnectionAlive = false, 
-            DataContent = dataContent, 
+            DataContent = content, 
             RequestType = "Unary", 
             DataSize = _FileSize, 
             RequestId = newGuid, 
-            RequestTimestamp = preciseTime
+            RequestTimestamp = preciseTime,
+            DataContentSize = dataContent
+
         };
 
         Log.Information($"Client ID: {newDataRequest.ClientUnique} has sent message ID: {newDataRequest.RequestId} at {newDataRequest.RequestTimestamp}");
 
-        DataResponse serverResponse = await UnaryRequestService.UnaryResponseAsync(newDataRequest, Guid.Parse(_ChannelId));
+        DataResponse serverResponse = await UnaryRequestService.UnaryResponseAsync(newDataRequest, Guid.Parse(_ChannelId), dataContent);
 
         if(serverResponse.RequestId == null || serverResponse.ClientUnique == null)
         {

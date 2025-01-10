@@ -36,9 +36,9 @@ namespace gRPCToolFrontEnd
                 .AddCircuitOptions(options =>
                 {
                     options.DetailedErrors = true;
+                  
                 });
 
-            
 
             builder.Services.AddGrpcClient<Accounts.AccountsClient>(o =>
             {
@@ -79,7 +79,13 @@ namespace gRPCToolFrontEnd
                 o.Address = new Uri("https://localhost:5000");
             });
 
-            builder.Services.AddScoped<UtilitiesService>();
+            builder.Services.AddGrpcClient<StreamingLatency.StreamingLatencyClient>(o =>
+            {
+                o.Address = new Uri("https://localhost:5000");
+            });
+
+
+            builder.Services.AddSingleton<UtilitiesService>();
 
             builder.Services.AddScoped<UnaryRequestService>();
 
@@ -87,7 +93,11 @@ namespace gRPCToolFrontEnd
 
             builder.Services.AddSingleton<AccountDetailsStore>();
 
+            builder.Services.AddScoped<StreamingLatencyService>();
+
             var app = builder.Build();
+
+            app.UseExceptionHandler("/Error");
 
             Console.WriteLine("APP HAS BEEN BUILT");
 

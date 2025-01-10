@@ -12,6 +12,7 @@ service Admin
 	rpc RevokeToken(RevokeTokenRequest) returns (RevokeTokenResponse);
 	rpc RevokeSession(RevokeSessionRequest) returns (RevokeSessionResponse);
 	rpc RevokeClientInstances(RevokeClientInstanceRequest) returns (RevokeClientInstanceResponse);
+	rpc ClearDelayCalc(WipeDelayCalcRequest) returns (WipeDelayCalcResponse);
 }
 
 message RetrievingClientMessagesViaIdRequest
@@ -23,6 +24,16 @@ message RetrievingClientMessagesViaIdResponse
 { 
 	string clientId = 1; 
 	bool finished = 2;
+}
+
+message WipeDelayCalcRequest
+{ 
+
+}
+
+message WipeDelayCalcResponse
+{ 
+	bool finished = 1;
 }
 
 message DatabaseWipeRequest

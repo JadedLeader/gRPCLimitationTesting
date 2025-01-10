@@ -12,7 +12,8 @@ namespace SharedCommonalities.ObjectMapping
     {
 
 
-        public UnaryInfo MappingToUnaryInfo(DateTime? timeOfRequest, TimeSpan? delay, string? typeOfData, int lengthOfData, string? dataContents, string RequestType, string batchRequestId)
+        public UnaryInfo MappingToUnaryInfo(DateTime? timeOfRequest, TimeSpan? delay, string? typeOfData, int lengthOfData, string? dataContents, string RequestType, 
+            string batchRequestId, string? dataContentSize)
         {
             UnaryInfo unaryInfo = new UnaryInfo()
             {
@@ -22,14 +23,16 @@ namespace SharedCommonalities.ObjectMapping
                 LengthOfData = lengthOfData, 
                 DataContents = dataContents,
                 RequestType = RequestType, 
-                BatchRequestId = batchRequestId
+                BatchRequestId = batchRequestId, 
+                DataContentSize = dataContentSize
+                
                 
             }; 
 
             return unaryInfo;
         }
 
-        public ClientDetails MappingToClientDetails(Guid messageId, int messageLength, bool isActiveClient, string? dataContent, Guid clientUnique)
+        public ClientDetails MappingToClientDetails(Guid messageId, int messageLength, bool isActiveClient, string? dataContent, Guid clientUnique, string dataContentsSize)
         {
             ClientDetails clientDetails = new ClientDetails()
             {
@@ -37,7 +40,8 @@ namespace SharedCommonalities.ObjectMapping
                 messageId = messageId,
                 MessageLength = messageLength,
                 IsActiveClient = isActiveClient,
-                DataContent = dataContent
+                DataContent = dataContent,
+                DataContentSize = dataContentsSize
 
             };
 

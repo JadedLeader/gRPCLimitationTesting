@@ -1,76 +1,72 @@
 ﻿using Grpc.Core;
 using gRPCToolFrontEnd.DictionaryModel;
 using gRPCToolFrontEnd.LocalStorage;
+using Microsoft.AspNetCore.SignalR;
 using Serilog;
 using System.Collections.Concurrent;
 using System.Reactive.Subjects;
 
 namespace gRPCToolFrontEnd.Services
 {
-    public class UtilitiesService
+    public class UtilitiesService : IDisposable
     {
 
+  
         private readonly Utilities.UtilitiesClient _utilitiesClient;
+        private CancellationTokenSource _cancellationToken;
+
+        public event Action<GetClientsWithMessagesResponse> OnUpdateReceived;
 
         public UtilitiesService(Utilities.UtilitiesClient utilitiesClient)
         {
             _utilitiesClient = utilitiesClient;
         }
 
-        public async Task ReceivingMessageStream(GetClientsWithMessagesRequest messageRequest, ConcurrentDictionary<Guid, List<Delay>> clientsWithMessagesDict, bool isUiUpdating, BehaviorSubject<Dictionary<Guid, List<Delay>>> behaviourSubject)
+        public void StartReceivingMessages(GetClientsWithMessagesRequest request)
         {
+            _cancellationToken = new CancellationTokenSource();
 
-            while (isUiUpdating)
+            Task.Run(() => ReceivingMessageStream(request, _cancellationToken.Token));
+        }
+
+        public void StopReceivingMessages()
+        {
+            if(_cancellationToken != null && !_cancellationToken.IsCancellationRequested)
+            {
+                _cancellationToken.Cancel();
+            }
+        }
+
+        public async Task ReceivingMessageStream(GetClientsWithMessagesRequest messageRequest, CancellationToken cancellationToken)
+        {
+            Log.Information("Started receiving messages from gRPC stream.");
+            try
             {
                 using var call = _utilitiesClient.GetClientsWithMessages(messageRequest);
 
-                await foreach (var currentResponse in call.ResponseStream.ReadAllAsync())
+                while (await call.ResponseStream.MoveNext(cancellationToken))
                 {
+                    var response = call.ResponseStream.Current;
 
-                    Delay newDelayValue = new Delay
-                    {
-                        MessageId = currentResponse.MessageId,
-                        RequestType = currentResponse.RequestType,
-                        CommunicationType = currentResponse.CommunicationType,
-                        DataIterations = currentResponse.DataIterations,
-                        DataContent = currentResponse.Datacontent,
-                        MessageDelay = TimeSpan.Parse(currentResponse.Delay),
-                    };
-
-                    //we need to do some form of key checking inside of here 
-                    // if the key already exists in the dictionary, we want to add it to the list<delay> 
-                    //if the key doesn't exist in the dictionary, then we add it normally
-
-                    if (clientsWithMessagesDict.ContainsKey(Guid.Parse(currentResponse.ClientUnique)))
-                    {
-                        //Log.Information($"Key is already within the dictionary, adding this item to the delay list");
-
-                        List<Delay> clientValue = clientsWithMessagesDict[Guid.Parse(currentResponse.ClientUnique)];
-
-                        if (!clientValue.Any(delay => delay.MessageId == currentResponse.MessageId))
-                        {
-                            clientValue.Add(newDelayValue);
-                        }
-                        else
-                        {
-                            //Log.Warning($"Duplicate message ID detected: {currentResponse.MessageId}. Skipping...");
-                        }
-                    }
-                    else
-                    {
-                        List<Delay> delayList = new List<Delay>();
-
-                        delayList.Add(newDelayValue);
-                        clientsWithMessagesDict.TryAdd(Guid.Parse(currentResponse.ClientUnique), delayList);
-                    }
-
-                    behaviourSubject.OnNext(new Dictionary<Guid, List<Delay>>(clientsWithMessagesDict));
-
+                    Log.Debug($"Received update for ClientUnique: {response.ClientUnique}");
+                    OnUpdateReceived?.Invoke(response);
                 }
-            } 
-
+                
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error while reading the gRPC stream.");
+                throw;
+            }
+        }
+        public void Dispose()
+        {
+            StopReceivingMessages();
+            _cancellationToken?.Dispose();
         }
 
     }
-    
+
 }
+    
+

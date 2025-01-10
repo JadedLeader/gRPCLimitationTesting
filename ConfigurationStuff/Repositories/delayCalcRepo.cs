@@ -10,6 +10,7 @@ using ConfigurationStuff.DbModels;
 using ConfigurationStuff.Interfaces.Repos;
 using ConfigurationStuff.DbContexts;
 using Serilog;
+using Microsoft.Identity.Client;
 
 namespace DbManagerWorkerService.Repositories
 {
@@ -17,6 +18,8 @@ namespace DbManagerWorkerService.Repositories
     {
 
         private readonly IDataContexts _dataContext;
+
+        private DateTime _lastFetchedTime = DateTime.MinValue;
 
         public delayCalcRepo(IDataContexts dataContexts) : base(dataContexts as DataContexts)
         {
@@ -65,6 +68,45 @@ namespace DbManagerWorkerService.Repositories
 
 
             return thing;
+        }
+
+        public async Task<Dictionary<Guid, List<DelayCalc>>> GetNewDelays()
+        {
+            var newDelays = await _dataContext.DelayCalc
+                 .Where(calc => calc.ClientUnique.HasValue && calc.RecordCreation > _lastFetchedTime).ToListAsync();
+
+            Log.Information($"last fetched time was {_lastFetchedTime}");
+
+             if(!newDelays.Any())
+             {
+                 return new Dictionary<Guid, List<DelayCalc>> ();
+             }
+
+             var setMaxTime = newDelays.Max(x => x.RecordCreation);
+
+             _lastFetchedTime = setMaxTime;
+
+             var groupingItemViaClientUnique = newDelays
+                 .GroupBy(calc => calc.ClientUnique.Value)
+                 .ToDictionary(
+                 group => group.Key,
+                 group => group.ToList()
+                 );
+
+
+             return groupingItemViaClientUnique; 
+            
+                
+
+        }
+
+        public async Task EmptyDelayCalcTable()
+        {
+            var allEntities = _dataContext.DelayCalc.ToList();
+
+            _dataContext.DelayCalc.RemoveRange(allEntities);
+
+           await SaveAsync();
         }
     }
 }

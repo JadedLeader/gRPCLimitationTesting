@@ -18,7 +18,9 @@ namespace gRPCStressTestingService.Services
         private readonly IAuthTokenRepo _authTokenRepo;
         private readonly ISessionRepo _sessionRepo;
         private readonly IClientInstanceRepo _clientInstanceRepo;
-        public AdminService( ClientStorage clientStorage, IAccountRepo accountRepo, IAuthTokenRepo authTokenRepo, ISessionRepo sessionRepo, IClientInstanceRepo clientRepo)
+        private readonly IDelayCalcRepo _delayCalcRepo;
+        public AdminService( ClientStorage clientStorage, IAccountRepo accountRepo, IAuthTokenRepo authTokenRepo, ISessionRepo sessionRepo, 
+            IClientInstanceRepo clientRepo, IDelayCalcRepo delayCalcRepo)
         {
             
             _clientStorage = clientStorage;
@@ -26,6 +28,7 @@ namespace gRPCStressTestingService.Services
             _authTokenRepo = authTokenRepo;
             _sessionRepo = sessionRepo;
             _clientInstanceRepo = clientRepo;
+            _delayCalcRepo = delayCalcRepo;
         }
 
         public async Task<RetrievingClientMessagesViaIdResponse> ClientMessages(RetrievingClientMessagesViaIdRequest request, ServerCallContext context)
@@ -176,6 +179,19 @@ namespace gRPCStressTestingService.Services
             {
                 SessionUnique = request.SessionUnique,
                 TimeOfClientRevoke = DateTime.Now.ToString()
+            };
+
+            return serverResponse;
+        }
+
+        public async Task<WipeDelayCalcResponse> ClearDelayCalc(WipeDelayCalcRequest request, ServerCallContext context)
+        {
+            await _delayCalcRepo.EmptyDelayCalcTable();
+
+
+            WipeDelayCalcResponse serverResponse = new WipeDelayCalcResponse
+            {
+                Finished = true
             };
 
             return serverResponse;

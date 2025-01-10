@@ -8,7 +8,6 @@ service Unary {
 	rpc UnaryResponse (DataRequest) returns (DataResponse);
 
 	rpc BatchUnaryResponse(BatchDataRequest) returns (BatchDataResponse);
-
 }
 
 message DataRequest
@@ -20,6 +19,7 @@ message DataRequest
 	string DataContent = 5;
 	string DataSize = 6;
 	bool ConnectionAlive = 7;
+	string DataContentSize = 8;
 }
 
 message DataResponse
@@ -48,6 +48,7 @@ message BatchDataRequestDetails
 	string DataSize = 6;
 	string DataContent = 7;
 	bool ConnectionAlive = 8;
+	string DataContentSize = 9;
 }
 
 message BatchDataResponse

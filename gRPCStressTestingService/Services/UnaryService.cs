@@ -4,6 +4,7 @@ using DbManagerWorkerService.Repositories;
 using Google.Protobuf.Collections;
 using Grpc.Core;
 using gRPCStressTestingService;
+using gRPCStressTestingService.DelayCalculations;
 using gRPCStressTestingService.Interfaces;
 using gRPCStressTestingService.proto;
 using Microsoft.EntityFrameworkCore;
@@ -30,13 +31,18 @@ namespace gRPCStressTestingService.Services
         private readonly ClientStorage _storage;
         private readonly ObjectCreation _objectCreation;
         private readonly delayCalcRepo _delayCalcRepo;
+        private readonly DelayCalculation _delayCalculations;
+        private readonly DatabaseTransportationService _dbTransportationService;
 
-        public UnaryService(ClientStorage storage, RequestResponseTimeStorage timeStorage, ObjectCreation objectCreation, delayCalcRepo delayCalcRepo)
+        public UnaryService(ClientStorage storage, RequestResponseTimeStorage timeStorage, ObjectCreation objectCreation, 
+            delayCalcRepo delayCalcRepo, DelayCalculation delayCalculations, DatabaseTransportationService databaseTransportationService)
         {
             _storage = storage;
             _timeStorage = timeStorage;
             _objectCreation = objectCreation;
             _delayCalcRepo = delayCalcRepo;
+            _delayCalculations = delayCalculations;
+            _dbTransportationService = databaseTransportationService;
         }
 
         /// <summary>
@@ -53,6 +59,11 @@ namespace gRPCStressTestingService.Services
             string? numOfOpenChannels = context.RequestHeaders.GetValue("open-channels");
             string? numOfActiveClients = context.RequestHeaders.GetValue("active-clients");
             string? dataIterations = context.RequestHeaders.GetValue("data-iterations");
+            string? dataContentSize = context.RequestHeaders.GetValue("data-content-size");
+
+            
+
+            Log.Information($"data content size {dataContentSize}");
 
             Log.Information($"Unary request message ID : {request.RequestId}");
             Log.Information($"this is the unary client request client count : {Settings.GetNumberOfActiveClients()}");
@@ -68,7 +79,7 @@ namespace gRPCStressTestingService.Services
                 
             };
 
-            ClientDetails clientDetails = _objectCreation.MappingToClientDetails(Guid.Parse(request.RequestId), 0, true, null,Guid.Parse( request.ClientUnique));
+            ClientDetails clientDetails = _objectCreation.MappingToClientDetails(Guid.Parse(request.RequestId), 0, true, null,Guid.Parse( request.ClientUnique), request.DataContentSize);
             
             if (!_storage.Clients.ContainsKey(Guid.Parse(request.ClientUnique)))
             {
@@ -97,9 +108,9 @@ namespace gRPCStressTestingService.Services
                 Log.Warning($"The guid ({request.RequestId}) or the response time ({request.RequestTimestamp}) from the meta data was null");
             }
 
-            UnaryInfo requestUnaryInfo = MapToRequest(Convert.ToDateTime(request.RequestTimestamp), typeOfDataFromMetaData, Convert.ToInt32(dataIterations), request.DataContent, typeOfDataFromMetaData, null);
+            UnaryInfo requestUnaryInfo = MapToRequest(Convert.ToDateTime(request.RequestTimestamp), typeOfDataFromMetaData, Convert.ToInt32(dataIterations), request.DataContent, typeOfDataFromMetaData, null, request.DataContentSize);
 
-            UnaryInfo responseUnaryInfo = MapToResponse(Convert.ToDateTime(dataReturn.ResponseTimestamp), typeOfDataFromMetaData, Convert.ToInt32(dataIterations), request.DataContent, typeOfDataFromMetaData, null);
+            UnaryInfo responseUnaryInfo = MapToResponse(Convert.ToDateTime(dataReturn.ResponseTimestamp), typeOfDataFromMetaData, Convert.ToInt32(dataIterations), request.DataContent, typeOfDataFromMetaData, null, request.DataContentSize);
 
             ClientMessageId requestKeys = new ClientMessageId()
             {
@@ -125,9 +136,9 @@ namespace gRPCStressTestingService.Services
             var clientRequests = _timeStorage.ReturnConcurrentDict(_timeStorage._ClientRequestTiming);
             var responseTimings = _timeStorage.ReturnConcurrentDict(_timeStorage._ServerResponseTiming);
 
-            await CalculatingDelay(requestKeys, responseKeys);
+            await _delayCalculations.CalculatingDelay(requestKeys, responseKeys);
 
-            await AddingDelayToDb();
+            await _dbTransportationService.AddingDelayToDb();
 
             return dataReturn;
                
@@ -147,6 +158,7 @@ namespace gRPCStressTestingService.Services
             string? typeOfDataFromMetaData = context.RequestHeaders.GetValue("request-type");
             int batchFromMetaData = Convert.ToInt32(context.RequestHeaders.GetValue("batch-request-count"));
             int numOfActiveClients = Convert.ToInt32(context.RequestHeaders.GetValue("active-clients"));
+            string? requestIterations = context.RequestHeaders.GetValue("batch-iteration");
 
             List<ClientDetails> clientDetailsList = IteratingBatchToClientDetails(request.BatchDataRequest_);
 
@@ -156,7 +168,10 @@ namespace gRPCStressTestingService.Services
 
             Guid batchRequestId = firstRequestElement.messageId;
 
-            string requestContent = firstRequestElement.DataContent; 
+            string requestContent = firstRequestElement.DataContent;
+
+            string dataContentSize = firstRequestElement.DataContentSize;
+
 
               Log.Information($"Client ID: {clientUnique}");
               Log.Information($"The batch request ID : {batchRequestId}");
@@ -188,11 +203,11 @@ namespace gRPCStressTestingService.Services
                 retrieveExisting.Value.AddBatchToClientActivities(clientDetailsList);
             }
 
-            UnaryInfo responseUnaryInfo = MapToResponse(Convert.ToDateTime(batchDataResponse.ResponseTimestamp), typeOfDataFromMetaData, batchFromMetaData, requestContent, typeOfDataFromMetaData, batchRequestId.ToString());
+            UnaryInfo responseUnaryInfo = MapToResponse(Convert.ToDateTime(batchDataResponse.ResponseTimestamp), typeOfDataFromMetaData, batchFromMetaData, requestContent, typeOfDataFromMetaData, batchRequestId.ToString(), dataContentSize,  null);
 
-            UnaryInfo requestUnaryInfo = MapToRequest(Convert.ToDateTime(batchTimestampFromMetaData), typeOfDataFromMetaData, batchFromMetaData, requestContent, typeOfDataFromMetaData, batchRequestId.ToString());
+            UnaryInfo requestUnaryInfo = MapToRequest(Convert.ToDateTime(batchTimestampFromMetaData), typeOfDataFromMetaData, batchFromMetaData, requestContent, typeOfDataFromMetaData, batchRequestId.ToString(), dataContentSize, null);
 
-            Log.Information($"THIS IS THE DATA CONTENT : {responseUnaryInfo.DataContents}");
+            Log.Information($"This is the data content size : {responseUnaryInfo.DataContentSize}");
             Log.Information($"THIS IS THE DATA CONTENT : {responseUnaryInfo.LengthOfData}");
 
             ClientMessageId requestKeys = new ClientMessageId()
@@ -220,137 +235,13 @@ namespace gRPCStressTestingService.Services
             Log.Information($"Amount of things in client request timing {clientRequestTimings.Count}");
             Log.Information($"Amount of things in server response timing {serverResponseTimings.Count}");
 
-            await CalculatingDelay(requestKeys, responseKeys);
+            await _delayCalculations.CalculatingDelay(requestKeys, responseKeys);
 
-            await AddingDelayToDb();
+            await _dbTransportationService.AddingDelayToDb();
 
             return batchDataResponse;
         }
 
-        private async Task CalculatingDelay(ClientMessageId requestKeys, ClientMessageId responseKeys)
-        {
-            Log.Information($"Calculating delay immediately after request.");
-            var clientRequests = _timeStorage.ReturnConcurrentDictLock(_timeStorage._ClientRequestTiming);
-            var serverResponses = _timeStorage.ReturnConcurrentDictLock(_timeStorage._ServerResponseTiming);
-
-            if (clientRequests.TryGetValue(requestKeys, out var clientTiming) &&
-                serverResponses.TryGetValue(responseKeys, out var serverTiming))
-            {
-                var calc = Convert.ToDateTime(serverTiming.TimeOfRequest.Value) - Convert.ToDateTime(clientTiming.TimeOfRequest.Value);
-
-                Log.Information($"Client ID: {requestKeys.ClientId} with message ID {requestKeys.MessageId} had delay {calc}");
-
-                if (clientTiming.RequestType == "BatchUnary")
-                {
-                    if (!_timeStorage._ActualDelayCalculations.ContainsKey(requestKeys))
-                    {
-                        var delayResult = new UnaryInfo
-                        {
-                            Delay = calc.Duration(),
-                            LengthOfData = serverTiming.LengthOfData,
-                            TypeOfData = clientTiming.TypeOfData,
-                            DataContents = clientTiming.DataContents,
-                            BatchRequestId = clientTiming.BatchRequestId,
-                            RequestType = clientTiming.RequestType,
-                            TimeOfRequest = clientTiming.TimeOfRequest,
-                        };
-
-                        _timeStorage.AddToConcurrentDictLock(_timeStorage._ActualDelayCalculations, requestKeys, delayResult);
-                    }
-                }
-
-                else if (clientTiming.RequestType == "Unary")
-                {
-                    var delayResult = new UnaryInfo
-                    {
-                        Delay = calc.Duration(),
-                        LengthOfData = serverTiming.LengthOfData,
-                        TypeOfData = clientTiming.TypeOfData,
-                        DataContents = clientTiming.DataContents, 
-                        BatchRequestId = null, 
-                        RequestType = clientTiming.RequestType,
-                        TimeOfRequest = clientTiming.TimeOfRequest,
-                    };
-
-                    _timeStorage.AddToConcurrentDictLock(_timeStorage._ActualDelayCalculations, requestKeys, delayResult);
-                }
-
-                _timeStorage.RemoveFromConcurrentDictLock(_timeStorage._ClientRequestTiming, requestKeys);
-                _timeStorage.RemoveFromConcurrentDictLock(_timeStorage._ServerResponseTiming, responseKeys);
-            }
-            else
-            {
-                Log.Warning($"Could not find matching request and response for delay calculation.");
-            }
-        }
-
-        private async Task AddingDelayToDb()
-        {
-
-           var delayCalculationsDict =  _timeStorage.ReturnConcurrentDictLock(_timeStorage._ActualDelayCalculations);
-
-            foreach (var item in delayCalculationsDict)
-            {
-                var gettingKeys = delayCalculationsDict.Keys.FirstOrDefault(keyEntry => keyEntry.ClientId == item.Key.ClientId);
-
-                 if (gettingKeys != null && delayCalculationsDict.ContainsKey(gettingKeys))
-                 {
-                     Console.WriteLine($"Existing client ID needs to be removed from the delay calculations dict, removing now -> {item.Key.ClientId}");
-
-                     _timeStorage.RemoveFromConcurrentDict(_timeStorage._ActualDelayCalculations, gettingKeys);
-                 } 
-
-                 if(item.Value.TypeOfData == "BatchUnary")
-                 {
-                    if(!string.IsNullOrEmpty(item.Value.BatchRequestId))
-                    {
-                        DelayCalc transportingToDb = new DelayCalc
-                        {
-                            messageId = Guid.Parse(item.Value.BatchRequestId),
-                            RequestType = item.Value.TypeOfData,
-                            ClientUnique = Guid.Parse(item.Key.ClientId),
-                            CommunicationType = "Batch",
-                            DataIterations = item.Value.LengthOfData,
-                            DataContent = item.Value.DataContents,
-                            Delay = item.Value.Delay,
-                            ClientInstance = null,
-                        };
-
-                        Console.WriteLine($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
-
-                        await _delayCalcRepo.AddToDbAsync(transportingToDb);
-
-                        await _delayCalcRepo.SaveAsync();
-                    }
-
-                 }
-                 else if(item.Value.TypeOfData == "Unary")
-                 {
-                    DelayCalc transportingToDb = new DelayCalc
-                    {
-                        messageId = Guid.Parse(item.Key.MessageId),
-                        RequestType = item.Value.TypeOfData,
-                        ClientUnique = Guid.Parse(item.Key.ClientId),
-                        CommunicationType = item.Value.TypeOfData,
-                        DataIterations = item.Value.LengthOfData,
-                        DataContent = item.Value.DataContents,
-                        Delay = item.Value.Delay,
-                        ClientInstance = null,
-                    };
-
-                   
-                    Console.WriteLine($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
-
-                    await _delayCalcRepo.AddToDbAsync(transportingToDb);
-
-                    await _delayCalcRepo.SaveAsync();
-                 }
-
-              
-
-                
-            }
-        }
 
         /// <summary>
         /// Gets the precise time of the current datetime 
@@ -367,14 +258,16 @@ namespace gRPCStressTestingService.Services
 
         }
 
-        private UnaryInfo MapToRequest(DateTime? timeOfRequest, string? typeOfData, int lengthOfData, string? dataContent, string requestType, string? batchRequestId, TimeSpan? delay = null )
+        private UnaryInfo MapToRequest(DateTime? timeOfRequest, string? typeOfData, int lengthOfData, string? dataContent, string requestType, 
+            string? batchRequestId, string dataContentSize, TimeSpan? delay = null )
         {
-           return _objectCreation.MappingToUnaryInfo(timeOfRequest, delay, typeOfData, lengthOfData, dataContent, requestType, batchRequestId );
+           return _objectCreation.MappingToUnaryInfo(timeOfRequest, delay, typeOfData, lengthOfData, dataContent, requestType, batchRequestId, dataContentSize);
         }
 
-        private UnaryInfo MapToResponse(DateTime? timeOfRequest, string? typeOfData, int lengthOfData, string? dataContent, string requestType, string? batchRequestId, TimeSpan? delay = null)
+        private UnaryInfo MapToResponse(DateTime? timeOfRequest, string? typeOfData, int lengthOfData, string? dataContent, string requestType, 
+            string? batchRequestId, string dataContentSize, TimeSpan? delay = null)
         {
-            return _objectCreation.MappingToUnaryInfo(timeOfRequest, delay, typeOfData, lengthOfData, dataContent, requestType, batchRequestId);
+            return _objectCreation.MappingToUnaryInfo(timeOfRequest, delay, typeOfData, lengthOfData, dataContent, requestType, batchRequestId, dataContentSize);
         }
 
         /// <summary>
@@ -397,7 +290,10 @@ namespace gRPCStressTestingService.Services
 
                 string clientUnique = details.ClientUnique;
 
-                ClientDetails clientDetails = _objectCreation.MappingToClientDetails(Guid.Parse(details.RequestId), lengthOfData, details.ConnectionAlive, dataContent, Guid.Parse(details.ClientUnique));
+                string dataContentsSize = details.DataContentSize;
+
+
+                ClientDetails clientDetails = _objectCreation.MappingToClientDetails(Guid.Parse(details.RequestId), lengthOfData, details.ConnectionAlive, dataContent, Guid.Parse(details.ClientUnique), dataContentsSize);
 
                 clientDetailsList.Add(clientDetails);
             }

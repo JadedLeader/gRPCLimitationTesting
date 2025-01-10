@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+option csharp_namespace = "gRPCStressTestingService.protos";
+
+service StreamingLatency
+{ 
+	rpc StreamingSingleRequest(stream StreamingSingleLatencyRequest) returns (stream StreamingSingleLatencyResponse);
+
+	rpc StreamingBatchRequest(stream StreamingBatchLatencyRequest) returns (stream StreamingBatchLatencyResponse);
+
+}
+
+message StreamingSingleLatencyRequest
+{ 
+	string clientUnique = 1; 
+	string requestId = 2; 
+	string requestType = 3; 
+	string requestTimestamp = 4;
+	string dataContent = 5; 
+	string dataSize = 6; 
+	bool connectionAlive = 7;
+}
+
+message StreamingSingleLatencyResponse
+{ 
+	string clientUnique = 1; 
+	string requestId = 2;
+	string requestType = 3; 
+	bool connectionAlive = 4; 
+	string requestTimestamp = 5;
+}
+
+message StreamingBatchLatencyRequest
+{ 
+	repeated StreamingBatchLatencyResponse streamingBatchDataRequest = 1;
+}
+
+message StreamingBatchDetails
+{ 
+	string clientUnique = 1; 
+	string batchRequestId = 2; 
+	string messageId = 3; 
+	string requestType = 4; 
+	string requestTimestamp = 5; 
+	string dataSize = 6; 
+	string dataContent = 7; 
+	bool connectionAlive = 8;
+}
+
+message StreamingBatchLatencyResponse
+{
+	string ClientUnique = 1; 
+	string BatchRequestId = 2;
+	int32 numberOfRequestsInBatch = 3; 
+	string ResponseTimestamp = 4; 
+	string RequestType = 5;
+}

@@ -2,6 +2,7 @@
 using gRPCToolFrontEnd.DictionaryModel;
 using gRPCToolFrontEnd.Services;
 using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
 
 namespace gRPCToolFrontEnd.LocalStorage
 {
@@ -10,7 +11,7 @@ namespace gRPCToolFrontEnd.LocalStorage
 
         public Dictionary<Guid, GrpcChannel> channels = new Dictionary<Guid, GrpcChannel>();
 
-        public ConcurrentDictionary<Guid, List<Delay>> ClientInstancesWithMessages = new ConcurrentDictionary<Guid, List<Delay>>();
+        public Dictionary<Guid, List<Delay>> ClientInstancesWithMessages = new Dictionary<Guid, List<Delay>>(); 
 
         public AccountDetailsStore()
         {
@@ -27,7 +28,7 @@ namespace gRPCToolFrontEnd.LocalStorage
             return channels;
         }
 
-        public ConcurrentDictionary<Guid, List<Delay>> GetClientsWithMessages()
+        public Dictionary<Guid, List<Delay>> GetClientsWithMessages()
         {
 
             return ClientInstancesWithMessages; 

@@ -27,6 +27,7 @@ using Microsoft.EntityFrameworkCore;
 using ConfigurationStuff;
 using ConfigurationStuff.ServicesConfig;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using gRPCStressTestingService.DelayCalculations;
 
 
 namespace gRPCStressTestingService
@@ -84,8 +85,11 @@ namespace gRPCStressTestingService
 
             builder.Services.AddScoped<IUnaryService, UnaryService>();
             builder.Services.AddScoped<UnaryImplementation>();
-            builder.Services.AddSingleton<DelayCalculations>(); 
-           // builder.Services.AddHostedService<DbManagerWorker>();
+            //builder.Services.AddSingleton<DelayCalculations>(); 
+            // builder.Services.AddHostedService<DbManagerWorker>();
+
+            builder.Services.AddScoped<DelayCalculation>();
+            builder.Services.AddScoped<DatabaseTransportationService>();
 
             builder.Services.AddSingleton<IClientManagementService, ClientManagementService>();
             //builder.Services.AddHostedService<ClientManagerWorker>();
@@ -110,6 +114,8 @@ namespace gRPCStressTestingService
 
             builder.Services.AddScoped<IAdminService, AdminService>();
 
+            builder.Services.AddScoped<IStreamingLatencyService, StreamingLatencyService>();
+
             builder.Services.AddScoped<ObjectCreation>();
             builder.Services.AddScoped<delayCalcRepo>();
          
@@ -126,6 +132,7 @@ namespace gRPCStressTestingService
             app.MapGrpcService<SessionImplementation>();
             app.MapGrpcService<ClientInstanceImplementation>();
             app.MapGrpcService<UtilitiesImplementation>();
+            app.MapGrpcService<StreamingImplementation>();
 
             // Configure the HTTP request pipeline.
             app.MapGrpcService<GreeterService>();
