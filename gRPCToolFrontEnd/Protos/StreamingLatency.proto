@@ -6,7 +6,9 @@ service StreamingLatency
 { 
 	rpc StreamingSingleRequest(stream StreamingSingleLatencyRequest) returns (stream StreamingSingleLatencyResponse);
 
-	rpc StreamingBatchRequest(stream StreamingBatchLatencyRequest) returns (stream StreamingBatchLatencyResponse);
+	rpc StreamingManySingleRequest(stream StreamingManySingleLatencyRequest) returns (stream StreamingManySingleLatencyResponse);
+
+	rpc StreamingSingleBatchRequest(stream StreamingBatchLatencyRequest) returns (stream StreamingBatchLatencyResponse);
 
 }
 
@@ -23,6 +25,27 @@ message StreamingSingleLatencyRequest
 }
 
 message StreamingSingleLatencyResponse
+{ 
+	string clientUnique = 1; 
+	string requestId = 2;
+	string requestType = 3; 
+	bool connectionAlive = 4; 
+	string requestTimestamp = 5;
+}
+
+message StreamingManySingleLatencyRequest
+{ 
+	string clientUnique = 1; 
+	string requestId = 2; 
+	string requestType = 3; 
+	string requestTimestamp = 4;
+	string dataContent = 5; 
+	string dataSize = 6; 
+	bool connectionAlive = 7;
+	string dataContentSize = 8;
+}
+
+message StreamingManySingleLatencyResponse
 { 
 	string clientUnique = 1; 
 	string requestId = 2;

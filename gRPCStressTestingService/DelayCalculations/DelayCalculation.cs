@@ -42,6 +42,7 @@ namespace gRPCStressTestingService.DelayCalculations
                             TimeOfRequest = clientTiming.TimeOfRequest,
                             DataContentSize = clientTiming.DataContentSize,
                             ClientInstance = clientTiming.ClientInstance,
+                            DataIterations = clientTiming.DataIterations,
                         };
 
                         _timeStorage.AddToConcurrentDictLock(_timeStorage._ActualDelayCalculations, requestKeys, delayResult);
@@ -61,6 +62,7 @@ namespace gRPCStressTestingService.DelayCalculations
                         TimeOfRequest = clientTiming.TimeOfRequest,
                         DataContentSize = clientTiming.DataContentSize,
                         ClientInstance = clientTiming.ClientInstance,
+                        DataIterations = clientTiming.DataIterations,
                     };
 
                     _timeStorage.AddToConcurrentDictLock(_timeStorage._ActualDelayCalculations, requestKeys, delayResult);
@@ -79,6 +81,7 @@ namespace gRPCStressTestingService.DelayCalculations
                         TimeOfRequest = clientTiming.TimeOfRequest,
                         DataContentSize = clientTiming.DataContentSize,
                         ClientInstance = clientTiming.ClientInstance,
+                        DataIterations= clientTiming.DataIterations,
                         
                     };
 

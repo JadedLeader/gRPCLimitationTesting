@@ -6,7 +6,7 @@ using Google.Protobuf.Collections;
 using Grpc.Core;
 using gRPCStressTestingService;
 using gRPCStressTestingService.DelayCalculations;
-using gRPCStressTestingService.Interfaces;
+using gRPCStressTestingService.Interfaces.Services;
 using gRPCStressTestingService.proto;
 using Serilog;
 using SharedCommonalities.ObjectMapping;
@@ -57,9 +57,7 @@ namespace gRPCStressTestingService.Services
             string? dataIterations = context.RequestHeaders.GetValue("data-iterations");
             string? dataContentSize = context.RequestHeaders.GetValue("data-content-size");
             
-
             Log.Information($"data content size {dataContentSize}");
-
             Log.Information($"Unary request message ID : {request.RequestId}");
             Log.Information($"this is the unary client request client count : {Settings.GetNumberOfActiveClients()}");
 
@@ -71,8 +69,7 @@ namespace gRPCStressTestingService.Services
                 RequestId = request.RequestId,
                 RequestType = request.RequestType,
                 ResponseTimestamp = preciseTime, 
-                ClientUnique = request.ClientUnique,
-                
+                ClientUnique = request.ClientUnique,  
             };
 
             ClientDetails clientDetails = _objectCreation.MappingToClientDetails(Guid.Parse(request.RequestId), 0, true, null,Guid.Parse( request.ClientUnique), request.DataContentSize);
@@ -104,9 +101,9 @@ namespace gRPCStressTestingService.Services
                 Log.Warning($"The guid ({request.RequestId}) or the response time ({request.RequestTimestamp}) from the meta data was null");
             }
 
-            UnaryInfo requestUnaryInfo = MapToRequest(Convert.ToDateTime(request.RequestTimestamp), typeOfDataFromMetaData, Convert.ToInt32(dataIterations), request.DataContent, typeOfDataFromMetaData, null, request.DataContentSize, getClientInstance);
+            UnaryInfo requestUnaryInfo = MapToRequest(Convert.ToDateTime(request.RequestTimestamp), typeOfDataFromMetaData, Convert.ToInt32(dataIterations), request.DataContent, typeOfDataFromMetaData, null, request.DataContentSize, getClientInstance, dataIterations);
 
-            UnaryInfo responseUnaryInfo = MapToResponse(Convert.ToDateTime(dataReturn.ResponseTimestamp), typeOfDataFromMetaData, Convert.ToInt32(dataIterations), request.DataContent, typeOfDataFromMetaData, null, request.DataContentSize, getClientInstance);
+            UnaryInfo responseUnaryInfo = MapToResponse(Convert.ToDateTime(dataReturn.ResponseTimestamp), typeOfDataFromMetaData, Convert.ToInt32(dataIterations), request.DataContent, typeOfDataFromMetaData, null, request.DataContentSize, getClientInstance, dataIterations);
 
             ClientMessageId requestKeys = new ClientMessageId()
             {
@@ -128,10 +125,7 @@ namespace gRPCStressTestingService.Services
 
             Log.Information($"This is the request send time for the unary request : {requestUnaryInfo.TimeOfRequest} -> {request.RequestTimestamp}");
             Log.Information($"This is the server response time for the unary request : {responseUnaryInfo.TimeOfRequest} -> {preciseTime}");
-           
-            var clientRequests = _timeStorage.ReturnConcurrentDict(_timeStorage._ClientRequestTiming);
-            var responseTimings = _timeStorage.ReturnConcurrentDict(_timeStorage._ServerResponseTiming);
-
+          
             await _delayCalculations.CalculatingDelay(requestKeys, responseKeys);
 
             await _dbTransportationService.AddingDelayToDb();
@@ -174,8 +168,6 @@ namespace gRPCStressTestingService.Services
             Log.Information($"The batch request ID : {batchRequestId}");
             Log.Information($"this is the batch client request client count -> {Settings.GetNumberOfActiveClients()}");
 
-            Settings.SetNumberOfActiveClients(numOfActiveClients);
-
             BatchDataResponse batchDataResponse = new BatchDataResponse()
             {
                 ClientUnique = clientUnique.ToString(),
@@ -200,9 +192,11 @@ namespace gRPCStressTestingService.Services
                 retrieveExisting.Value.AddBatchToClientActivities(clientDetailsList);
             }
 
-            UnaryInfo responseUnaryInfo = MapToResponse(Convert.ToDateTime(batchDataResponse.ResponseTimestamp), typeOfDataFromMetaData, batchFromMetaData, requestContent, typeOfDataFromMetaData, batchRequestId.ToString(), dataContentSize, getClientInstance,  null);
+            UnaryInfo responseUnaryInfo = MapToResponse(Convert.ToDateTime(batchDataResponse.ResponseTimestamp), typeOfDataFromMetaData, batchFromMetaData, requestContent, 
+                typeOfDataFromMetaData, batchRequestId.ToString(), dataContentSize, getClientInstance, requestIterations,  null);
 
-            UnaryInfo requestUnaryInfo = MapToRequest(Convert.ToDateTime(batchTimestampFromMetaData), typeOfDataFromMetaData, batchFromMetaData, requestContent, typeOfDataFromMetaData, batchRequestId.ToString(), dataContentSize, getClientInstance, null);
+            UnaryInfo requestUnaryInfo = MapToRequest(Convert.ToDateTime(batchTimestampFromMetaData), typeOfDataFromMetaData, batchFromMetaData, requestContent, 
+                typeOfDataFromMetaData, batchRequestId.ToString(), dataContentSize, getClientInstance, requestIterations,  null);
 
             Log.Information($"This is the data content size : {responseUnaryInfo.DataContentSize}");
             Log.Information($"THIS IS THE DATA CONTENT : {responseUnaryInfo.LengthOfData}");
@@ -225,12 +219,6 @@ namespace gRPCStressTestingService.Services
 
             Log.Information($"This is the request send time for the unary batch request : {requestUnaryInfo.TimeOfRequest} -> {batchTimestampFromMetaData}");
             Log.Information($"This is the server response time for the unary batch request : {responseUnaryInfo.TimeOfRequest} -> {preciseTime}");
-
-            var clientRequestTimings = _timeStorage.ReturnConcurrentDictLock(_timeStorage._ClientRequestTiming);
-            var serverResponseTimings = _timeStorage.ReturnConcurrentDictLock(_timeStorage._ServerResponseTiming);
-
-            Log.Information($"Amount of things in client request timing {clientRequestTimings.Count}");
-            Log.Information($"Amount of things in server response timing {serverResponseTimings.Count}");
 
             await _delayCalculations.CalculatingDelay(requestKeys, responseKeys);
 
@@ -256,15 +244,17 @@ namespace gRPCStressTestingService.Services
         }
 
         private UnaryInfo MapToRequest(DateTime? timeOfRequest, string? typeOfData, int lengthOfData, string? dataContent, string requestType, 
-            string? batchRequestId, string dataContentSize, object clientInstance, TimeSpan? delay = null )
+            string? batchRequestId, string dataContentSize, object clientInstance, string dataIterations,  TimeSpan? delay = null )
         {
-           return _objectCreation.MappingToUnaryInfo(timeOfRequest, delay, typeOfData, lengthOfData, dataContent, requestType, batchRequestId, dataContentSize, clientInstance);
+           return _objectCreation.MappingToUnaryInfo(timeOfRequest, delay, typeOfData, lengthOfData, dataContent, requestType, batchRequestId, 
+               dataContentSize, clientInstance, dataIterations);
         }
 
         private UnaryInfo MapToResponse(DateTime? timeOfRequest, string? typeOfData, int lengthOfData, string? dataContent, string requestType, 
-            string? batchRequestId, string dataContentSize, object clientInstance, TimeSpan? delay = null)
+            string? batchRequestId, string dataContentSize, object clientInstance, string dataIterations, TimeSpan? delay = null)
         {
-            return _objectCreation.MappingToUnaryInfo(timeOfRequest, delay, typeOfData, lengthOfData, dataContent, requestType, batchRequestId, dataContentSize, clientInstance);
+            return _objectCreation.MappingToUnaryInfo(timeOfRequest, delay, typeOfData, lengthOfData, dataContent, requestType, batchRequestId, 
+                dataContentSize, clientInstance, dataIterations);
         }
 
         /// <summary>
@@ -289,7 +279,8 @@ namespace gRPCStressTestingService.Services
 
                 string dataContentsSize = details.DataContentSize;
 
-                ClientDetails clientDetails = _objectCreation.MappingToClientDetails(Guid.Parse(details.RequestId), lengthOfData, details.ConnectionAlive, dataContent, Guid.Parse(details.ClientUnique), dataContentsSize);
+                ClientDetails clientDetails = _objectCreation.MappingToClientDetails(Guid.Parse(details.RequestId), lengthOfData, details.ConnectionAlive, 
+                    dataContent, Guid.Parse(details.ClientUnique), dataContentsSize);
 
                 clientDetailsList.Add(clientDetails);
             }
@@ -311,24 +302,5 @@ namespace gRPCStressTestingService.Services
 
             return batchDataRequestDetails.DataSize.Length;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="dataRequest"></param>
-        /// <returns></returns>
-        private int LengthOfRequest(DataRequest dataRequest)
-        {
-
-            if(dataRequest.DataSize == string.Empty)
-            {
-                Console.WriteLine($"There was no string data passed along with this request");
-            }
-
-            return dataRequest.DataSize.Length;
-        }
-
-        
-
     }
 }

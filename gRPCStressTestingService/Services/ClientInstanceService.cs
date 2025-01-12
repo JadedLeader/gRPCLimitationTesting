@@ -157,7 +157,6 @@ namespace gRPCStressTestingService.Services
                 Log.Warning($"Session unique is null on the stream client clears");
             }
 
-
             ClearClientInstancesResponse serverResponse = new ClearClientInstancesResponse
             {
                 SessionUnique = sessionUnique,

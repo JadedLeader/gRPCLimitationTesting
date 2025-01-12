@@ -1,9 +1,9 @@
 ﻿using ConfigurationStuff.Interfaces.Repos;
 using ConfigurationStuff.DbModels;
 using Grpc.Core;
-using gRPCStressTestingService.Interfaces;
 using gRPCStressTestingService.proto;
 using Serilog;
+using gRPCStressTestingService.Interfaces.Services;
 
 namespace gRPCStressTestingService.Services
 {
@@ -60,7 +60,6 @@ namespace gRPCStressTestingService.Services
 
             if (getAccountViaUsername.Session != null)
             {
-
                 serverResponse.SessionUnique = getAccountViaUsername.Session.SessionUnique.ToString();
 
                 getAccountViaUsername.Session.SessionCreated = DateTime.Now.ToString();

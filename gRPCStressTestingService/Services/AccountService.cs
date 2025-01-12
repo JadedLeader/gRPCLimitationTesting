@@ -28,12 +28,10 @@ namespace gRPCStressTestingService.Services
 
         public async Task<CreateAccountResponse> CreateAccount(CreateAccountRequest request, ServerCallContext context)
         {
-            //we're literally just going to want to read the request, get the username and password and boom
-
+           
             string? accountRole = context.RequestHeaders.GetValue("role");
             string? accountCreationTime = context.RequestHeaders.GetValue("creation-time");
 
-            //if it does not exist it returns false
             bool usernameExist = await VerifyingNonExistingUsername(request.Username);
 
             if(usernameExist == true)
@@ -58,8 +56,6 @@ namespace gRPCStressTestingService.Services
                 TimeOfCreation = accountCreationTime, 
  
             };
-
-            //then we just need to add to the db - we want to serialise the password first before we add it to the database
 
             string passwordHash = BCrypt.Net.BCrypt.EnhancedHashPassword(request.Password, 13);
 

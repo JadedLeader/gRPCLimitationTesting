@@ -13,7 +13,7 @@ namespace SharedCommonalities.ObjectMapping
 
 
         public UnaryInfo MappingToUnaryInfo(DateTime? timeOfRequest, TimeSpan? delay, string? typeOfData, int lengthOfData, string? dataContents, string RequestType, 
-            string batchRequestId, string? dataContentSize, object? clientInstance)
+            string batchRequestId, string? dataContentSize, object? clientInstance, string dataIterations)
         {
             UnaryInfo unaryInfo = new UnaryInfo()
             {
@@ -25,7 +25,9 @@ namespace SharedCommonalities.ObjectMapping
                 RequestType = RequestType, 
                 BatchRequestId = batchRequestId, 
                 DataContentSize = dataContentSize, 
-                ClientInstance = clientInstance
+                ClientInstance = clientInstance, 
+                DataIterations = dataIterations
+    
             }; 
 
             return unaryInfo;

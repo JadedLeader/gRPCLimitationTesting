@@ -1,14 +1,17 @@
-﻿using ConfigurationStuff.DbModels;
+﻿using Azure.Core;
+using ConfigurationStuff.DbModels;
 using ConfigurationStuff.Interfaces.Repos;
 using DbManagerWorkerService.Repositories;
 using Grpc.Core;
 using gRPCStressTestingService.DelayCalculations;
 using gRPCStressTestingService.Interfaces.Services;
 using Microsoft.AspNetCore.Http.Timeouts;
+using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.VisualBasic;
 using Serilog;
 using SharedCommonalities.Storage;
 using SharedCommonalities.TimeStorage;
+using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 namespace gRPCStressTestingService.Services
 {
@@ -31,7 +34,7 @@ namespace gRPCStressTestingService.Services
         }
 
 
-        public async Task StreamingBatchRequest(IAsyncStreamReader<StreamingBatchLatencyRequest> requestStream, IServerStreamWriter<StreamingBatchLatencyResponse> responseStream, ServerCallContext context)
+        public async Task StreamingSingleBatchRequest(IAsyncStreamReader<StreamingBatchLatencyRequest> requestStream, IServerStreamWriter<StreamingBatchLatencyResponse> responseStream, ServerCallContext context)
         {
             throw new NotImplementedException();
         }
@@ -45,16 +48,12 @@ namespace gRPCStressTestingService.Services
         /// <returns></returns>
         public async Task StreamingSingleRequest(IAsyncStreamReader<StreamingSingleLatencyRequest> requestStream, IServerStreamWriter<StreamingSingleLatencyResponse> responseStream, ServerCallContext context)
         {
-            var preciseTime = GetPreciseTimeNow();
+            string preciseTime = GetPreciseTimeNow();
 
-         
             await foreach(var request in requestStream.ReadAllAsync())
             {
-                //receive every request from the stream, and then we'll add it to a list 
-
+                
                 Log.Information($"Received streaming request in stream, with client unique {request.ClientUnique} and message ID: {request.RequestId}");
-
-                //when we read a request from the stream, we're going to want to adad it to the request response time dict
 
                 ClientInstance findingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(Guid.Parse(request.ClientUnique));
 
@@ -64,23 +63,14 @@ namespace gRPCStressTestingService.Services
                     MessageId = request.RequestId,
                 };
 
-                UnaryInfo streamingInfoRequest = new UnaryInfo
-                {
-                    TimeOfRequest = DateTime.Parse(request.RequestTimestamp),
-                    DataContents = request.DataContent,
-                    TypeOfData = request.RequestType,
-                    RequestType = request.RequestType,
-                    LengthOfData = 0,
-                    BatchRequestId = null, 
-                    Delay = null, 
-                    DataContentSize = request.DataContentSize,
-                    ClientInstance = findingClientInstance,
-
-                };
+                ClientMessageId keys = await CreateClientMessageId(request.ClientUnique, request.RequestId);
+                
+                UnaryInfo streamingInfoRequest = await CreateUnaryInfoStreamingRequest(DateTime.Parse(request.RequestTimestamp), request.RequestType, request.DataContent, 
+                    request.RequestType, request.DataContentSize, findingClientInstance, "1"); 
 
                 _responseTimeStorage.AddToConcurrentDictLock(_responseTimeStorage._ClientRequestTiming, requestKeys, streamingInfoRequest);
 
-                var requestTime = _responseTimeStorage.ReturnConcurrentDictLock(_responseTimeStorage._ClientRequestTiming);
+                ConcurrentDictionary<ClientMessageId, UnaryInfo> requestTime = _responseTimeStorage.ReturnConcurrentDictLock(_responseTimeStorage._ClientRequestTiming);
 
                 Log.Information($"Current request time dict count: {requestTime.Count}");
 
@@ -93,29 +83,12 @@ namespace gRPCStressTestingService.Services
                     RequestTimestamp = preciseTime,
                 };
 
-                ClientMessageId responseKeys = new ClientMessageId
-                {
-                    ClientId = request.ClientUnique,
-                    MessageId = request.RequestId,
-                };
+                UnaryInfo streamingInfoResponse = await CreateUnaryInfoStreamingRequest(DateTime.Parse(serverResponse.RequestTimestamp), request.RequestType, request.DataContent,
+                    request.RequestType, request.DataContentSize, findingClientInstance, "1");
+               
+                _responseTimeStorage.AddToConcurrentDictLock(_responseTimeStorage._ServerResponseTiming, keys, streamingInfoResponse);
 
-                UnaryInfo streamingInfoResponse = new UnaryInfo
-                {
-                    TimeOfRequest = DateTime.Parse(serverResponse.RequestTimestamp),
-                    DataContents = request.DataContent,
-                    TypeOfData = request.RequestType,
-                    RequestType = request.RequestType,
-                    LengthOfData = 0,
-                    BatchRequestId = null,
-                    Delay = null, 
-                    DataContentSize= request.DataContentSize,
-                    ClientInstance = findingClientInstance,
-
-                };
-
-                _responseTimeStorage.AddToConcurrentDictLock(_responseTimeStorage._ServerResponseTiming, responseKeys, streamingInfoResponse);
-
-                var responseTime = _responseTimeStorage.ReturnConcurrentDictLock(_responseTimeStorage._ServerResponseTiming);
+                ConcurrentDictionary<ClientMessageId, UnaryInfo> responseTime = _responseTimeStorage.ReturnConcurrentDictLock(_responseTimeStorage._ServerResponseTiming);
 
                 Log.Information($"Current repsonse time storage count: {responseTime.Count}");
 
@@ -123,17 +96,80 @@ namespace gRPCStressTestingService.Services
 
                 await responseStream.WriteAsync(serverResponse);
 
-                await _delayCalculation.CalculatingDelay(requestKeys, responseKeys);
+                await _delayCalculation.CalculatingDelay(keys, keys);
 
                 await _dbTransportationService.AddingDelayToDb();
 
             }
 
-            
+        }
+
+
+        /// <summary>
+        /// We require this endpoint, as right now we want all these messages in the streaming request to share the same streaming client, we dont want to create a new instance 
+        /// </summary>
+        /// <param name="requestStream"></param>
+        /// <param name="responseStream"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        public async Task StreamingManySingleRequest(IAsyncStreamReader<StreamingManySingleLatencyRequest> requestStream, IServerStreamWriter<StreamingManySingleLatencyResponse> responseStream, ServerCallContext context)
+        {
+
+            string preciseTime = GetPreciseTimeNow();
+
+            string? dataIterations = context.RequestHeaders.GetValue("data-iterations");
+
+            if(dataIterations == null)
+            {
+                Log.Warning($"Data iterations was null in the streaming many single requests endpoint");
+            }
+
+            await foreach(var request in requestStream.ReadAllAsync())
+            {
+
+                ClientInstance getClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(Guid.Parse(request.ClientUnique));
+
+                if(getClientInstance == null)
+                {
+                    Log.Error($"There was no client instance for the streaming many single requests");
+
+                    throw new RpcException(new Status(StatusCode.NotFound, $"Client instance could not be found for the streaming many single requests"));
+                }
+
+                ClientMessageId keys = await CreateClientMessageId(request.ClientUnique, request.RequestId);
+
+                UnaryInfo requestInfo = await CreateUnaryInfoStreamingRequest(DateTime.Parse(request.RequestTimestamp), request.RequestType, request.DataContent, request.RequestType,
+                    request.DataContentSize, getClientInstance, dataIterations);
+
+                _responseTimeStorage.AddToConcurrentDictLock(_responseTimeStorage._ClientRequestTiming, keys, requestInfo);
+
+
+                UnaryInfo responseInfo = await CreateUnaryInfoStreamingRequest(DateTime.Parse(preciseTime), request.RequestType, request.DataContent, request.RequestType,
+                    request.DataContentSize, getClientInstance, dataIterations);
+
+                _responseTimeStorage.AddToConcurrentDictLock(_responseTimeStorage._ServerResponseTiming, keys, responseInfo);
+
+                StreamingManySingleLatencyResponse serverResponse = new StreamingManySingleLatencyResponse
+                {
+                    ClientUnique = request.ClientUnique,
+                    RequestId = request.RequestId,
+                    ConnectionAlive = true,
+                    RequestTimestamp = preciseTime,
+                    RequestType = request.RequestType,
+                };
+
+                await responseStream.WriteAsync(serverResponse);
+
+                await _delayCalculation.CalculatingDelay(keys, keys);
+
+                await _dbTransportationService.AddingDelayToDb();
+            }
 
         }
 
-       
+
+
         private string GetPreciseTimeNow()
         {
             DateTime now = DateTime.UtcNow;
@@ -143,6 +179,37 @@ namespace gRPCStressTestingService.Services
 
             return precisetime;
 
+        }
+
+        private async Task<ClientMessageId> CreateClientMessageId(string clientUnique, string messageId)
+        {
+            ClientMessageId keys = new ClientMessageId
+            {
+                ClientId = clientUnique,
+                MessageId = messageId,
+            };
+
+            return keys;
+        }
+
+        private async Task<UnaryInfo> CreateUnaryInfoStreamingRequest(DateTime timeOfRequest, string typeOfData, string dataContents, string requestType, string dataContentSize,
+            object clientInstance, string dataIterations)
+        {
+            UnaryInfo info = new UnaryInfo
+            {
+                TimeOfRequest = timeOfRequest,
+                TypeOfData = requestType,
+                LengthOfData = 0,
+                DataContents = dataContents,
+                RequestType = requestType,
+                DataContentSize = dataContentSize,
+                BatchRequestId = null,
+                ClientInstance = clientInstance,
+                DataIterations = dataIterations
+
+            };
+
+            return info;
         }
 
     }

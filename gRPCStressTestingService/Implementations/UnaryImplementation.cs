@@ -1,11 +1,11 @@
 ﻿using Grpc.Core;
 using gRPCStressTestingService.proto;
-using gRPCStressTestingService.Interfaces;
 using System.Runtime.InteropServices;
 using SharedCommonalities.TimeStorage;
 using SharedCommonalities.Interfaces.TimeStorage;
 using Serilog;
 using System.Dynamic;
+using gRPCStressTestingService.Interfaces.Services;
 
 namespace gRPCStressTestingService.Implementations
 {

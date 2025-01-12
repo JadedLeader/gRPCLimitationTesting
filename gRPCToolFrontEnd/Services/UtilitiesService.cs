@@ -40,6 +40,7 @@ namespace gRPCToolFrontEnd.Services
         public async Task ReceivingMessageStream(GetClientsWithMessagesRequest messageRequest, CancellationToken cancellationToken, string sessionUnique)
         {
             Log.Information("Started receiving messages from gRPC stream.");
+
             try
             {
                 Metadata metaData = new Metadata();

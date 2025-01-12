@@ -1,5 +1,5 @@
 ﻿using Grpc.Core;
-using gRPCStressTestingService.Interfaces;
+using gRPCStressTestingService.Interfaces.Services;
 using gRPCStressTestingService.proto;
 using Serilog;
 

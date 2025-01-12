@@ -1,7 +1,7 @@
 ﻿using Grpc.Core;
 using gRPCStressTestingService.proto;
 
-namespace gRPCStressTestingService.Interfaces
+namespace gRPCStressTestingService.Interfaces.Services
 {
     public interface IUnaryService
     {

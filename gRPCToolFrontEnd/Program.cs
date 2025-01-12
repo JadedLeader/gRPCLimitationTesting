@@ -23,8 +23,7 @@ namespace gRPCToolFrontEnd
                 .WriteTo.File("log/log.txt", rollingInterval: RollingInterval.Day)
                 .CreateLogger();
             
-            
-
+           
             // Add MudBlazor services
             builder.Services.AddMudServices();
 
@@ -112,7 +111,7 @@ namespace gRPCToolFrontEnd
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
-           // app.UseAuthentication();
+           //app.UseAuthentication();
            //app.UseAuthorization();
 
             app.UseRouting();

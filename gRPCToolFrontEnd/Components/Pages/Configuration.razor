@@ -402,8 +402,32 @@
             Log.Information($"Amount of clients to generate requests for {channelDict.Count}");
             await HandlingManyToManyRequests(channelDict, requestCount, unaryOrBatch);
         }
+        else if (isStreaming && dropDownState == "one : many")
+        {
+            //this is where we manage both the batch request and the generation of many streaming requests
+
+            await HandlingOneToManyStreaming(unaryOrBatch);
+
+        }
 
 
+    }
+
+    private async Task HandlingOneToManyStreaming(bool unaryOrBatch)
+    {
+        if(unaryOrBatch)
+        {
+            
+            string clientUnique = await CreateSingularClientInstance();
+
+            _ClientUnique = clientUnique;
+
+            await StreamingLatencyService.CreateManySingleStreamingRequests(Guid.Parse(_ChannelId), _RequestCount, clientUnique, _FileSize);
+        }
+        else
+        {
+            //this is for the batch requests
+        }
     }
 
     /// <summary>

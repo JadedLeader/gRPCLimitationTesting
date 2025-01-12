@@ -107,7 +107,6 @@ namespace gRPCToolFrontEnd.Services
             foreach (var channel in channels)
             {
                 
-
                 Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(channel.Value);
 
                 Metadata metaData = new Metadata();

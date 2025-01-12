@@ -17,12 +17,11 @@ namespace SharedCommonalities.ReturnModels.ReturnTypes
         public int LengthOfData { get; set; }
         public string DataContents { get; set; }
         public string RequestType { get; set ; }
-
         public string DataContentSize { get; set; }
-
         public string? BatchRequestId { get; set; }
-
         public object? ClientInstance { get; set; }
+
+        public string DataIterations { get; set; }
 
 
     }
