@@ -56,10 +56,10 @@ message StreamingManySingleLatencyResponse
 
 message StreamingBatchLatencyRequest
 { 
-	repeated StreamingBatchLatencyResponse streamingBatchDataRequest = 1;
+	repeated StreamingBatchDetailsRequest streamingBatchDataRequest = 1;
 }
 
-message StreamingBatchDetails
+message StreamingBatchDetailsRequest
 { 
 	string clientUnique = 1; 
 	string batchRequestId = 2; 

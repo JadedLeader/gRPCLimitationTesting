@@ -18,7 +18,6 @@ namespace gRPCStressTestingService.Services
             _delayCalcRepo = delayCalcRepo;
         }
 
-
         public async Task AddingDelayToDb()
         {
 
@@ -114,6 +113,26 @@ namespace gRPCStressTestingService.Services
 
                     await _delayCalcRepo.SaveAsync();
 
+                }
+                else if(item.Value.TypeOfData == "StreamingBatch")
+                {
+                    Log.Information($"streaming batch detected");
+
+                    DelayCalc newDelay = new DelayCalc
+                    {
+                        messageId = Guid.Parse(item.Value.BatchRequestId),
+                        RequestType = item.Value.TypeOfData,
+                        ClientUnique = Guid.Parse(item.Key.ClientId),
+                        CommunicationType = item.Value.TypeOfData,
+                        DataIterations = Convert.ToInt32(item.Value.DataIterations),
+                        DataContent = item.Value.DataContentSize,
+                        Delay = item.Value.Delay,
+                        ClientInstance = (ClientInstance)item.Value.ClientInstance,
+                        RecordCreation = DateTime.Now,
+                    }; 
+
+                    await _delayCalcRepo.AddToDbAsync(newDelay);
+                    await _delayCalcRepo.SaveAsync();
                 }
 
             }

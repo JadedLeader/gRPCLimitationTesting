@@ -33,12 +33,6 @@ namespace gRPCStressTestingService.Services
             _clientInstanceRepo = clientInstanceRepo;
         }
 
-
-        public async Task StreamingSingleBatchRequest(IAsyncStreamReader<StreamingBatchLatencyRequest> requestStream, IServerStreamWriter<StreamingBatchLatencyResponse> responseStream, ServerCallContext context)
-        {
-            throw new NotImplementedException();
-        }
-
         /// <summary>
         /// This method is in charge of responding with a single unary request in a streaming manner
         /// </summary>
@@ -168,6 +162,56 @@ namespace gRPCStressTestingService.Services
 
         }
 
+
+        public async Task StreamingSingleBatchRequest(IAsyncStreamReader<StreamingBatchLatencyRequest> requestStream, IServerStreamWriter<StreamingBatchLatencyResponse> responseStream, ServerCallContext context)
+        {
+
+            var preciseTime = GetPreciseTimeNow();
+
+            string? dataIterations = context.RequestHeaders.GetValue("data-iterations");
+
+            if(dataIterations == null)
+            {
+                Log.Warning($"No data iterations were passed to the streaming single batch request");
+            }
+
+            await foreach(var request in requestStream.ReadAllAsync())
+            {
+                foreach(var requestPayload in request.StreamingBatchDataRequest)
+                {
+
+                    ClientMessageId keys = await CreateClientMessageId(requestPayload.ClientUnique, requestPayload.BatchRequestId); 
+
+                    ClientInstance gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(Guid.Parse(requestPayload.ClientUnique));
+
+                    UnaryInfo requestUnaryInfo = await CreateUnaryInfoStreamingRequest(DateTime.Parse(requestPayload.RequestTimestamp), requestPayload.RequestType, requestPayload.DataContent,
+                        requestPayload.RequestType, requestPayload.DataContentSize, gettingClientInstance, dataIterations);
+
+                    _responseTimeStorage.AddToConcurrentDictLock(_responseTimeStorage._ClientRequestTiming, keys, requestUnaryInfo);
+
+                    UnaryInfo responseUnaryInfo = await CreateUnaryInfoStreamingRequest(DateTime.Parse(preciseTime), requestPayload.RequestType, requestPayload.DataContent,
+                        requestPayload.RequestType, requestPayload.DataContentSize, gettingClientInstance, dataIterations);
+
+                    _responseTimeStorage.AddToConcurrentDictLock(_responseTimeStorage._ServerResponseTiming, keys, responseUnaryInfo);
+
+                    StreamingBatchLatencyResponse serverResponse = new StreamingBatchLatencyResponse
+                    {
+                        BatchRequestId = requestPayload.BatchRequestId,
+                        ClientUnique = requestPayload.ClientUnique,
+                        NumberOfRequestsInBatch = 0,
+                        RequestType = requestPayload.RequestType,
+                        ResponseTimestamp = preciseTime
+                    };
+
+                    await responseStream.WriteAsync(serverResponse);
+
+                    await _delayCalculation.CalculatingDelay(keys, keys);
+
+                    await _dbTransportationService.AddingDelayToDb();
+
+                }
+            }
+        }
 
 
         private string GetPreciseTimeNow()

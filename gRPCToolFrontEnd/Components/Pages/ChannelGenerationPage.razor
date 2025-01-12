@@ -1,9 +1,11 @@
 ﻿@using gRPCToolFrontEnd.Components.Layout
+@using gRPCToolFrontEnd.DictionaryModel
 @using gRPCToolFrontEnd.Helpers
 @using gRPCToolFrontEnd.LocalStorage
 @using Serilog
 @using Grpc.Net.Client
 @using System.Reactive.Subjects
+@using gRPCToolFrontEnd.DataTypes
 @page "/"
 @layout MainLayout
 @inject ClientHelper ClientHelper
@@ -207,6 +209,8 @@
 
         Log.Information($"Number of channels after channel clearance: {remainingChannels}");
 
+        await AccountDetailsStore.ClearChannelsWithClientsAndMessages();
+
         await InvokeAsync(StateHasChanged);
     }
 
@@ -224,6 +228,21 @@
         AccountDetailsStore.channels = channelDict;
 
         _ChannelSubject.OnNext(new Dictionary<Guid, GrpcChannel>(_ChannelGuids));
+
+      /*  foreach(Guid channelUnique in channelDict.Keys)
+        {
+            ChannelAndClientInstance keys = new ChannelAndClientInstance
+            {
+                ChannelUnique = channelUnique, 
+            };
+
+            await AccountDetailsStore.AddToChannelsAndClients(keys, new List<Delay>());
+        }
+
+        var channelsWithClients = await AccountDetailsStore.GetChannelWithClientsAndMessage(); */
+
+     
+
     }
 
     public void Dispose()
