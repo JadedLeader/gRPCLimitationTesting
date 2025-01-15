@@ -50,7 +50,7 @@ namespace gRPCStressTestingService.Services
                             DataIterations = Convert.ToInt32(item.Value.DataIterations),
                             DataContent = item.Value.DataContentSize,
                             Delay = item.Value.Delay,
-                            ClientInstance = (ClientInstance)item.Value.ClientInstance,
+                            ClientInstance = null,
                             RecordCreation = DateTime.Now,
                         };
 
@@ -76,7 +76,7 @@ namespace gRPCStressTestingService.Services
                         DataIterations = Convert.ToInt32(item.Value.DataIterations),
                         DataContent = item.Value.DataContentSize,
                         Delay = item.Value.Delay,
-                        ClientInstance = (ClientInstance)item.Value.ClientInstance,
+                        ClientInstance = null,
                         RecordCreation = DateTime.Now,
                     };
 
@@ -101,7 +101,7 @@ namespace gRPCStressTestingService.Services
                         DataIterations = Convert.ToInt32(item.Value.DataIterations),
                         DataContent = item.Value.DataContentSize,
                         Delay = item.Value.Delay,
-                        ClientInstance = (ClientInstance)item.Value.ClientInstance,
+                        ClientInstance = null,
                         RecordCreation = DateTime.Now,
                         
                     };
@@ -120,19 +120,22 @@ namespace gRPCStressTestingService.Services
 
                     DelayCalc newDelay = new DelayCalc
                     {
-                        messageId = Guid.Parse(item.Value.BatchRequestId),
+                        messageId = Guid.Parse(item.Key.MessageId),
                         RequestType = item.Value.TypeOfData,
                         ClientUnique = Guid.Parse(item.Key.ClientId),
                         CommunicationType = item.Value.TypeOfData,
                         DataIterations = Convert.ToInt32(item.Value.DataIterations),
                         DataContent = item.Value.DataContentSize,
                         Delay = item.Value.Delay,
-                        ClientInstance = (ClientInstance)item.Value.ClientInstance,
+                        ClientInstance = null,
                         RecordCreation = DateTime.Now,
-                    }; 
+                    };
 
                     await _delayCalcRepo.AddToDbAsync(newDelay);
+
                     await _delayCalcRepo.SaveAsync();
+
+                
                 }
 
             }

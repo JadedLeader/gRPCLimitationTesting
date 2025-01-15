@@ -94,7 +94,9 @@ namespace DbManagerWorkerService.Repositories
 
         public async Task<ClientInstance> GetClientInstanceViaClientUnique(Guid clientUnique)
         {
-            ClientInstance? clientFromUnique = await _dataContext.ClientInstance.FirstOrDefaultAsync(x => x.ClientUnique == clientUnique);
+            ClientInstance? clientFromUnique = await _dataContext.ClientInstance
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.ClientUnique == clientUnique);
 
             return clientFromUnique;
         }

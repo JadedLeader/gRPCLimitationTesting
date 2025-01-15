@@ -51,18 +51,12 @@ namespace gRPCStressTestingService.Services
 
                 ClientInstance findingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(Guid.Parse(request.ClientUnique));
 
-                ClientMessageId requestKeys = new ClientMessageId
-                {
-                    ClientId = request.ClientUnique,
-                    MessageId = request.RequestId,
-                };
-
                 ClientMessageId keys = await CreateClientMessageId(request.ClientUnique, request.RequestId);
                 
                 UnaryInfo streamingInfoRequest = await CreateUnaryInfoStreamingRequest(DateTime.Parse(request.RequestTimestamp), request.RequestType, request.DataContent, 
-                    request.RequestType, request.DataContentSize, findingClientInstance, "1"); 
+                    request.RequestType, request.DataContentSize, findingClientInstance, "1", null); 
 
-                _responseTimeStorage.AddToConcurrentDictLock(_responseTimeStorage._ClientRequestTiming, requestKeys, streamingInfoRequest);
+                _responseTimeStorage.AddToConcurrentDictLock(_responseTimeStorage._ClientRequestTiming, keys, streamingInfoRequest);
 
                 ConcurrentDictionary<ClientMessageId, UnaryInfo> requestTime = _responseTimeStorage.ReturnConcurrentDictLock(_responseTimeStorage._ClientRequestTiming);
 
@@ -78,7 +72,7 @@ namespace gRPCStressTestingService.Services
                 };
 
                 UnaryInfo streamingInfoResponse = await CreateUnaryInfoStreamingRequest(DateTime.Parse(serverResponse.RequestTimestamp), request.RequestType, request.DataContent,
-                    request.RequestType, request.DataContentSize, findingClientInstance, "1");
+                    request.RequestType, request.DataContentSize, findingClientInstance, "1", null);
                
                 _responseTimeStorage.AddToConcurrentDictLock(_responseTimeStorage._ServerResponseTiming, keys, streamingInfoResponse);
 
@@ -134,13 +128,13 @@ namespace gRPCStressTestingService.Services
                 ClientMessageId keys = await CreateClientMessageId(request.ClientUnique, request.RequestId);
 
                 UnaryInfo requestInfo = await CreateUnaryInfoStreamingRequest(DateTime.Parse(request.RequestTimestamp), request.RequestType, request.DataContent, request.RequestType,
-                    request.DataContentSize, getClientInstance, dataIterations);
+                    request.DataContentSize, getClientInstance, dataIterations, null);
 
                 _responseTimeStorage.AddToConcurrentDictLock(_responseTimeStorage._ClientRequestTiming, keys, requestInfo);
 
 
                 UnaryInfo responseInfo = await CreateUnaryInfoStreamingRequest(DateTime.Parse(preciseTime), request.RequestType, request.DataContent, request.RequestType,
-                    request.DataContentSize, getClientInstance, dataIterations);
+                    request.DataContentSize, getClientInstance, dataIterations, null);
 
                 _responseTimeStorage.AddToConcurrentDictLock(_responseTimeStorage._ServerResponseTiming, keys, responseInfo);
 
@@ -180,17 +174,17 @@ namespace gRPCStressTestingService.Services
                 foreach(var requestPayload in request.StreamingBatchDataRequest)
                 {
 
-                    ClientMessageId keys = await CreateClientMessageId(requestPayload.ClientUnique, requestPayload.BatchRequestId); 
+                    ClientMessageId keys = await CreateClientMessageId(requestPayload.ClientUnique, requestPayload.MessageId); 
 
                     ClientInstance gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(Guid.Parse(requestPayload.ClientUnique));
 
                     UnaryInfo requestUnaryInfo = await CreateUnaryInfoStreamingRequest(DateTime.Parse(requestPayload.RequestTimestamp), requestPayload.RequestType, requestPayload.DataContent,
-                        requestPayload.RequestType, requestPayload.DataContentSize, gettingClientInstance, dataIterations);
+                        requestPayload.RequestType, requestPayload.DataContentSize, gettingClientInstance, dataIterations, requestPayload.BatchRequestId);
 
                     _responseTimeStorage.AddToConcurrentDictLock(_responseTimeStorage._ClientRequestTiming, keys, requestUnaryInfo);
 
                     UnaryInfo responseUnaryInfo = await CreateUnaryInfoStreamingRequest(DateTime.Parse(preciseTime), requestPayload.RequestType, requestPayload.DataContent,
-                        requestPayload.RequestType, requestPayload.DataContentSize, gettingClientInstance, dataIterations);
+                        requestPayload.RequestType, requestPayload.DataContentSize, gettingClientInstance, dataIterations, requestPayload.BatchRequestId);
 
                     _responseTimeStorage.AddToConcurrentDictLock(_responseTimeStorage._ServerResponseTiming, keys, responseUnaryInfo);
 
@@ -237,7 +231,7 @@ namespace gRPCStressTestingService.Services
         }
 
         private async Task<UnaryInfo> CreateUnaryInfoStreamingRequest(DateTime timeOfRequest, string typeOfData, string dataContents, string requestType, string dataContentSize,
-            object clientInstance, string dataIterations)
+            object clientInstance, string dataIterations, string? batchDataRequestId)
         {
             UnaryInfo info = new UnaryInfo
             {
@@ -247,7 +241,7 @@ namespace gRPCStressTestingService.Services
                 DataContents = dataContents,
                 RequestType = requestType,
                 DataContentSize = dataContentSize,
-                BatchRequestId = null,
+                BatchRequestId = batchDataRequestId,
                 ClientInstance = clientInstance,
                 DataIterations = dataIterations
 

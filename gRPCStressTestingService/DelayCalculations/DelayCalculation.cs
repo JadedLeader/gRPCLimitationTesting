@@ -32,7 +32,7 @@ namespace gRPCStressTestingService.DelayCalculations
                     if (!_timeStorage._ActualDelayCalculations.ContainsKey(requestKeys))
                     {
                         var delayResult = new UnaryInfo
-                        {
+                        { 
                             Delay = calc.Duration(),
                             LengthOfData = serverTiming.LengthOfData,
                             TypeOfData = clientTiming.TypeOfData,
@@ -86,6 +86,28 @@ namespace gRPCStressTestingService.DelayCalculations
                     };
 
                     _timeStorage.AddToConcurrentDictLock(_timeStorage._ActualDelayCalculations, requestKeys, delayResult);
+                }
+
+                else if(clientTiming.RequestType == "StreamingBatch")
+                {
+                    
+                    var delayResult = new UnaryInfo
+                    {
+                            Delay = calc.Duration(),
+                            LengthOfData = serverTiming.LengthOfData,
+                            TypeOfData = clientTiming.TypeOfData,
+                            DataContents = clientTiming.DataContents,
+                            BatchRequestId = clientTiming.BatchRequestId,
+                            RequestType = clientTiming.RequestType,
+                            TimeOfRequest = clientTiming.TimeOfRequest,
+                            DataContentSize = clientTiming.DataContentSize,
+                            ClientInstance = clientTiming.ClientInstance,
+                            DataIterations = clientTiming.DataIterations,
+
+                    };
+
+                        _timeStorage.AddToConcurrentDictLock(_timeStorage._ActualDelayCalculations, requestKeys, delayResult);
+                    
                 }
 
                 _timeStorage.RemoveFromConcurrentDictLock(_timeStorage._ClientRequestTiming, requestKeys);

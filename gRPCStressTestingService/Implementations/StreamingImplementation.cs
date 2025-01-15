@@ -14,9 +14,9 @@ namespace gRPCStressTestingService.Implementations
         }
 
 
-        public override Task StreamingSingleBatchRequest(IAsyncStreamReader<StreamingBatchLatencyRequest> requestStream, IServerStreamWriter<StreamingBatchLatencyResponse> responseStream, ServerCallContext context)
+        public override async Task StreamingSingleBatchRequest(IAsyncStreamReader<StreamingBatchLatencyRequest> requestStream, IServerStreamWriter<StreamingBatchLatencyResponse> responseStream, ServerCallContext context)
         {
-            return base.StreamingSingleBatchRequest(requestStream, responseStream, context);
+            await _streamingLatencyService.StreamingSingleBatchRequest(requestStream, responseStream, context);
         }
 
         public override async Task StreamingManySingleRequest(IAsyncStreamReader<StreamingManySingleLatencyRequest> requestStream, IServerStreamWriter<StreamingManySingleLatencyResponse> responseStream, ServerCallContext context)

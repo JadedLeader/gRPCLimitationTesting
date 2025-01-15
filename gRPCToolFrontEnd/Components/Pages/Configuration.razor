@@ -68,9 +68,6 @@
                                      Style="margin-right: 20px;" />
 
                 <span>Communication type is @(_UnaryOrBatch ? "Unary" : "Batch")</span>
-
-                
-
             </MudItem>
         </MudGrid>
 
@@ -404,20 +401,80 @@
         }
         else if (isStreaming && dropDownState == "one : many")
         {
-            //this is where we manage both the batch request and the generation of many streaming requests
-
             await HandlingOneToManyStreaming(unaryOrBatch);
+        }
+        else if (isStreaming && dropDownState == "many : many")
+        {
+            Log.Information($"Many to many request detected");
+            await HandlingManyToManyStreaming(unaryOrBatch);
+        }
+        else if(isStreaming && dropDownState == "many : one")
+        {
+            Log.Information($"Many to one request detected"); 
 
+            
+            await HandlingManyToOneStreaming(unaryOrBatch);
+            
         }
 
+    }
 
+    private async Task HandlingManyToOneStreaming(bool unaryOrBatch)
+    {
+        if(unaryOrBatch)
+        {
+            string clientUnique = await CreateSingularClientInstance(); 
+
+            _ClientUnique = clientUnique;
+
+            await StreamingLatencyService.CreateManySingleStreamingRequests(null, _RequestCount, _ClientUnique, _FileSize);
+        }
+        else
+        {
+            string clientUnique = await CreateSingularClientInstance(); 
+
+            _ClientUnique = clientUnique; 
+
+            await StreamingLatencyService.CreateSingleStreamingBatchRequest(Guid.Parse(_ChannelId), _Iterations, _ClientUnique, _FileSize);
+        }
+    }
+
+    private async Task HandlingManyToManyStreaming(bool unaryOrBatch)
+    {
+        if(unaryOrBatch)
+        {
+            string clientUnique = await CreateSingularClientInstance(); 
+
+            _ClientUnique = clientUnique; 
+
+            await StreamingLatencyService.CreateManySingleStreamingRequests(null, _RequestCount, _ClientUnique, _FileSize);
+        }
+        else
+        {
+
+
+            int i = 0;
+            while(i < _RequestCount)
+            {
+
+                string clientUnique = await CreateSingularClientInstance();
+
+                _ClientUnique = clientUnique;
+
+                await StreamingLatencyService.CreateManyStreamingBatchRequest(_Iterations, _ClientUnique, _FileSize);
+
+                i++;
+            }
+
+
+        }
     }
 
     private async Task HandlingOneToManyStreaming(bool unaryOrBatch)
     {
         if(unaryOrBatch)
         {
-            
+
             string clientUnique = await CreateSingularClientInstance();
 
             _ClientUnique = clientUnique;
@@ -426,7 +483,12 @@
         }
         else
         {
-            //this is for the batch requests
+
+            string clientUnique = await CreateSingularClientInstance(); 
+
+            _ClientUnique = clientUnique; 
+
+            await StreamingLatencyService.CreateSingleStreamingBatchRequest(Guid.Parse(_ChannelId), _Iterations, clientUnique, _FileSize);
         }
     }
 
@@ -545,10 +607,10 @@
         string sessionUnique = await GetStringFromStringFromLocalStorage("session-unique");
 
         CreateClientInstanceRequest newClientInstance = new CreateClientInstanceRequest
-        {
-             Username = username,
-             SessionUnique = sessionUnique
-        };
+            {
+                Username = username,
+                SessionUnique = sessionUnique
+            };
 
         CreateClientInstanceResponse serverResponse = await ClientInstanceService.CreateClientInstanceAsync(newClientInstance);
 

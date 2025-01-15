@@ -22,8 +22,6 @@ namespace ConfigurationStuff.Abstracts
         public virtual async Task<T> AddToDbAsync(T entity)
         {
             _context.Set<T>().Add(entity);
-
-            
             return entity;
         }
         public virtual async Task RemoveRangeAsync(List<ClientInstance> clientList)

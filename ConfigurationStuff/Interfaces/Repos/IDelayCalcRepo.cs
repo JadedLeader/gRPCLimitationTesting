@@ -27,6 +27,8 @@ namespace ConfigurationStuff.Interfaces.Repos
 
         public Task EmptyDelayCalcTable();
 
+        public Task Detach(DelayCalc entity);
+
         public Task SaveAsync();
 
 

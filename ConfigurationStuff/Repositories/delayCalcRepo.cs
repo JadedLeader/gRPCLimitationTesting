@@ -17,11 +17,11 @@ namespace DbManagerWorkerService.Repositories
     public class delayCalcRepo : RepositoryAbstract<DelayCalc>, IDelayCalcRepo
     {
 
-        private readonly IDataContexts _dataContext;
+        private readonly DataContexts _dataContext;
 
         private DateTime _lastFetchedTime = DateTime.MinValue;
 
-        public delayCalcRepo(IDataContexts dataContexts) : base(dataContexts as DataContexts)
+        public delayCalcRepo(DataContexts dataContexts) : base(dataContexts as DataContexts)
         {
             _dataContext = dataContexts;
         }
@@ -104,6 +104,17 @@ namespace DbManagerWorkerService.Repositories
              
             return groupingItemsViaClientUnique;
                 
+        }
+
+        public async Task Detach(DelayCalc entity)
+        {
+            var trackedEntity = _dataContext.ChangeTracker.Entries<DelayCalc>()
+                .FirstOrDefault(e => e.Entity.messageId == entity.messageId);
+
+            if (trackedEntity != null)
+            {
+                trackedEntity.State = EntityState.Detached;
+            }
         }
 
         public async Task EmptyDelayCalcTable()
