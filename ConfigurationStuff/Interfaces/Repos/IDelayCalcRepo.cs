@@ -25,9 +25,9 @@ namespace ConfigurationStuff.Interfaces.Repos
 
         public Task<Dictionary<Guid, List<DelayCalc>>> GetNewDelays(Guid sessionUnique);
 
-        public Task EmptyDelayCalcTable();
+        public Task<List<DelayCalc>> GetStreamingBatchRequests(Guid sessionUnique);
 
-        public Task Detach(DelayCalc entity);
+        public Task EmptyDelayCalcTable();
 
         public Task SaveAsync();
 

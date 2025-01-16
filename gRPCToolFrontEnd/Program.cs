@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using MudBlazor.Services;
 using Serilog;
 using gRPCToolFrontEnd.Helpers;
+using gRPCToolFrontEnd.Interfaces;
 
 
 namespace gRPCToolFrontEnd
@@ -93,6 +94,23 @@ namespace gRPCToolFrontEnd
             builder.Services.AddSingleton<AccountDetailsStore>();
 
             builder.Services.AddScoped<StreamingLatencyService>();
+            builder.Services.AddScoped<IRequestTypeHandlingFactory, RequestTypeHandlingFactory>();
+            
+
+            //factory things
+          /*  builder.Services.AddScoped<IRequestReceiver, ManyToManyStreamingHandler>();
+            builder.Services.AddScoped<IRequestReceiver, ManyToOneStreamingHandler>();
+            builder.Services.AddScoped<IRequestReceiver, OneToOneUnaryHandler>();
+            builder.Services.AddScoped<IRequestReceiver, OneToManyStreamingHandler>();
+
+            builder.Services.AddScoped<IRequestReceiver, ManyToManyStreamingHandler>();
+            builder.Services.AddScoped<IRequestReceiver, ManyToOneStreamingHandler>();
+            builder.Services.AddScoped<IRequestReceiver, OneToManyStreamingHandler>();
+            builder.Services.AddScoped<IRequestReceiver, ManyToOneStreamingHandler>(); */
+
+            builder.Services.AddScoped<IRequestTypeHandlingFactory, RequestTypeHandlingFactory>();
+           
+
 
             var app = builder.Build();
 

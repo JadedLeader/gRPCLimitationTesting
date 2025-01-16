@@ -8,6 +8,7 @@ using System.Runtime;
 using gRPCToolFrontEnd;
 using Grpc.Net.Client.Balancer;
 using Serilog;
+using Blazored.LocalStorage;
 
 namespace gRPCToolFrontEnd.Helpers
 {
@@ -18,10 +19,10 @@ namespace gRPCToolFrontEnd.Helpers
         /// Simple class that is going to be utilised by the other services within the client 
         /// Contains general functionality
         /// </summary>
-
-        public ClientHelper()
+        private readonly ILocalStorageService _localStorageService;
+        public ClientHelper(ILocalStorageService LocalStorageService)
         {
-            
+            _localStorageService = LocalStorageService;
         }
 
         /// <summary>
@@ -152,7 +153,25 @@ namespace gRPCToolFrontEnd.Helpers
 
             return dataAmount;
         }
-       
+
+        /// <summary>
+        /// Allows for the retrieval of a string from the local storage
+        /// </summary>
+        /// <param name="storagekey">the key identifier of the item in local storage</param>
+        /// <returns>The string value of they key specified</returns>
+        public async Task<string> GetStringFromStringFromLocalStorage(string storagekey)
+        {
+            string? localStorageUsername = await _localStorageService.GetItemAsync<string>(storagekey);
+
+            if (string.IsNullOrEmpty(localStorageUsername))
+            {
+                Log.Information($"key {storagekey} cannot be found in the local storage");
+                return "";
+            }
+
+            return localStorageUsername;
+        }
+
 
     }
 }

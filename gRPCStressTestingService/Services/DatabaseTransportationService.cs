@@ -4,6 +4,7 @@ using SharedCommonalities.TimeStorage;
 using Serilog;
 using System.Collections.Concurrent;
 using Grpc.Core.Interceptors;
+using gRPCStressTestingService.proto;
 
 namespace gRPCStressTestingService.Services
 {
@@ -12,10 +13,13 @@ namespace gRPCStressTestingService.Services
         private readonly RequestResponseTimeStorage _timeStorage;
 
         private readonly IDelayCalcRepo _delayCalcRepo;
-        public DatabaseTransportationService(RequestResponseTimeStorage timeStorage, IDelayCalcRepo delayCalcRepo)
+
+        private readonly IClientInstanceRepo _clientInstanceRepo;
+        public DatabaseTransportationService(RequestResponseTimeStorage timeStorage, IDelayCalcRepo delayCalcRepo, IClientInstanceRepo clientInstanceRepo)
         {
             _timeStorage = timeStorage;
             _delayCalcRepo = delayCalcRepo;
+            _clientInstanceRepo = clientInstanceRepo;
         }
 
         public async Task AddingDelayToDb()
@@ -106,7 +110,6 @@ namespace gRPCStressTestingService.Services
                         
                     };
 
-
                     Log.Information($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
 
                     await _delayCalcRepo.AddToDbAsync(transportingToDb);
@@ -139,6 +142,25 @@ namespace gRPCStressTestingService.Services
                 }
 
             }
+        }
+
+        private async Task<ClientInstance> IdentifyingClientInstance(Guid? clientUnique, DelayCalc delay)
+        {
+            ClientInstance client = await _clientInstanceRepo.GetClientInstanceViaClientUnique(clientUnique.Value);
+
+            if(client == null)
+            {
+                Log.Warning($"No client instance with the client unique : {clientUnique} could be found");
+            }
+
+            if(client.DelayCalcs == null)
+            {
+                client.DelayCalcs = new List<DelayCalc>();
+
+                client.DelayCalcs.Add(delay);
+            }
+
+            return client;
         }
 
     }

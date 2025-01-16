@@ -57,10 +57,55 @@ namespace gRPCStressTestingService.Services
                     }
                 }
 
-
                 await Task.Delay(500);
             }
 
+        }
+
+        public async Task GetstreamingBatchDelays(GetStreamingBatchDelaysRequest request, IServerStreamWriter<GetStreamingBatchDelaysResponse> responseStream, ServerCallContext context)
+        {
+
+            string? sessionUnique = context.RequestHeaders.GetValue("session-unique");
+
+            if(sessionUnique == null)
+            {
+                Log.Information($"the session unique was null when trying to get the streaming batch delays");
+            }
+
+            while(!context.CancellationToken.IsCancellationRequested)
+            {
+
+                List<DelayCalc> getStreamingBatchRequests = await _delayCalcRepo.GetStreamingBatchRequests(Guid.Parse(sessionUnique));
+
+                if(getStreamingBatchRequests.Count == 0)
+                {
+                    Log.Information($"There is currently no streaming batch requests");
+                }
+
+                foreach(var delay in getStreamingBatchRequests)
+                {
+
+                    GatheringDelays gatheringStreamingBatchDelays = new GatheringDelays()
+                    {
+                        Delay = delay.Delay.ToString(),
+                        MessageId = delay.messageId.ToString(),
+                        RequestType = delay.RequestType,
+                        DataContent = delay.DataContent,
+                    };
+
+                    GetStreamingBatchDelaysResponse serverResponse = new GetStreamingBatchDelaysResponse()
+                    {
+                        GatheringStreamingBatchDelays = gatheringStreamingBatchDelays
+                    };
+
+                    await responseStream.WriteAsync(serverResponse);
+
+
+                }
+
+                await Task.Delay(500);
+
+            }
 
 
         }

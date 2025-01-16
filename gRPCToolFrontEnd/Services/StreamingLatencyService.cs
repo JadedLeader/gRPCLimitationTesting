@@ -8,6 +8,9 @@ using Serilog.Sinks.File;
 using System.Runtime.InteropServices;
 using gRPCToolFrontEnd.DataTypes;
 using gRPCToolFrontEnd.DictionaryModel;
+using gRPCToolFrontEnd.Interfaces;
+using Microsoft.AspNetCore.Components.Web;
+using System.Runtime.CompilerServices;
 
 namespace gRPCToolFrontEnd.Services
 {
@@ -16,18 +19,23 @@ namespace gRPCToolFrontEnd.Services
 
         private readonly AccountDetailsStore _accountDetailsStore;  
         private readonly ClientHelper _clientHelper;
+        private readonly ClientInstanceService _clientInstanceService;
 
-        public StreamingLatencyService(AccountDetailsStore accountDetailsStore, ClientHelper clientHelper)
+        public StreamingLatencyService(AccountDetailsStore accountDetailsStore, ClientHelper clientHelper, ClientInstanceService clientInstanceService)
         {
             _accountDetailsStore = accountDetailsStore;
             _clientHelper = clientHelper;
+            _clientInstanceService = clientInstanceService;
         }
 
-        public async Task SendingSingleUnaryRequestStream(Guid channelUnique, string clientUnique, string fileSize)
+       
+        public async Task SendingSingleUnaryRequestStream(Guid channelUnique, string fileSize)
         {
             Log.Information($"Sending single request in the stream detected");
 
             KeyValuePair<Guid, GrpcChannel> getChannel = _accountDetailsStore.GetGrpcChannel(channelUnique);
+
+            CreateClientInstanceResponse newlyCreatedClient = await _clientInstanceService.CreateClientInstanceAsync();
 
             if(getChannel.Value == null)
             {
@@ -36,13 +44,15 @@ namespace gRPCToolFrontEnd.Services
 
             StreamingLatency.StreamingLatencyClient newclient = new StreamingLatency.StreamingLatencyClient(getChannel.Value); 
 
-            await GenerateStreamingRequest(newclient, clientUnique, fileSize);
+            await GenerateStreamingRequest(newclient, newlyCreatedClient.ClientUnique, fileSize);
         }
 
         
-        public async Task CreateManySingleStreamingRequests(Guid? channelUnique, int amountOfRequests, string clientUnique, string fileSize)
+        public async Task CreateManySingleStreamingRequests(Guid? channelUnique, int amountOfRequests, string fileSize)
         {
             Log.Information($"Creating many single streaming requests detected");
+
+            CreateClientInstanceResponse newlyCreatedCleint = await _clientInstanceService.CreateClientInstanceAsync();
 
             if (channelUnique == null)
             {
@@ -52,7 +62,7 @@ namespace gRPCToolFrontEnd.Services
                 {
                     StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(channel.Value);
 
-                    await GeneratingeManySingleStreamingRequests(streamingClient, amountOfRequests, clientUnique, fileSize);
+                    await GeneratingeManySingleStreamingRequests(streamingClient, amountOfRequests, newlyCreatedCleint.ClientUnique, fileSize);
                 }
             }
             else
@@ -61,13 +71,13 @@ namespace gRPCToolFrontEnd.Services
 
                 StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(getChannel.Value);
 
-                await GeneratingeManySingleStreamingRequests(streamingClient, amountOfRequests, clientUnique, fileSize);
+                await GeneratingeManySingleStreamingRequests(streamingClient, amountOfRequests, newlyCreatedCleint.ClientUnique, fileSize);
             }
 
             
         }
 
-        public async Task CreateSingleStreamingBatchRequest(Guid channelUnique, int requestsInBatch, string clientUnique, string fileSize)
+        public async Task CreateSingleStreamingBatchRequest(Guid channelUnique, int requestsInBatch,  string fileSize)
         {
             KeyValuePair<Guid, GrpcChannel> getChannel = _accountDetailsStore.GetGrpcChannel(channelUnique);
 
@@ -76,12 +86,14 @@ namespace gRPCToolFrontEnd.Services
                 Log.Warning($"There is no grpc channel established with the channel guid {channelUnique}");
             }
 
+            CreateClientInstanceResponse newlyCreatedClient = await _clientInstanceService.CreateClientInstanceAsync();
+
             StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(getChannel.Value);
 
-            await GeneratingSingularBatchStreamingRequest(streamingClient, requestsInBatch, clientUnique, fileSize);
+            await GeneratingSingularBatchStreamingRequest(streamingClient, requestsInBatch, newlyCreatedClient.ClientUnique, fileSize);
         }
 
-        public async Task CreateManyStreamingBatchRequest(int requestsInBatch, string clientUnique, string fileSize)
+        public async Task CreateManyStreamingBatchRequest(int requestsInBatch, string fileSize)
         {
             Dictionary<Guid, GrpcChannel> getChannels = _accountDetailsStore.GetChannels();
 
@@ -90,11 +102,13 @@ namespace gRPCToolFrontEnd.Services
                 Log.Information($"there are no channels available");
             }
 
+            CreateClientInstanceResponse newlyCreatedClient = await _clientInstanceService.CreateClientInstanceAsync();
+
             foreach(var channel in getChannels)
             {
                 StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(channel.Value);
 
-                await GeneratingSingularBatchStreamingRequest(streamingClient, requestsInBatch, clientUnique, fileSize);
+                await GeneratingSingularBatchStreamingRequest(streamingClient, requestsInBatch, newlyCreatedClient.ClientUnique, fileSize);
             }
 
         }

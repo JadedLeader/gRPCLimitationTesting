@@ -6,6 +6,10 @@ option csharp_namespace = "gRPCStressTestingService.protos";
 service Utilities
 { 
 	rpc GetClientsWithMessages(GetClientsWithMessagesRequest) returns (stream GetClientsWithMessagesResponse);
+	rpc GetStreamingDelays(GetStreamingDelaysRequest) returns (stream GetStreamingDelaysResponse);
+	rpc GetUnaryDelays(GetUnaryDelaysRequest) returns (stream GetUnaryDelaysResponse);
+	rpc GetUnaryBatchDelays(GetUnaryBatchDelaysRequest) returns (stream GetUnaryBatchDelaysResponse);
+	rpc GetstreamingBatchDelays(GetStreamingBatchDelaysRequest) returns (stream GetStreamingBatchDelaysResponse);
 }
 
 message GetClientsWithMessagesRequest
@@ -22,4 +26,52 @@ message GetClientsWithMessagesResponse
 	int32 DataIterations = 5; 
 	string Datacontent = 6;
 	string Delay = 7;
+}
+
+message GetStreamingDelaysRequest
+{ 
+
+}
+
+message GetStreamingDelaysResponse
+{ 
+	GatheringDelays gatheringStreamingDelays = 1; 
+}
+
+message GetUnaryDelaysRequest
+{ 
+
+}
+
+message GetUnaryDelaysResponse
+{ 
+	GatheringDelays gatheringUnaryDelays = 1;
+}
+
+message GetUnaryBatchDelaysRequest
+{ 
+
+}
+
+message GetUnaryBatchDelaysResponse
+{ 
+	GatheringDelays gatheringUnaryBatchDelays = 1;
+}
+
+message GetStreamingBatchDelaysRequest
+{ 
+
+}
+
+message GetStreamingBatchDelaysResponse
+{ 
+	GatheringDelays gatheringStreamingBatchDelays = 1;
+}
+
+message GatheringDelays
+{ 
+	string messageId = 1;
+	string delay = 2;
+	string requestType = 3;
+	string dataContent = 4;
 }

@@ -16,7 +16,7 @@ namespace ConfigurationStuff.DbModels
 
         public Guid? SessionUnique { get; set; } 
 
-        public ICollection<DelayCalc?> DelayCalcs { get; set; }
+        public ICollection<DelayCalc?> DelayCalcs { get; set; } = new List<DelayCalc>();
 
         [Timestamp]
         public byte[] RowVersion { get; set; }

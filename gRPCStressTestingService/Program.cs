@@ -44,7 +44,7 @@ namespace gRPCStressTestingService
                
                 serverOptions.Listen(System.Net.IPAddress.Loopback, 5000, listenOptions =>
                 {
-                    listenOptions.UseHttps(); 
+                    //listenOptions.UseHttps(); 
                     listenOptions.Protocols = HttpProtocols.Http2;
                 });
 

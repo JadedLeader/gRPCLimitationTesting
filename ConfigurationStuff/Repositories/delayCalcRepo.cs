@@ -17,11 +17,11 @@ namespace DbManagerWorkerService.Repositories
     public class delayCalcRepo : RepositoryAbstract<DelayCalc>, IDelayCalcRepo
     {
 
-        private readonly DataContexts _dataContext;
+        private readonly IDataContexts _dataContext;
 
         private DateTime _lastFetchedTime = DateTime.MinValue;
 
-        public delayCalcRepo(DataContexts dataContexts) : base(dataContexts as DataContexts)
+        public delayCalcRepo(IDataContexts dataContexts) : base(dataContexts as DataContexts)
         {
             _dataContext = dataContexts;
         }
@@ -77,7 +77,6 @@ namespace DbManagerWorkerService.Repositories
                 .Include(c => c.DelayCalcs)
                 .ToListAsync();
 
-
             Log.Information($"fetched client instances with session unique {sessionUnique} ");
 
             var groupingItemsViaClientUnique = new Dictionary<Guid, List<DelayCalc>>();
@@ -101,20 +100,22 @@ namespace DbManagerWorkerService.Repositories
                     .Max(dc => dc.RecordCreation);
             }
 
-             
             return groupingItemsViaClientUnique;
                 
         }
 
-        public async Task Detach(DelayCalc entity)
+        public async Task<List<DelayCalc>> GetStreamingBatchRequests(Guid sessionUnique)
         {
-            var trackedEntity = _dataContext.ChangeTracker.Entries<DelayCalc>()
-                .FirstOrDefault(e => e.Entity.messageId == entity.messageId);
+           
+            var streamingBatchDelays = await _dataContext.DelayCalc
+                .Where(c => c.RequestType == "StreamingBatch" && c.RecordCreation > _lastFetchedTime).ToListAsync();
 
-            if (trackedEntity != null)
+            if(streamingBatchDelays.Any())
             {
-                trackedEntity.State = EntityState.Detached;
+                _lastFetchedTime = streamingBatchDelays.Max(dc => dc.RecordCreation);
             }
+
+            return streamingBatchDelays;
         }
 
         public async Task EmptyDelayCalcTable()

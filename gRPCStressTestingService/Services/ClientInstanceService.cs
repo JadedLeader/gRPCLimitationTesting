@@ -46,11 +46,11 @@ namespace gRPCStressTestingService.Services
                 throw new RpcException(new Status(StatusCode.AlreadyExists, "Client instance already exists."));
             }
 
-        
+
             ClientInstance newClientInstance = new ClientInstance
             {
                 ClientUnique = Guid.NewGuid(),
-                SessionUnique = account.Session.SessionUnique
+                SessionUnique = account.Session.SessionUnique,
             };
 
             account.Session.ClientInstance.Add(newClientInstance);

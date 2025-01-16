@@ -43,7 +43,7 @@ namespace gRPCStressTestingService.Services
         public async Task StreamingSingleRequest(IAsyncStreamReader<StreamingSingleLatencyRequest> requestStream, IServerStreamWriter<StreamingSingleLatencyResponse> responseStream, ServerCallContext context)
         {
             string preciseTime = GetPreciseTimeNow();
-
+            
             await foreach(var request in requestStream.ReadAllAsync())
             {
                 

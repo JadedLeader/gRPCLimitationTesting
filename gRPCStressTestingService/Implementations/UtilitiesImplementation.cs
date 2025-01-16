@@ -15,7 +15,13 @@ namespace gRPCStressTestingService.Implementations
         public override async Task GetClientsWithMessages(GetClientsWithMessagesRequest request, IServerStreamWriter<GetClientsWithMessagesResponse> responseStream, ServerCallContext context)
         {
             await _utilitiesService.GetClientsWithMessages(request, responseStream, context);
-        } 
+        }
+
+        public override async Task GetstreamingBatchDelays(GetStreamingBatchDelaysRequest request, IServerStreamWriter<GetStreamingBatchDelaysResponse> responseStream, ServerCallContext context)
+        {
+            await _utilitiesService.GetstreamingBatchDelays(request, responseStream, context);
+        }
+
 
     }
 }

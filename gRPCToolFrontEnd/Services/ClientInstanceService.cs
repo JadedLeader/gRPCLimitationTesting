@@ -1,5 +1,6 @@
 ﻿using Grpc.Core;
 using Grpc.Net.Client;
+using gRPCToolFrontEnd.Helpers;
 using Serilog;
 using System.Formats.Asn1;
 using System.Runtime.InteropServices;
@@ -10,14 +11,34 @@ namespace gRPCToolFrontEnd.Services
     {
         private readonly ClientInstances.ClientInstancesClient _clientInstanceClient;
 
-        public ClientInstanceService(ClientInstances.ClientInstancesClient clientInstancesClient)
+        private readonly ClientHelper _clientHelper;
+
+        public ClientInstanceService(ClientInstances.ClientInstancesClient clientInstancesClient, ClientHelper clientHelper)
         {
             _clientInstanceClient = clientInstancesClient;
+            _clientHelper = clientHelper;
         }
 
-        public async Task<CreateClientInstanceResponse> CreateClientInstanceAsync(CreateClientInstanceRequest clientInstanceRequest)
+        public async Task<CreateClientInstanceResponse> CreateClientInstanceAsync()
         {
-            return await _clientInstanceClient.CreateClientInstanceAsync(clientInstanceRequest);
+            string username = await _clientHelper.GetStringFromStringFromLocalStorage("username");
+
+            string sessionUnique = await _clientHelper.GetStringFromStringFromLocalStorage("session-unique");
+
+            CreateClientInstanceRequest newClientInstance = new CreateClientInstanceRequest
+            {
+                Username = username,
+                SessionUnique = sessionUnique
+            };
+
+             CreateClientInstanceResponse serverResponse =  await _clientInstanceClient.CreateClientInstanceAsync(newClientInstance);
+
+            if(serverResponse.SessionUnique == null || serverResponse.ClientUnique == null)
+            {
+                Log.Warning($"The details for creating a client instance was null, could not be retrieved from local storage");
+            }
+
+            return serverResponse;
         }
 
         public async Task GetClientInstancesViaSessionUnique(GetClientInstancesFromSessionUniqueRequest getClientInstanceRequest, List<Guid> clientInstanceFromDb)
