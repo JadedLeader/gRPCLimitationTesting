@@ -2,6 +2,7 @@
 using Grpc.Net.Client;
 using gRPCToolFrontEnd.Helpers;
 using gRPCToolFrontEnd.LocalStorage;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -23,7 +24,6 @@ namespace gRPCToolFrontEnd.Services
             _clientHelper = clientHelper;
             _clientInstanceService = clientInstanceService;
         }
-
 
         public async Task<DataResponse> UnaryResponseAsync(Guid channelId, string fileSize)
         {
@@ -72,11 +72,11 @@ namespace gRPCToolFrontEnd.Services
            return await newUnaryClient.UnaryResponseAsync(newDataRequest, metaData);
         }
 
-        public async Task<List<DataResponse>> UnaryResponseIterativeAsync(string fileSize)
+        public async Task<List<DataResponse>> UnaryResponseIterativeAsync(Guid? channelUnique, string fileSize)
         {
             List<DataResponse> responseList = new List<DataResponse>();
 
-            Dictionary<Guid, GrpcChannel> channels = _accountDetailsStore.GetChannels();
+            CreateClientInstanceResponse newlyCreatedClientInstance = await _clientInstanceService.CreateClientInstanceAsync();
 
             string filePath = _clientHelper.FileSize(fileSize);
 
@@ -90,8 +90,6 @@ namespace gRPCToolFrontEnd.Services
             long ticks = now.Ticks;
             string preciseTime = now.ToString("HH:mm:ss.ffffff");
 
-            CreateClientInstanceResponse newlyCreatedClientInstance = await _clientInstanceService.CreateClientInstanceAsync();
-
             DataRequest newDataRequest = new DataRequest
             {
                 ClientUnique = newlyCreatedClientInstance.ClientUnique,
@@ -104,31 +102,47 @@ namespace gRPCToolFrontEnd.Services
                 DataContentSize = dataContent
 
             };
-            Log.Information($"Client ID: {newDataRequest.ClientUnique} has sent message ID: {newDataRequest.RequestId} at {newDataRequest.RequestTimestamp}");
 
-            foreach (var channel in channels)
+            Metadata metaData = new Metadata
             {
-                Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(channel.Value);
+                { "request-type", "Unary" },
+                { "active-clients", "0" },
+                { "data-iterations", "1" },
+            };
 
-                Metadata metaData = new Metadata
+            if (channelUnique == null)
+            {
+                Log.Information($"Channel unique was null, generating multiple iterative unary requests for all channels");
+
+                Dictionary<Guid, GrpcChannel> channels = _accountDetailsStore.GetChannels();
+
+                foreach (var channel in channels)
                 {
-                    { "request-type", "Unary" },
-                    { "open-channels", channels.Count.ToString() },
-                    { "active-clients", "0" },
-                    { "data-iterations", "1" },
-                };
+                    Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(channel.Value);
 
-                string uniqueRequestId = Guid.NewGuid().ToString();
-                newDataRequest.RequestId = uniqueRequestId;
+                    metaData.Add("open-channels", channels.Count.ToString());
 
-          
-                Log.Information($"Sending iterative unary request on channel ID {channel.Key} with unique message ID {newDataRequest.RequestId}");
+                    string uniqueRequestId = Guid.NewGuid().ToString();
+                    newDataRequest.RequestId = uniqueRequestId;
 
-                var response = await newUnaryClient.UnaryResponseAsync(newDataRequest, metaData);
+                    Log.Information($"Sending iterative unary request on channel ID {channel.Key} with unique message ID {newDataRequest.RequestId}");
 
-                responseList.Add(response);
+                    var response = await newUnaryClient.UnaryResponseAsync(newDataRequest, metaData);
 
-            }    
+                    responseList.Add(response);
+
+                }
+            }
+            else
+            {
+                Log.Information($"Channel unique was provided, generating multiple iterative unary requests for channel with ID: {channelUnique}");
+
+                KeyValuePair<Guid, GrpcChannel> getChannel = _accountDetailsStore.GetGrpcChannel(channelUnique.Value);
+
+                Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(getChannel.Value);
+
+                await newUnaryClient.UnaryResponseAsync(newDataRequest, metaData);
+            }
 
             return responseList;
 
@@ -171,58 +185,79 @@ namespace gRPCToolFrontEnd.Services
             return await newUnaryClient.BatchUnaryResponseAsync(batchDataRequestUnary, metaData);
         }
 
-        public async Task<List<BatchDataResponse>> UnaryBatchIterativeAsync(int batchIterations, string fileSize)
+        public async Task<List<BatchDataResponse>> UnaryBatchIterativeAsync(Guid? channelUnique, int batchIterations, string fileSize)
         {
             List<BatchDataResponse> responseList = new List<BatchDataResponse>();
 
-            Dictionary<Guid, GrpcChannel> channels = _accountDetailsStore.GetChannels();
-
             List<BatchDataRequestDetails> dataRequestDetails = await GeneratingBatchOfRequests(batchIterations, fileSize);
 
-            Log.Information($"Amount of requests in the data request list: {dataRequestDetails.Count}");
+            CreateClientInstanceResponse newlyCreatedClient = await _clientInstanceService.CreateClientInstanceAsync();
 
             BatchDataRequest batchDataRequestUnary = new BatchDataRequest
             {
                 BatchDataRequest_ = { dataRequestDetails }
             };
 
-            Log.Information($"amount of iterations: {batchIterations}");
+            string batchRequestId = Guid.NewGuid().ToString();
 
-            foreach (var channel in channels)
+            var now = DateTime.UtcNow;
+            long ticks = now.Ticks;
+            string preciseTime = now.ToString("HH:mm:ss.ffffff");
+
+            Metadata metaData = new Metadata();
+
+            metaData.Add("batch-iteration", batchIterations.ToString());
+            metaData.Add("batch-request-id", batchRequestId);
+            metaData.Add("batch-request-timestamp", preciseTime);
+            metaData.Add("request-type", "BatchUnary");
+            metaData.Add("batch-request-count", batchDataRequestUnary.BatchDataRequest_.Count.ToString());
+            metaData.Add("active-clients", "0");
+
+            if (channelUnique == null)
             {
-                Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(channel.Value);
+                Log.Information($"No channel unique was provided, generating many unary batch requests for all gRPC channels");
 
-                Metadata metaData = new Metadata();
+                Dictionary<Guid, GrpcChannel> channels = _accountDetailsStore.GetChannels();
 
-                string batchRequestId = Guid.NewGuid().ToString();
+                Log.Information($"amount of iterations: {batchIterations}");
 
-                foreach(var message in batchDataRequestUnary.BatchDataRequest_)
+                foreach (var channel in channels)
                 {
-                    message.RequestId = Guid.NewGuid().ToString();
-                    message.BatchRequestId = batchRequestId;
+                    Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(channel.Value);
+
+                    foreach (var message in batchDataRequestUnary.BatchDataRequest_)
+                    {
+                        message.RequestId = Guid.NewGuid().ToString();
+                        message.BatchRequestId = batchRequestId;
+                    }
+
+                    var id = batchDataRequestUnary.BatchDataRequest_[0];
+
+                    string requestIdBatch = id.RequestId;
+
+                    Log.Information($"Sending iterative batch unary request on channel ID {channel.Key} request ID: request {requestIdBatch} ");
+
+                    BatchDataResponse response = await newUnaryClient.BatchUnaryResponseAsync(batchDataRequestUnary, metaData);
+
+                    responseList.Add(response);
                 }
-
-                var now = DateTime.UtcNow;
-                long ticks = now.Ticks;
-                string preciseTime = now.ToString("HH:mm:ss.ffffff");
-
-                metaData.Add("batch-iteration", batchIterations.ToString());
-                metaData.Add("batch-request-id", batchRequestId);
-                metaData.Add("batch-request-timestamp", preciseTime);
-                metaData.Add("request-type", "BatchUnary");
-                metaData.Add("batch-request-count", batchDataRequestUnary.BatchDataRequest_.Count.ToString());
-                metaData.Add("active-clients", "0");
-
-                var id = batchDataRequestUnary.BatchDataRequest_[0];
-
-                string requestIdBatch = id.RequestId;
-
-                Log.Information($"Sending iterative batch unary request on channel ID {channel.Key} request ID: request {requestIdBatch} ");
-
-                var response = await newUnaryClient.BatchUnaryResponseAsync(batchDataRequestUnary, metaData);
-
-                responseList.Add(response);
             }
+            else
+            {
+                Log.Information($"Channel unique was provided, generating batch iterative request for channel with ID : {channelUnique}");
+
+                KeyValuePair<Guid, GrpcChannel> getChannel = _accountDetailsStore.GetGrpcChannel(channelUnique.Value);
+
+                Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(getChannel.Value);
+
+                BatchDataResponse serverResponse = await newUnaryClient.BatchUnaryResponseAsync(batchDataRequestUnary, metaData);
+
+                responseList.Add(serverResponse);
+            }
+
+           
+
+            
 
             return responseList;
         }

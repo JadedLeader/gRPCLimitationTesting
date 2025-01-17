@@ -93,23 +93,45 @@ namespace gRPCToolFrontEnd.Services
             await GeneratingSingularBatchStreamingRequest(streamingClient, requestsInBatch, newlyCreatedClient.ClientUnique, fileSize);
         }
 
-        public async Task CreateManyStreamingBatchRequest(int requestsInBatch, string fileSize)
+        public async Task CreateManyStreamingBatchRequest(Guid? channelUnique, int requestsInBatch, string fileSize)
         {
-            Dictionary<Guid, GrpcChannel> getChannels = _accountDetailsStore.GetChannels();
+            
 
-            if(getChannels.Count == 0)
+            if (channelUnique == null)
             {
-                Log.Information($"there are no channels available");
+                Log.Information($"Channel unique was null for the creating many streaming batch requests, defaulting to many gRPC channels");
+
+                Dictionary<Guid, GrpcChannel> getChannels = _accountDetailsStore.GetChannels();
+
+                if (getChannels.Count == 0)
+                {
+                    Log.Information($"there are no channels available");
+                }
+
+                foreach (var channel in getChannels)
+                {
+                    CreateClientInstanceResponse newlyCreatedClient = await _clientInstanceService.CreateClientInstanceAsync();
+
+                    StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(channel.Value);
+
+                    await GeneratingSingularBatchStreamingRequest(streamingClient, requestsInBatch, newlyCreatedClient.ClientUnique, fileSize);
+                }
             }
-
-            CreateClientInstanceResponse newlyCreatedClient = await _clientInstanceService.CreateClientInstanceAsync();
-
-            foreach(var channel in getChannels)
+            else
             {
-                StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(channel.Value);
+                Log.Information($"Channel unique was provided for creating many streaming batch requests, defaulting to use channel with ID: {channelUnique}");
+
+                CreateClientInstanceResponse newlyCreatedClient = await _clientInstanceService.CreateClientInstanceAsync();
+
+                KeyValuePair<Guid, GrpcChannel> getChannel = _accountDetailsStore.GetGrpcChannel(channelUnique.Value);
+
+                StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(getChannel.Value);
 
                 await GeneratingSingularBatchStreamingRequest(streamingClient, requestsInBatch, newlyCreatedClient.ClientUnique, fileSize);
+                
             }
+
+            
 
         }
 

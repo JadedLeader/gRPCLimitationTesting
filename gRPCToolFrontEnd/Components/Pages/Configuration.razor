@@ -83,13 +83,18 @@
                                   Required="true"
                                   Class="MyMudTextField"
                                   Style="margin-bottom: 20px;"
-                                  Disabled="_IsClientInstanceDisabled"/>
+                                  Disabled="_IsClientInstanceDisabled"
+                                  HelperText="This box displays the client unique that has been created for the current instances of messages"
+                                  HelperTextOnFocus="true"
+                                  ReadOnly="true"/>
 
                     <MudTextField Label="File Size"
                                   @bind-Value="_FileSize"
                                   Required="true"
                                   Class="MyMudTextField"
-                                  Style="margin-bottom: 20px;" />
+                                  Style="margin-bottom: 20px;"
+                                  HelperText="This box lets you decide on the payload size of the request, choose between small, medium and large "
+                                  HelperTextOnFocus="true"/>
 
                     <MudTextField Label="Batch Iterations"
                                   @bind-Value="_Iterations"
@@ -97,20 +102,26 @@
                                   Required="true"
                                   Class="MyMudTextField"
                                   Style="margin-bottom: 20px;"
-                                  Disabled="_IsBatchIterationsDisabled"/>
+                                  Disabled="_IsBatchIterationsDisabled"
+                                  HelperText="This text box is indicative of the amount of requests within the batch of a batch requets"
+                                  HelperTextOnFocus="true"/>
 
                     <MudTextField Label="Amount Of Request"
                                   @bind-Value="_RequestCount"
                                   T="int"
                                   Required="true"
                                   Class="MyMudTextField"
-                                  Style="margin-bottom: 20px;" />
+                                  Style="margin-bottom: 20px;"
+                                  HelperText="This text box is indicative of the amount of the requests being sent"
+                                  HelperTextOnFocus="true"/>
 
                     <MudTextField Label="Channel ID"
                                   @bind-Value="_ChannelId"
                                   Required="true"
                                   Class="MyMudTextField"
-                                  Style="margin-bottom: 20px;" />
+                                  Style="margin-bottom: 20px;"
+                                  HelperText="This text box is indicative of the channel ID being used to send the gRPC request on"
+                                  HelperTextOnFocus="true"/>
                 </MudCard>
 
                 <!-- Buttons Section -->

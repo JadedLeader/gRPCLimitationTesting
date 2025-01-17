@@ -33,7 +33,7 @@ namespace gRPCToolFrontEnd.Helpers
             }
             else
             {
-                await _streamingLatencyService.CreateManyStreamingBatchRequest(RequestsInBatch, FileSize);
+                await _streamingLatencyService.CreateManyStreamingBatchRequest(null, RequestsInBatch, FileSize);
 
 
             }

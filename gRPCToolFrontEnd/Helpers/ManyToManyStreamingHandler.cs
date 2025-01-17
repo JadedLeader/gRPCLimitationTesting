@@ -1,6 +1,7 @@
 ﻿using gRPCToolFrontEnd.Interfaces;
 using gRPCToolFrontEnd.Services;
 using Serilog;
+using System.Security.Cryptography.X509Certificates;
 
 namespace gRPCToolFrontEnd.Helpers
 {
@@ -17,12 +18,13 @@ namespace gRPCToolFrontEnd.Helpers
 
         public int RequestsInBatch { get; set; }
 
-        public ManyToManyStreamingHandler(StreamingLatencyService streamingLatencyService, bool unaryOrBatch, int amountOfRequests, string fileSize)
+        public ManyToManyStreamingHandler(StreamingLatencyService streamingLatencyService, bool unaryOrBatch, int amountOfRequests, string fileSize, int requestsInBatch)
         {
             _streamingLatencyService = streamingLatencyService;
             UnaryOrBatch = unaryOrBatch;
             AmountOfRequests = amountOfRequests;
             FileSize = fileSize;
+            RequestsInBatch = requestsInBatch;
         }
 
         public async Task ReceivingRequest()
@@ -35,7 +37,7 @@ namespace gRPCToolFrontEnd.Helpers
             }
             else
             {
-                await _streamingLatencyService.CreateManyStreamingBatchRequest(RequestsInBatch, FileSize);
+                await _streamingLatencyService.CreateManyStreamingBatchRequest(null, RequestsInBatch, FileSize);
             }
         }
     }

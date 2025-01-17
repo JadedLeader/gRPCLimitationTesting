@@ -2,32 +2,19 @@ global using SharedCommonalities.ReturnModels.ReturnTypes;
 global using gRPCStressTestingService.protos;
 using gRPCStressTestingService.Implementations;
 using gRPCStressTestingService.Services;
-using SharedCommonalities.TimeStorage;
-using DelayCalculationWorkerService;
-using DelayCalculationWorkerService.Service;
 using DbManagerWorkerService;
 using DbManagerWorkerService.Services;
-using DbManagerWorkerService.Interfaces;
-
-using DbManagerWorkerService.Interfaces.DataContext;
-using DbManagerWorkerService.Repos;
 using ClientManagementWorkerService.Interfaces;
 using ClientManagementWorkerService.Services;
-using ClientManagementWorker;
-using SharedCommonalities.Storage;
-using SharedCommonalities.UsefulFeatures;
 using SharedCommonalities.ObjectMapping;
 using gRPCStressTestingService.Interfaces.Services;
 using DbManagerWorkerService.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Microsoft.EntityFrameworkCore;
-using ConfigurationStuff;
 using ConfigurationStuff.ServicesConfig;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using gRPCStressTestingService.DelayCalculations;
-
 
 namespace gRPCStressTestingService
 {
@@ -39,16 +26,13 @@ namespace gRPCStressTestingService
 
             builder.WebHost.ConfigureKestrel(serverOptions =>
             {
-               
                 serverOptions.Limits.MaxRequestBodySize = 1000 * 1024 * 1024;
                
                 serverOptions.Listen(System.Net.IPAddress.Loopback, 5000, listenOptions =>
                 {
-                    //listenOptions.UseHttps(); 
+                    listenOptions.UseHttps(); 
                     listenOptions.Protocols = HttpProtocols.Http2;
                 });
-
-
             });
 
             builder.Services.AddGrpc();
@@ -85,29 +69,19 @@ namespace gRPCStressTestingService
 
             builder.Services.AddScoped<IUnaryService, UnaryService>();
             builder.Services.AddScoped<UnaryImplementation>();
-            //builder.Services.AddSingleton<DelayCalculations>(); 
-            // builder.Services.AddHostedService<DbManagerWorker>();
 
             builder.Services.AddScoped<DelayCalculation>();
             builder.Services.AddScoped<DatabaseTransportationService>();
 
             builder.Services.AddSingleton<IClientManagementService, ClientManagementService>();
-            //builder.Services.AddHostedService<ClientManagerWorker>();
-
-           // builder.Services.AddScoped<ICommunicationDelayRepo, CommunicationDelayRepo>();
-           // builder.Services.AddScoped<ICommunicationDelayService, CommunicationDelayService>();
 
             builder.Services.AddScoped<IAccountService, AccountService>();
-           // builder.Services.AddScoped<IAccountRepo, AccountRepo>();
 
             builder.Services.AddScoped<ISessionService, SessionService>();
-            //builder.Services.AddScoped<ISessionRepo, SessionRepo>();
 
             builder.Services.AddScoped<IAuthTokenService, AuthTokenService>();
-          //  builder.Services.AddScoped<IAuthTokenRepo, AuthTokenRepo>();
 
             builder.Services.AddScoped<IClientInstanceService, ClientInstanceService>();
-           // builder.Services.AddScoped<IClientInstanceRepo, ClientInstanceRepo>();  
 
             builder.Services.AddScoped<IUtilitiesService, UtilitiesService>();
             builder.Services.AddScoped<ICommunicationDelayService, CommunicationDelayService>();
@@ -119,8 +93,6 @@ namespace gRPCStressTestingService
             builder.Services.AddScoped<ObjectCreation>();
             builder.Services.AddScoped<delayCalcRepo>();
          
-            //builder.Services.AddHostedService<DelayWorker>();
-
             var app = builder.Build();
             
             app.UseRouting();

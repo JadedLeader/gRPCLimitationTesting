@@ -61,7 +61,7 @@ namespace gRPCToolFrontEnd.Helpers
                 {
                     "one : one" => new OneToOneStreamingHandler(_streamingLatencyService, unaryOrBatch, channelUnique, fileSize, iterationsInbatch),
                     "one : many" => new OneToManyStreamingHandler(_streamingLatencyService, unaryOrBatch, iterationsInbatch, fileSize,  channelUnique, amountOfRequests),
-                    "many : many" => new ManyToManyStreamingHandler(_streamingLatencyService, unaryOrBatch, amountOfRequests, fileSize),
+                    "many : many" => new ManyToManyStreamingHandler(_streamingLatencyService, unaryOrBatch, amountOfRequests, fileSize, iterationsInbatch),
                     "many : one" => new ManyToOneStreamingHandler(_streamingLatencyService, unaryOrBatch, channelUnique, amountOfRequests, fileSize),
                 };
 

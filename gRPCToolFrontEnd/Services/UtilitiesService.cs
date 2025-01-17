@@ -16,6 +16,7 @@ namespace gRPCToolFrontEnd.Services
         private CancellationTokenSource _cancellationToken;
 
         public event Action<GetClientsWithMessagesResponse> OnUpdateReceived;
+        public event Action<GetStreamingBatchDelaysResponse> OnBatchReceived;
 
         public UtilitiesService(Utilities.UtilitiesClient utilitiesClient)
         {
@@ -27,6 +28,13 @@ namespace gRPCToolFrontEnd.Services
             _cancellationToken = new CancellationTokenSource();
 
             Task.Run(() => ReceivingMessageStream(request, _cancellationToken.Token, sessionUnique));
+        }
+
+        public void StartReceivingStreamingBatchMessages(GetStreamingBatchDelaysRequest request, string sessionUnique)
+        {
+            _cancellationToken = new CancellationTokenSource();
+
+            Task.Run(() => ReceivingStreamingBatchStream(request, _cancellationToken.Token, sessionUnique));
         }
 
         public void StopReceivingMessages()
@@ -64,6 +72,34 @@ namespace gRPCToolFrontEnd.Services
                 throw;
             }
         }
+
+        public async Task ReceivingStreamingBatchStream(GetStreamingBatchDelaysRequest batchStreamingRequest, CancellationToken cancellationToken, string sessionUnique)
+        {
+            Log.Information($"Started receiving messages from streaming batch utilities endpoint");
+
+            try
+            {
+                Metadata metaData = new Metadata();
+
+                metaData.Add("session-unique", sessionUnique);
+
+                using var call = _utilitiesClient.GetstreamingBatchDelays(batchStreamingRequest, metaData);
+
+                while(await call.ResponseStream.MoveNext(cancellationToken))
+                {
+                    var response = call.ResponseStream.Current;
+
+                    OnBatchReceived?.Invoke(response);
+                }
+                    
+            }
+            catch(Exception ex)
+            {
+                Log.Error($"{ex} Error wile reading the streaming batch stream");
+                throw;
+            }
+        }
+
         public void Dispose()
         {
             StopReceivingMessages();

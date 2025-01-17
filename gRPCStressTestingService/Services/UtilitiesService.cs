@@ -1,5 +1,4 @@
 ﻿using ConfigurationStuff.DbModels;
-using ConfigurationStuff.Interfaces.Queries;
 using ConfigurationStuff.Interfaces.Repos;
 using Grpc.Core;
 using gRPCStressTestingService.Interfaces.Services;
@@ -91,6 +90,7 @@ namespace gRPCStressTestingService.Services
                         MessageId = delay.messageId.ToString(),
                         RequestType = delay.RequestType,
                         DataContent = delay.DataContent,
+                        ResponseTimestamp = delay.RecordCreation.ToString(),
                     };
 
                     GetStreamingBatchDelaysResponse serverResponse = new GetStreamingBatchDelaysResponse()

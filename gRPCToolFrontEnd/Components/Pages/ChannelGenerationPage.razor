@@ -44,9 +44,7 @@
                               RequiredError="A number of channels is required!"
                               HelperText="Input amount of channels above:"
                               Margin="Margin.Dense"
-                              HelperTextOnFocus="true"
-                              >
-                             
+                              HelperTextOnFocus="true">
                               </MudTextField>
 
                 <MudTextField font-style="Montserrat"
@@ -58,8 +56,7 @@
                               RequiredError="A target address is required!"
                               HelperText="Input target address above:"
                               Margin="Margin.Dense"
-                              HelperTextOnFocus="true"
-                              >
+                              HelperTextOnFocus="true">
                               </MudTextField>
 
 
@@ -228,21 +225,6 @@
         AccountDetailsStore.channels = channelDict;
 
         _ChannelSubject.OnNext(new Dictionary<Guid, GrpcChannel>(_ChannelGuids));
-
-      /*  foreach(Guid channelUnique in channelDict.Keys)
-        {
-            ChannelAndClientInstance keys = new ChannelAndClientInstance
-            {
-                ChannelUnique = channelUnique, 
-            };
-
-            await AccountDetailsStore.AddToChannelsAndClients(keys, new List<Delay>());
-        }
-
-        var channelsWithClients = await AccountDetailsStore.GetChannelWithClientsAndMessage(); */
-
-     
-
     }
 
     public void Dispose()

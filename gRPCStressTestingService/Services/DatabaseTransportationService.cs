@@ -60,6 +60,11 @@ namespace gRPCStressTestingService.Services
 
                         Log.Information($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
 
+                     
+                        var gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(transportingToDb.ClientUnique);
+
+                        transportingToDb.ClientInstance = gettingClientInstance;
+
                         await _delayCalcRepo.AddToDbAsync(transportingToDb);
 
                         await _delayCalcRepo.SaveAsync();
@@ -84,8 +89,11 @@ namespace gRPCStressTestingService.Services
                         RecordCreation = DateTime.Now,
                     };
 
-
                     Log.Information($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
+
+                    var gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(transportingToDb.ClientUnique);
+
+                    transportingToDb.ClientInstance = gettingClientInstance;
 
                     await _delayCalcRepo.AddToDbAsync(transportingToDb);
 
@@ -112,6 +120,10 @@ namespace gRPCStressTestingService.Services
 
                     Log.Information($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
 
+                    var gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(transportingToDb.ClientUnique);
+
+                    transportingToDb.ClientInstance = gettingClientInstance;
+
                     await _delayCalcRepo.AddToDbAsync(transportingToDb);
 
                     await _delayCalcRepo.SaveAsync();
@@ -121,7 +133,7 @@ namespace gRPCStressTestingService.Services
                 {
                     Log.Information($"streaming batch detected");
 
-                    DelayCalc newDelay = new DelayCalc
+                    DelayCalc transportingToDb = new DelayCalc
                     {
                         messageId = Guid.Parse(item.Key.MessageId),
                         RequestType = item.Value.TypeOfData,
@@ -134,7 +146,11 @@ namespace gRPCStressTestingService.Services
                         RecordCreation = DateTime.Now,
                     };
 
-                    await _delayCalcRepo.AddToDbAsync(newDelay);
+                    var gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(transportingToDb.ClientUnique);
+
+                    transportingToDb.ClientInstance = gettingClientInstance;
+
+                    await _delayCalcRepo.AddToDbAsync(transportingToDb);
 
                     await _delayCalcRepo.SaveAsync();
 

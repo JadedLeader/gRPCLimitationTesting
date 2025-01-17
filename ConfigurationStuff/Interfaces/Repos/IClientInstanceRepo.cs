@@ -29,7 +29,7 @@ namespace ConfigurationStuff.Interfaces.Repos
 
         public Task RemoveRangeAsync(List<ClientInstance> clientList);
 
-        public Task<ClientInstance> GetClientInstanceViaClientUnique(Guid clientUnique);
+        public Task<ClientInstance> GetClientInstanceViaClientUnique(Guid? clientUnique);
 
         public Task SaveAsync();
 

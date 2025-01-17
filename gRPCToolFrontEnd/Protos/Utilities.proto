@@ -74,4 +74,5 @@ message GatheringDelays
 	string delay = 2;
 	string requestType = 3;
 	string dataContent = 4;
+	string responseTimestamp = 5;
 }

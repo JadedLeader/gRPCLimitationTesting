@@ -1,23 +1,170 @@
-﻿@using gRPCToolFrontEnd.Components.Layout
+﻿@using MudBlazor.Components.Chart.Models
+@using gRPCToolFrontEnd.Components.Layout
+@using gRPCToolFrontEnd.Services
+@using Serilog
+@using gRPCToolFrontEnd.Helpers
+@using gRPCToolFrontEnd.DataTypes.ChartDataTypes
+@using gRPCToolFrontEnd.DataTypes
+@using static MudBlazor.Components.Chart.Models.TimeSeriesChartSeries
 @page "/counter"
+@layout MainLayout
+@inject UtilitiesService UtilitiesService
+@inject ClientHelper ClientHelper
 
-<div class="MyConfigurationBody">
+<PageTitle>Real-Time display</PageTitle>
 
-<PageTitle>Counter</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Counter</MudText>
+<MudGrid Spacing="1" Class="pa-4">
 
-<MudText Typo="Typo.body1" Class="mb-4">Current count: @currentCount</MudText>
+    <MudItem xs="12" sm="6" md="6" >
+        <MudPaper Class="MyMudPaper" Style="height: 400px; width: 100%;">
 
-<MudButton Color="Color.Primary" Variant="Variant.Filled" @onclick="IncrementCount">Click me</MudButton>
+            <MudText Align="Align.Center"> Streaming batch chart </MudText>
 
-</div>
+            <MudChart ChartType="ChartType.Line"
+                      Labels="@_labels"
+                      ChartSeries="@_series"
+                      ChartOptions="@_options"
+                      Style="height: 100%; width: 100%;" />
+        </MudPaper>
+    </MudItem>
+
+
+    <MudItem xs="12" sm="6" md="6">
+        <MudPaper Class="MyMudPaper" Style="height: 400px; width: 100%;">
+
+            <MudText Align="Align.Center"> Streaming unary chart </MudText>
+
+            <MudChart ChartType="ChartType.Line"
+                      Options="@_options"
+                      Style="height: 100%; width: 100%;" />
+        </MudPaper>
+    </MudItem>
+
+ 
+    <MudItem xs="12" sm="6" md="6">
+        <MudPaper Class="MyMudPaper" Style="height: 450px; width: 100%;">
+
+            <MudText Align="Align.Center"> Unary batch chart </MudText>
+
+            <MudChart ChartType="ChartType.Line"
+                      Options="@_options"
+                      Style="height: 100%; width: 100%;" />
+        </MudPaper>
+    </MudItem>
+
+  
+    <MudItem xs="12" sm="6" md="6">
+        <MudPaper Class="MyMudPaper" Style="height: 450px; width: 100%;">
+
+            <MudText Align="Align.Center"> Unary single chart </MudText>
+
+            <MudChart ChartType="ChartType.Line"
+                      Options="@_options"
+                      Style="height: 100%; width: 100%;" />
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+<style> 
+    .MyMudPaper {
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+    }
+</style>
+
+@implements IDisposable
 
 @code {
-    private int currentCount = 0;
 
-    private void IncrementCount()
+    private int Index = -1;
+    private const int MaxDataPoints = 100;
+
+    private ChartOptions _options = new ChartOptions
+        {
+            YAxisLines = true,
+            YAxisTicks = 500,
+            MaxNumYAxisTicks = 5,
+            XAxisLines = true,
+            LineStrokeWidth = 1,
+            YAxisFormat = "0 'seconds'",
+           
+            
+        };
+
+    private ChartSeries _chart1 = new()
+        {
+            Name = "Batch Streaming Delay(s)",
+            Data = new double[] { }
+        };
+
+    private List<ChartSeries> _series = new List<ChartSeries>();
+    private List<string> _labels = new List<string>();
+    private List<double> _delays = new();
+
+    protected override async Task OnInitializedAsync()
     {
-        currentCount++;
+        _series.Add(_chart1);
+        
+        UtilitiesService.OnBatchReceived += HandleBatchRequestReceived;
+
+        GetStreamingBatchDelaysRequest newStreamingBatchDelay = new GetStreamingBatchDelaysRequest
+        {
+
+        };
+
+        string sessionUnique = await ClientHelper.GetStringFromStringFromLocalStorage("session-unique"); 
+
+        UtilitiesService.StartReceivingStreamingBatchMessages(newStreamingBatchDelay, sessionUnique); 
+
+        await base.OnInitializedAsync();
+    }
+
+    private async void HandleBatchRequestReceived(GetStreamingBatchDelaysResponse streamingBatchDelaysResponse)
+    {
+        
+
+        await InvokeAsync(() =>
+        {
+            try
+            {
+                
+                TimeSpan delayTimeSpan = TimeSpan.Parse(
+                    streamingBatchDelaysResponse.GatheringStreamingBatchDelays.Delay);
+
+                double delayMs = delayTimeSpan.TotalMilliseconds;
+                
+                DateTime recordTime = DateTime.Parse(
+                    streamingBatchDelaysResponse.GatheringStreamingBatchDelays.ResponseTimestamp);
+
+                string timeLabel = recordTime.ToString("HH:mm:ss");
+
+                _labels.Add(timeLabel);
+
+                _delays.Add(delayMs);
+
+                if (_labels.Count > MaxDataPoints)
+                    _labels.RemoveAt(0);
+                if (_delays.Count > MaxDataPoints)
+                    _delays.RemoveAt(0);
+
+                _chart1.Data = _delays.ToArray();
+
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to parse delay or timestamp.");
+            }
+        });
+    }
+
+    public void Dispose()
+    {
+        UtilitiesService.OnBatchReceived -= HandleBatchRequestReceived;
+
+        UtilitiesService.StopReceivingMessages();
     }
 }
