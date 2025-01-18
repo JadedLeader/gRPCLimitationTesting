@@ -66,6 +66,7 @@
     </MudItem>
 </MudGrid>
 <style> 
+
     .MyMudPaper {
         background: rgba(0, 0, 0, 0.6);
         border-radius: 12px;
@@ -73,13 +74,14 @@
         border: 1px solid rgba(255, 255, 255, 0.1);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
     }
+
+
+
 </style>
 
 @implements IDisposable
 
 @code {
-
-    private int Index = -1;
     private const int MaxDataPoints = 100;
 
     private ChartOptions _options = new ChartOptions
@@ -88,10 +90,8 @@
             YAxisTicks = 500,
             MaxNumYAxisTicks = 5,
             XAxisLines = true,
-            LineStrokeWidth = 1,
+            LineStrokeWidth = 2,
             YAxisFormat = "0 'seconds'",
-           
-            
         };
 
     private ChartSeries _chart1 = new()
@@ -107,7 +107,7 @@
     protected override async Task OnInitializedAsync()
     {
         _series.Add(_chart1);
-        
+
         UtilitiesService.OnBatchReceived += HandleBatchRequestReceived;
 
         GetStreamingBatchDelaysRequest newStreamingBatchDelay = new GetStreamingBatchDelaysRequest
@@ -124,18 +124,18 @@
 
     private async void HandleBatchRequestReceived(GetStreamingBatchDelaysResponse streamingBatchDelaysResponse)
     {
-        
+
 
         await InvokeAsync(() =>
         {
             try
             {
-                
+
                 TimeSpan delayTimeSpan = TimeSpan.Parse(
                     streamingBatchDelaysResponse.GatheringStreamingBatchDelays.Delay);
 
                 double delayMs = delayTimeSpan.TotalMilliseconds;
-                
+
                 DateTime recordTime = DateTime.Parse(
                     streamingBatchDelaysResponse.GatheringStreamingBatchDelays.ResponseTimestamp);
 
@@ -166,5 +166,11 @@
         UtilitiesService.OnBatchReceived -= HandleBatchRequestReceived;
 
         UtilitiesService.StopReceivingMessages();
+    }
+
+
+    private async Task Presets()
+    {
+        
     }
 }

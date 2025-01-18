@@ -255,10 +255,6 @@ namespace gRPCToolFrontEnd.Services
                 responseList.Add(serverResponse);
             }
 
-           
-
-            
-
             return responseList;
         }
 

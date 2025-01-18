@@ -89,6 +89,8 @@ namespace gRPCToolFrontEnd.Services
                 {
                     var response = call.ResponseStream.Current;
 
+                    Log.Information($"streaming batch request received, message ID: {response.GatheringStreamingBatchDelays.MessageId} with delay : {response.GatheringStreamingBatchDelays.Delay}");
+
                     OnBatchReceived?.Invoke(response);
                 }
                     
