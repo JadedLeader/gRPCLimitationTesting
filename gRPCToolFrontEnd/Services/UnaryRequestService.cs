@@ -141,6 +141,7 @@ namespace gRPCToolFrontEnd.Services
 
                 Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(getChannel.Value);
 
+              
                 await newUnaryClient.UnaryResponseAsync(newDataRequest, metaData);
             }
 

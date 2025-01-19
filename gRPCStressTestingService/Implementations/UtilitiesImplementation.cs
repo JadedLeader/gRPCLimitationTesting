@@ -22,6 +22,16 @@ namespace gRPCStressTestingService.Implementations
             await _utilitiesService.GetstreamingBatchDelays(request, responseStream, context);
         }
 
+        public override async Task GetStreamingDelays(GetStreamingDelaysRequest request, IServerStreamWriter<GetStreamingDelaysResponse> responseStream, ServerCallContext context)
+        {
+            await _utilitiesService.GetStreamingDelays(request, responseStream, context);
+        }
+
+        public override async Task GetUnaryDelays(GetUnaryDelaysRequest request, IServerStreamWriter<GetUnaryDelaysResponse> responseStream, ServerCallContext context)
+        {
+            await _utilitiesService.GetUnaryDelays(request, responseStream, context);
+        }
+
 
     }
 }

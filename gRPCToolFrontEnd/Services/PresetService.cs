@@ -1,4 +1,5 @@
 ﻿using Serilog;
+using Serilog.Sinks.File;
 
 namespace gRPCToolFrontEnd.Services
 {
@@ -32,13 +33,16 @@ namespace gRPCToolFrontEnd.Services
 
             while(lowStressRunning)
             {
-                await _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize);
 
                 await _unaryRequestService.UnaryBatchIterativeAsync(null, 1, fileSize);
 
                 await _streamingLatencyService.CreateManySingleStreamingRequests(null, 1, fileSize);
 
                 await _streamingLatencyService.CreateManyStreamingBatchRequest(null, 1, fileSize);
+
+                await _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize);
+
+                
             }
 
             Log.Information($"Low stress has stopped running");
@@ -67,11 +71,13 @@ namespace gRPCToolFrontEnd.Services
 
                 int number = random.Next(2);
 
-                if (number == 1)
+                Log.Information($"Number chose for medium stress : {number}");
+
+                if (number == 0)
                 {
                     fileSize = "small";
                 }
-                else if (number == 2)
+                else if (number == 1)
                 {
                     fileSize = "medium";
                 }
@@ -80,13 +86,14 @@ namespace gRPCToolFrontEnd.Services
                     Log.Information($"Something went wrong with the random number generation for the medium stress");
                 }
 
-                await _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize);
-
+                
                 await _unaryRequestService.UnaryBatchIterativeAsync(null, 3, fileSize);
 
                 await _streamingLatencyService.CreateManySingleStreamingRequests(null, 3, fileSize);
 
                 await _streamingLatencyService.CreateManyStreamingBatchRequest(null, 3, fileSize);
+
+                await _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize);
 
             }
 
@@ -104,9 +111,53 @@ namespace gRPCToolFrontEnd.Services
         /// </summary>
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
-        public async Task HighStress()
+        public async Task HighStress(bool highStressRunning)
         {
-            throw new NotImplementedException();
+            while(highStressRunning)
+            {
+
+                int amountOfRequests = 0;
+
+                string fileSize = "";
+
+                Random random = new Random();
+
+                int number = random.Next(3);
+
+                if (number == 0)
+                {
+                    fileSize = "small";
+
+                    amountOfRequests = 30;
+                }
+                else if (number == 1)
+                {
+                    fileSize = "medium";
+
+                    amountOfRequests = 3;
+                }
+                else if (number == 2)
+                {
+                    fileSize = "large";
+
+                    amountOfRequests = 1;
+                }
+                else
+                {
+                    Log.Information($"Something went wrong when generating the file size decider for the high stress test");
+                }
+
+            
+                await _unaryRequestService.UnaryBatchIterativeAsync(null, amountOfRequests, fileSize);
+
+                await _streamingLatencyService.CreateManySingleStreamingRequests(null, amountOfRequests, fileSize);
+
+                await _streamingLatencyService.CreateManyStreamingBatchRequest(null, amountOfRequests, fileSize);
+
+                await _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize);
+
+
+            }
         }
 
     }

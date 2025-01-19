@@ -17,6 +17,8 @@ namespace gRPCToolFrontEnd.Services
 
         public event Action<GetClientsWithMessagesResponse> OnUpdateReceived;
         public event Action<GetStreamingBatchDelaysResponse> OnBatchReceived;
+        public event Action<GetStreamingDelaysResponse> OnStreamingSingleReceived;
+        public event Action<GetUnaryDelaysResponse> OnUnarySingleReceived;
 
         public UtilitiesService(Utilities.UtilitiesClient utilitiesClient)
         {
@@ -35,6 +37,21 @@ namespace gRPCToolFrontEnd.Services
             _cancellationToken = new CancellationTokenSource();
 
             Task.Run(() => ReceivingStreamingBatchStream(request, _cancellationToken.Token, sessionUnique));
+        }
+
+        public void StartReceivingStreamingMessages(GetStreamingDelaysRequest streamingRequest, string sessionUnique)
+        {
+            _cancellationToken = new CancellationTokenSource();
+
+            Task.Run(() => ReceivingStreamingSingleStream(streamingRequest, _cancellationToken.Token, sessionUnique));
+        }
+
+        public void StartReceivingUnaryMessages(GetUnaryDelaysRequest unaryRequest, string sessionUnique)
+        {
+            _cancellationToken = new CancellationTokenSource();
+
+            Task.Run(() =>  ReceivingUnaryStream(unaryRequest, _cancellationToken.Token, sessionUnique));
+
         }
 
         public void StopReceivingMessages()
@@ -99,6 +116,47 @@ namespace gRPCToolFrontEnd.Services
             {
                 Log.Error($"{ex} Error wile reading the streaming batch stream");
                 throw;
+            }
+        }
+
+        public async Task ReceivingStreamingSingleStream(GetStreamingDelaysRequest batchStreamingRequest, CancellationToken cancellationToken, string sessionUnique)
+        {
+
+            Metadata metaData = new Metadata();
+
+            metaData.Add("session-unique", sessionUnique);
+
+            using var call = _utilitiesClient.GetStreamingDelays(batchStreamingRequest, metaData);
+
+            while (await call.ResponseStream.MoveNext(cancellationToken))
+            {
+
+                var response = call.ResponseStream.Current;
+
+                Log.Information($"Streaming single request received, message ID {response.GatheringStreamingDelays.MessageId} with delay : {response.GatheringStreamingDelays.Delay}");
+
+                OnStreamingSingleReceived?.Invoke(response);
+            }
+            
+
+
+        }
+
+        public async Task ReceivingUnaryStream(GetUnaryDelaysRequest unaryRequest, CancellationToken cancellationToken, string sessionUnique)
+        {
+            Metadata metaData = new Metadata();
+
+            metaData.Add("session-unique", sessionUnique); 
+
+            using var call = _utilitiesClient.GetUnaryDelays(unaryRequest, metaData);
+
+            while(await call.ResponseStream.MoveNext(cancellationToken))
+            {
+                var response = call.ResponseStream.Current;
+
+                Log.Information($"Unary single request received, message ID {response.GatheringUnaryDelays.MessageId} with delay : {response.GatheringUnaryDelays.Delay}"); 
+
+                OnUnarySingleReceived?.Invoke(response);
             }
         }
 

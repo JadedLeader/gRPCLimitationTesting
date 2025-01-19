@@ -118,6 +118,42 @@ namespace DbManagerWorkerService.Repositories
             return streamingBatchDelays;
         }
 
+        public async Task<List<DelayCalc>> GetStreamingRequests(Guid sessionUnique)
+        {
+            var streamingDelays = await _dataContext.DelayCalc.Where(c => c.RequestType == "Streaming" && c.RecordCreation > _lastFetchedTime).ToListAsync();
+
+            if(streamingDelays.Any())
+            {
+                _lastFetchedTime = streamingDelays.Max(sd => sd.RecordCreation);
+            }
+
+            return streamingDelays;
+        }
+
+        public async Task<List<DelayCalc>> GetBatchUnaryRequests(Guid sessionUnique)
+        {
+            var batchUnaryDelays = await _dataContext.DelayCalc.Where(c => c.RequestType == "BatchUnary" && c.RecordCreation > _lastFetchedTime).ToListAsync();
+
+            if(batchUnaryDelays.Any())
+            {
+                _lastFetchedTime = batchUnaryDelays.Max(e => e.RecordCreation);
+            }
+
+            return batchUnaryDelays;
+        }
+
+        public async Task<List<DelayCalc>> GetUnaryRequests(Guid sessionUnique)
+        {
+            var unaryDelays = await _dataContext.DelayCalc.Where(c => c.RequestType == "Unary" && c.RecordCreation > _lastFetchedTime).ToListAsync();   
+
+            if(unaryDelays.Any())
+            {
+                _lastFetchedTime = unaryDelays.Max(e => e.RecordCreation);
+            }
+
+            return unaryDelays;
+        }
+
         public async Task EmptyDelayCalcTable()
         {
             var allEntities = _dataContext.DelayCalc.ToList();

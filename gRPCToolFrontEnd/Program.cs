@@ -109,7 +109,7 @@ namespace gRPCToolFrontEnd
             builder.Services.AddScoped<IRequestReceiver, ManyToOneStreamingHandler>(); */
 
             builder.Services.AddScoped<IRequestTypeHandlingFactory, RequestTypeHandlingFactory>();
-           
+            builder.Services.AddScoped<PresetService>();
 
 
             var app = builder.Build();

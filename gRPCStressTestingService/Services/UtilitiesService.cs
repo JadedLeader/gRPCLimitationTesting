@@ -2,6 +2,7 @@
 using ConfigurationStuff.Interfaces.Repos;
 using Grpc.Core;
 using gRPCStressTestingService.Interfaces.Services;
+using Microsoft.AspNetCore.OutputCaching;
 using Serilog;
 
 namespace gRPCStressTestingService.Services
@@ -66,22 +67,22 @@ namespace gRPCStressTestingService.Services
 
             string? sessionUnique = context.RequestHeaders.GetValue("session-unique");
 
-            if(sessionUnique == null)
+            if (sessionUnique == null)
             {
                 Log.Information($"the session unique was null when trying to get the streaming batch delays");
             }
 
-            while(!context.CancellationToken.IsCancellationRequested)
+            while (!context.CancellationToken.IsCancellationRequested)
             {
 
                 List<DelayCalc> getStreamingBatchRequests = await _delayCalcRepo.GetStreamingBatchRequests(Guid.Parse(sessionUnique));
 
-                if(getStreamingBatchRequests.Count == 0)
+                if (getStreamingBatchRequests.Count == 0)
                 {
                     Log.Information($"There is currently no streaming batch requests");
                 }
 
-                foreach(var delay in getStreamingBatchRequests)
+                foreach (var delay in getStreamingBatchRequests)
                 {
 
                     GatheringDelays gatheringStreamingBatchDelays = new GatheringDelays()
@@ -106,8 +107,81 @@ namespace gRPCStressTestingService.Services
                 await Task.Delay(500);
 
             }
+        }
 
+        public async Task GetStreamingDelays(GetStreamingDelaysRequest request, IServerStreamWriter<GetStreamingDelaysResponse> responseStream, ServerCallContext context)
+        {
+            string? sessionUnique = context.RequestHeaders.GetValue("session-unique");
 
+            while (!context.CancellationToken.IsCancellationRequested)
+            {
+                List<DelayCalc> getStreamingRequests = await _delayCalcRepo.GetStreamingRequests(Guid.Parse(sessionUnique));
+
+                if(getStreamingRequests.Count == 0)
+                {
+                    Log.Warning($"The attempt to get the streaming requests from the database returned nothing");
+                }
+
+                foreach (DelayCalc delay in getStreamingRequests)
+                {
+
+                    GatheringDelays gatheringStreamingDelays = new GatheringDelays()
+                    {
+                        MessageId = delay.messageId.ToString(),
+                        RequestType = delay.RequestType,
+                        DataContent = delay.DataContent,
+                        ResponseTimestamp = delay.RecordCreation.ToString(),
+                        Delay = delay.Delay.ToString(),
+                    };
+
+                    GetStreamingDelaysResponse serverResponse = new GetStreamingDelaysResponse()
+                    {
+                        GatheringStreamingDelays = gatheringStreamingDelays
+                    };
+
+                    await responseStream.WriteAsync(serverResponse);
+                }
+            }
+
+        }
+
+        public async Task GetUnaryDelays(GetUnaryDelaysRequest request, IServerStreamWriter<GetUnaryDelaysResponse> responseStream, ServerCallContext context)
+        {
+
+            string? sessionUnique = context.RequestHeaders.GetValue("session-unique");
+
+            while(!context.CancellationToken.IsCancellationRequested)
+            {
+
+                var getUnaryDelays = await _delayCalcRepo.GetUnaryRequests(Guid.Parse(sessionUnique));
+
+                if(getUnaryDelays.Count == 0)
+                {
+                    Log.Warning($"The attempt to get unary requests from the database returned nothing");
+                }
+
+                foreach(var unaryDelays in getUnaryDelays)
+                {
+                    GatheringDelays gatheringUnaryDelays = new GatheringDelays()
+                    {
+                        MessageId = unaryDelays.messageId.ToString(),
+                        RequestType = unaryDelays.RequestType,
+                        DataContent = unaryDelays.DataContent,
+                        ResponseTimestamp = unaryDelays.RecordCreation.ToString(),
+                        Delay = unaryDelays.Delay.ToString(),
+                    };
+
+                    GetUnaryDelaysResponse serverResponse = new GetUnaryDelaysResponse()
+                    {
+                        GatheringUnaryDelays = gatheringUnaryDelays,
+                    };
+
+                    await responseStream.WriteAsync(serverResponse);
+                }
+
+            }
+            
         }
     }
 }
+

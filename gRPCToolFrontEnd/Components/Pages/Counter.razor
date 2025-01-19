@@ -10,9 +10,25 @@
 @layout MainLayout
 @inject UtilitiesService UtilitiesService
 @inject ClientHelper ClientHelper
+@inject PresetService PresetService
 
 <PageTitle>Real-Time display</PageTitle>
 
+
+<MudItem> 
+    <MudGrid Class="d-flex justify-end align-center"> 
+        <MudItem> 
+            <MudSelect T="string" Label="Stress settings" MultiSelection="false" ValueChanged="@StressFlow"> 
+
+                @foreach(var settings in StressLevels)
+                {
+                    <MudSelectItem T="string" Value="@settings">@settings</MudSelectItem>
+                }
+
+            </MudSelect>
+        </MudItem>
+    </MudGrid>
+</MudItem>
 
 <MudGrid Spacing="1" Class="pa-4">
 
@@ -36,28 +52,30 @@
             <MudText Align="Align.Center"> Streaming unary chart </MudText>
 
             <MudChart ChartType="ChartType.Line"
-                      Options="@_options"
+                      Labels="@_StreamingSingleLabels"
+                      ChartOptions="@_options"
+                      ChartSeries="@_series2"
                       Style="height: 100%; width: 100%;" />
         </MudPaper>
     </MudItem>
 
  
     <MudItem xs="12" sm="6" md="6">
-        <MudPaper Class="MyMudPaper" Style="height: 450px; width: 100%;">
-
-            <MudText Align="Align.Center"> Unary batch chart </MudText>
-
+        <MudPaper Class="MyMudPaper" Style="height: 400px; width: 100%;">
+            <MudText Align="Align.Center"> Unary single chart </MudText>
             <MudChart ChartType="ChartType.Line"
-                      Options="@_options"
+                      Labels="@_UnarySingleLabels"
+                      ChartOptions="@_options"
+                      ChartSeries="@_series3"
                       Style="height: 100%; width: 100%;" />
         </MudPaper>
     </MudItem>
 
   
     <MudItem xs="12" sm="6" md="6">
-        <MudPaper Class="MyMudPaper" Style="height: 450px; width: 100%;">
+        <MudPaper Class="MyMudPaper" Style="height: 400px; width: 100%;">
 
-            <MudText Align="Align.Center"> Unary single chart </MudText>
+            <MudText Align="Align.Center"> Unary batch chart </MudText>
 
             <MudChart ChartType="ChartType.Line"
                       Options="@_options"
@@ -82,7 +100,85 @@
 @implements IDisposable
 
 @code {
-    private const int MaxDataPoints = 100;
+
+    private List<string> StressLevels = new List<string>
+    {
+        "Low stress", 
+        "Medium stress", 
+        "High stress"
+    };
+
+    private string _StressLevelValue;
+
+    private bool _LowStressActive = false;
+
+    private bool _MediumStressActive = false; 
+
+    private bool _HighStressActive = false;
+
+    private const int MaxDataPoints = 1000;
+
+    private async Task StressFlow(string stressLevelValue)
+    {
+        _StressLevelValue = stressLevelValue;
+
+        Log.Information($"Stress level value has changed to {stressLevelValue}");
+
+        if(stressLevelValue == "Low stress")
+        {
+            _LowStressActive = true;
+            _MediumStressActive = false; 
+            _HighStressActive = false;
+        }
+        else if(stressLevelValue == "Medium stress")
+        {
+            _LowStressActive = false;
+            _HighStressActive = false; 
+            _MediumStressActive = true;
+        }
+        else if(stressLevelValue == "High stress")
+        {
+            _LowStressActive = false;
+            _MediumStressActive = false; 
+            _HighStressActive = true;
+        }
+        else
+        {
+            Log.Warning("Unexpected value returned from the stress flow");
+        }
+
+        await StressFlowSelection();
+
+
+    }
+
+    private async Task StressFlowSelection()
+    {
+
+        if(_StressLevelValue == "Low stress" && _LowStressActive)
+        {
+            Log.Information($"Low stress has been activated");
+
+            await PresetService.LowStress(_LowStressActive);
+        }
+        else if(_StressLevelValue == "Medium stress" && _MediumStressActive)
+        {
+            Log.Information($"Medium stress has been activated");
+
+            await PresetService.MediumStress(_MediumStressActive);
+        }
+        else if(_StressLevelValue == "High stress" && _HighStressActive)
+        {
+            Log.Information($"High stress has been activated"); 
+
+            await PresetService.HighStress(_HighStressActive);
+        }
+        else
+        {
+            Log.Warning($"something went wrong within the stress flow selection process");
+        }
+
+    }
 
     private ChartOptions _options = new ChartOptions
         {
@@ -100,26 +196,136 @@
             Data = new double[] { }
         };
 
+    private ChartSeries _chart2 = new()
+        {
+            Name = "Single Streaming Delay(s)",
+            Data = new double[] { }
+        };
+
+    private ChartSeries _chart3 = new()
+        {
+            Name = "Single Unary Delay(s)",
+            Data = new double[] { }
+        };
+
     private List<ChartSeries> _series = new List<ChartSeries>();
+    private List<ChartSeries> _series2 = new List<ChartSeries>();
+    private List<ChartSeries> _series3 = new List<ChartSeries>();
+
+
     private List<string> _labels = new List<string>();
+    private List<string> _StreamingSingleLabels = new List<string>();
+    private List<string> _UnarySingleLabels = new List<string>();
+
     private List<double> _delays = new();
+    private List<double> _streamingSingleDelays = new();
+    private List<double> _UnarySingleDelays = new();
 
     protected override async Task OnInitializedAsync()
     {
+        string sessionUnique = await ClientHelper.GetStringFromStringFromLocalStorage("session-unique");
+
         _series.Add(_chart1);
+        _series2.Add(_chart2);
+        _series3.Add(_chart3);
+
+        UtilitiesService.OnUnarySingleReceived += HandleUnarySingleReceived; 
+
+        GetUnaryDelaysRequest newUnaryDelay = new GetUnaryDelaysRequest
+        {};
+
+        UtilitiesService.StartReceivingUnaryMessages(newUnaryDelay, sessionUnique);
+
+        UtilitiesService.OnStreamingSingleReceived += HandleStreamingSingleReceived;
+
+        GetStreamingDelaysRequest newStreamingDelay = new GetStreamingDelaysRequest
+        { };
+
+        UtilitiesService.StartReceivingStreamingMessages(newStreamingDelay, sessionUnique);
+
 
         UtilitiesService.OnBatchReceived += HandleBatchRequestReceived;
 
         GetStreamingBatchDelaysRequest newStreamingBatchDelay = new GetStreamingBatchDelaysRequest
-        {
-
-        };
-
-        string sessionUnique = await ClientHelper.GetStringFromStringFromLocalStorage("session-unique"); 
+        {};
 
         UtilitiesService.StartReceivingStreamingBatchMessages(newStreamingBatchDelay, sessionUnique); 
 
         await base.OnInitializedAsync();
+    }
+
+    private async void HandleUnarySingleReceived(GetUnaryDelaysResponse unaryDelaysResponse)
+    {
+       await InvokeAsync(() =>
+       {
+           try
+           {
+
+               TimeSpan delayTimeSpan = TimeSpan.Parse(
+                   unaryDelaysResponse.GatheringUnaryDelays.Delay);
+
+               double delayMs = delayTimeSpan.TotalMilliseconds;
+
+               DateTime recordTime = DateTime.Parse(
+                   unaryDelaysResponse.GatheringUnaryDelays.ResponseTimestamp);
+
+               string timeLabel = recordTime.ToString("HH:mm:ss");
+
+               _UnarySingleLabels.Add(timeLabel);
+
+               _UnarySingleDelays.Add(delayMs);
+
+               if (_UnarySingleLabels.Count > MaxDataPoints)
+                   _UnarySingleLabels.RemoveAt(0);
+               if (_UnarySingleDelays.Count > MaxDataPoints)
+                   _UnarySingleDelays.RemoveAt(0);
+
+               _chart3.Data = _UnarySingleDelays.ToArray();
+
+               StateHasChanged();
+           }
+           catch (Exception ex)
+           {
+               Log.Error(ex, "Failed to parse delay or timestamp.");
+           }
+       });
+    }
+
+    private async void HandleStreamingSingleReceived(GetStreamingDelaysResponse streamingSingleDelaysResponse)
+    {
+        await InvokeAsync(() =>
+        {
+            try
+            {
+
+                TimeSpan delayTimeSpan = TimeSpan.Parse(
+                    streamingSingleDelaysResponse.GatheringStreamingDelays.Delay);
+
+                double delayMs = delayTimeSpan.TotalMilliseconds;
+
+                DateTime recordTime = DateTime.Parse(
+                    streamingSingleDelaysResponse.GatheringStreamingDelays.ResponseTimestamp);
+
+                string timeLabel = recordTime.ToString("HH:mm:ss");
+
+                _StreamingSingleLabels.Add(timeLabel);
+
+                _streamingSingleDelays.Add(delayMs);
+
+                if (_StreamingSingleLabels.Count > MaxDataPoints)
+                    _StreamingSingleLabels.RemoveAt(0);
+                if (_streamingSingleDelays.Count > MaxDataPoints)
+                    _streamingSingleDelays.RemoveAt(0);
+
+                _chart2.Data = _streamingSingleDelays.ToArray();
+
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to parse delay or timestamp.");
+            }
+        });
     }
 
     private async void HandleBatchRequestReceived(GetStreamingBatchDelaysResponse streamingBatchDelaysResponse)
