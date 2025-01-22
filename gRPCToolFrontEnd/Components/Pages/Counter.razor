@@ -15,10 +15,10 @@
 <PageTitle>Real-Time display</PageTitle>
 
 
-<MudItem> 
-    <MudGrid Class="d-flex justify-end align-center"> 
+<MudItem >
+    <MudGrid Class="d-flex justify-end align-center" Style="margin-bottom: 20px;">
         <MudItem> 
-            <MudSelect T="string" Label="Stress settings" MultiSelection="false" ValueChanged="@StressFlow"> 
+            <MudSelect T="string" Label="Stress levels" MultiSelection="false" Value="@_StressLevelValue" ValueChanged="@StressFlow" Style="margin-right: 20px; min-width: 200px;">
 
                 @foreach(var settings in StressLevels)
                 {
@@ -78,7 +78,9 @@
             <MudText Align="Align.Center"> Unary batch chart </MudText>
 
             <MudChart ChartType="ChartType.Line"
-                      Options="@_options"
+                      Labels="@_UnaryBatchLabels"
+                      ChartOptions="@_options"
+                      ChartSeries="@_series4"
                       Style="height: 100%; width: 100%;" />
         </MudPaper>
     </MudItem>
@@ -208,18 +210,27 @@
             Data = new double[] { }
         };
 
+    private ChartSeries _chart4 = new()
+        {
+            Name = "Unary Batch Delay(s)",
+            Data = new double[] { }
+        };
+
     private List<ChartSeries> _series = new List<ChartSeries>();
     private List<ChartSeries> _series2 = new List<ChartSeries>();
     private List<ChartSeries> _series3 = new List<ChartSeries>();
+    private List<ChartSeries> _series4 = new List<ChartSeries>();
 
 
     private List<string> _labels = new List<string>();
     private List<string> _StreamingSingleLabels = new List<string>();
     private List<string> _UnarySingleLabels = new List<string>();
+    private List<string> _UnaryBatchLabels = new List<string>();
 
     private List<double> _delays = new();
     private List<double> _streamingSingleDelays = new();
     private List<double> _UnarySingleDelays = new();
+    private List<double> _UnaryBatchDelays = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -228,6 +239,14 @@
         _series.Add(_chart1);
         _series2.Add(_chart2);
         _series3.Add(_chart3);
+        _series4.Add(_chart4);
+
+        UtilitiesService.OnUnaryBatchReceived += HandleUnaryBatchReceived;
+
+        GetUnaryBatchDelaysRequest newUnaryBatchDelays = new GetUnaryBatchDelaysRequest
+        { };
+
+        UtilitiesService.StartReceivingUnaryBatchMessages(newUnaryBatchDelays, sessionUnique);
 
         UtilitiesService.OnUnarySingleReceived += HandleUnarySingleReceived; 
 
@@ -254,41 +273,78 @@
         await base.OnInitializedAsync();
     }
 
+    private async void HandleUnaryBatchReceived(GetUnaryBatchDelaysResponse unaryBatchDelaysResponse)
+    {
+        await InvokeAsync(() =>
+        {
+            try
+            {
+
+                TimeSpan delayTimeSpan = TimeSpan.Parse(
+                   unaryBatchDelaysResponse.GatheringUnaryBatchDelays.Delay);
+
+                double delayMs = delayTimeSpan.TotalMilliseconds;
+
+                DateTime recordTime = DateTime.Parse(
+                    unaryBatchDelaysResponse.GatheringUnaryBatchDelays.ResponseTimestamp);
+
+                string timeLabel = recordTime.ToString("HH:mm:ss");
+
+                _UnaryBatchLabels.Add(timeLabel);
+
+                _UnaryBatchDelays.Add(delayMs);
+
+                if (_UnaryBatchLabels.Count > MaxDataPoints)
+                    _UnaryBatchLabels.RemoveAt(0);
+                if (_UnaryBatchDelays.Count > MaxDataPoints)
+                    _UnaryBatchDelays.RemoveAt(0);
+
+                _chart4.Data = _UnaryBatchDelays.ToArray();
+
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to parse delay or timestamp.");
+            }
+        });
+    }
+
     private async void HandleUnarySingleReceived(GetUnaryDelaysResponse unaryDelaysResponse)
     {
-       await InvokeAsync(() =>
-       {
-           try
-           {
+        await InvokeAsync(() =>
+        {
+            try
+            {
 
-               TimeSpan delayTimeSpan = TimeSpan.Parse(
-                   unaryDelaysResponse.GatheringUnaryDelays.Delay);
+                TimeSpan delayTimeSpan = TimeSpan.Parse(
+                    unaryDelaysResponse.GatheringUnaryDelays.Delay);
 
-               double delayMs = delayTimeSpan.TotalMilliseconds;
+                double delayMs = delayTimeSpan.TotalMilliseconds;
 
-               DateTime recordTime = DateTime.Parse(
-                   unaryDelaysResponse.GatheringUnaryDelays.ResponseTimestamp);
+                DateTime recordTime = DateTime.Parse(
+                    unaryDelaysResponse.GatheringUnaryDelays.ResponseTimestamp);
 
-               string timeLabel = recordTime.ToString("HH:mm:ss");
+                string timeLabel = recordTime.ToString("HH:mm:ss");
 
-               _UnarySingleLabels.Add(timeLabel);
+                _UnarySingleLabels.Add(timeLabel);
 
-               _UnarySingleDelays.Add(delayMs);
+                _UnarySingleDelays.Add(delayMs);
 
-               if (_UnarySingleLabels.Count > MaxDataPoints)
-                   _UnarySingleLabels.RemoveAt(0);
-               if (_UnarySingleDelays.Count > MaxDataPoints)
-                   _UnarySingleDelays.RemoveAt(0);
+                if (_UnarySingleLabels.Count > MaxDataPoints)
+                    _UnarySingleLabels.RemoveAt(0);
+                if (_UnarySingleDelays.Count > MaxDataPoints)
+                    _UnarySingleDelays.RemoveAt(0);
 
-               _chart3.Data = _UnarySingleDelays.ToArray();
+                _chart3.Data = _UnarySingleDelays.ToArray();
 
-               StateHasChanged();
-           }
-           catch (Exception ex)
-           {
-               Log.Error(ex, "Failed to parse delay or timestamp.");
-           }
-       });
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Failed to parse delay or timestamp.");
+            }
+        });
     }
 
     private async void HandleStreamingSingleReceived(GetStreamingDelaysResponse streamingSingleDelaysResponse)
@@ -367,6 +423,7 @@
         });
     }
 
+
     public void Dispose()
     {
         UtilitiesService.OnBatchReceived -= HandleBatchRequestReceived;
@@ -375,8 +432,5 @@
     }
 
 
-    private async Task Presets()
-    {
-        
-    }
+   
 }

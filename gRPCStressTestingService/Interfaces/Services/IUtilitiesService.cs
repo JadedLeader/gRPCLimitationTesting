@@ -13,5 +13,7 @@ namespace gRPCStressTestingService.Interfaces.Services
 
         public Task GetUnaryDelays(GetUnaryDelaysRequest request, IServerStreamWriter<GetUnaryDelaysResponse> responseStream, ServerCallContext context);
 
+        public Task GetUnaryBatchDelays(GetUnaryBatchDelaysRequest request, IServerStreamWriter<GetUnaryBatchDelaysResponse> responseStream, ServerCallContext context);
+
     }
 }

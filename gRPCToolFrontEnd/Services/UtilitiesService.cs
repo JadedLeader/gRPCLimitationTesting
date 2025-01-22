@@ -19,6 +19,7 @@ namespace gRPCToolFrontEnd.Services
         public event Action<GetStreamingBatchDelaysResponse> OnBatchReceived;
         public event Action<GetStreamingDelaysResponse> OnStreamingSingleReceived;
         public event Action<GetUnaryDelaysResponse> OnUnarySingleReceived;
+        public event Action<GetUnaryBatchDelaysResponse> OnUnaryBatchReceived;
 
         public UtilitiesService(Utilities.UtilitiesClient utilitiesClient)
         {
@@ -52,6 +53,13 @@ namespace gRPCToolFrontEnd.Services
 
             Task.Run(() =>  ReceivingUnaryStream(unaryRequest, _cancellationToken.Token, sessionUnique));
 
+        }
+
+        public void StartReceivingUnaryBatchMessages(GetUnaryBatchDelaysRequest unaryBatchRequest, string sessionUnique)
+        {
+            _cancellationToken = new CancellationTokenSource();
+
+            Task.Run(() => ReceivingUnaryBatchStream(unaryBatchRequest, _cancellationToken.Token, sessionUnique));
         }
 
         public void StopReceivingMessages()
@@ -157,6 +165,24 @@ namespace gRPCToolFrontEnd.Services
                 Log.Information($"Unary single request received, message ID {response.GatheringUnaryDelays.MessageId} with delay : {response.GatheringUnaryDelays.Delay}"); 
 
                 OnUnarySingleReceived?.Invoke(response);
+            }
+        }
+
+        public async Task ReceivingUnaryBatchStream(GetUnaryBatchDelaysRequest unaryBatchRequests, CancellationToken cancellationToken, string sessionUnique)
+        {
+            Metadata metadata = new Metadata();
+
+            metadata.Add("session-unique", sessionUnique);
+
+            using var call = _utilitiesClient.GetUnaryBatchDelays(unaryBatchRequests, metadata);
+
+            while(await call.ResponseStream.MoveNext(cancellationToken))
+            {
+                var response = call.ResponseStream.Current;
+
+                Log.Information($"Unary batch request received, message ID {response.GatheringUnaryBatchDelays} with delay : {response.GatheringUnaryBatchDelays.Delay}");
+
+                OnUnaryBatchReceived?.Invoke(response);
             }
         }
 

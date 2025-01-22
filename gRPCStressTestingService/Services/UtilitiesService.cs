@@ -182,6 +182,44 @@ namespace gRPCStressTestingService.Services
             }
             
         }
+
+        public async Task GetUnaryBatchDelays(GetUnaryBatchDelaysRequest request, IServerStreamWriter<GetUnaryBatchDelaysResponse> responseStream, ServerCallContext context)
+        {
+
+            string? sessionUnique = context.RequestHeaders.GetValue("session-unique");
+
+            while(!context.CancellationToken.IsCancellationRequested)
+            {
+
+                List<DelayCalc> getBatchUnaryDelays = await _delayCalcRepo.GetBatchUnaryRequests(Guid.Parse(sessionUnique));
+
+                if (getBatchUnaryDelays.Count == 0)
+                {
+                    Log.Warning($"The attempt to get unary batch requests from the database returned nothing");
+                }
+
+                foreach (DelayCalc batchDelays in getBatchUnaryDelays)
+                {
+                    GatheringDelays gatheringBatchDelays = new GatheringDelays
+                    {
+                        MessageId = batchDelays.messageId.ToString(),
+                        DataContent = batchDelays.DataContent,
+                        Delay = batchDelays.Delay.ToString(),
+                        RequestType = batchDelays.RequestType,
+                        ResponseTimestamp = batchDelays.RecordCreation.ToString(),
+                    };
+
+                    GetUnaryBatchDelaysResponse serverResponse = new GetUnaryBatchDelaysResponse
+                    {
+                        GatheringUnaryBatchDelays = gatheringBatchDelays,
+                    };
+
+                    await responseStream.WriteAsync(serverResponse);
+                }
+
+            }
+
+        }
     }
 }
 

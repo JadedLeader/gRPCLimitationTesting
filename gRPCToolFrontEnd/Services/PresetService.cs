@@ -40,7 +40,7 @@ namespace gRPCToolFrontEnd.Services
 
                 await _streamingLatencyService.CreateManyStreamingBatchRequest(null, 1, fileSize);
 
-                await _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize);
+                await _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize, 1);
 
                 
             }
@@ -93,7 +93,7 @@ namespace gRPCToolFrontEnd.Services
 
                 await _streamingLatencyService.CreateManyStreamingBatchRequest(null, 3, fileSize);
 
-                await _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize);
+                await _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize, 3);
 
             }
 
@@ -147,16 +147,17 @@ namespace gRPCToolFrontEnd.Services
                     Log.Information($"Something went wrong when generating the file size decider for the high stress test");
                 }
 
-            
+                Log.Information($"Amount of requests : {amountOfRequests}");
+
+                await _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize, amountOfRequests);
+
                 await _unaryRequestService.UnaryBatchIterativeAsync(null, amountOfRequests, fileSize);
 
                 await _streamingLatencyService.CreateManySingleStreamingRequests(null, amountOfRequests, fileSize);
 
                 await _streamingLatencyService.CreateManyStreamingBatchRequest(null, amountOfRequests, fileSize);
 
-                await _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize);
-
-
+               
             }
         }
 

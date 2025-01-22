@@ -25,7 +25,7 @@ namespace gRPCToolFrontEnd.Helpers
         {
             if(UnaryOrBatch)
             {
-                await _unaryRequestService.UnaryResponseIterativeAsync(null, FileSize);
+                await _unaryRequestService.UnaryResponseIterativeAsync(null, FileSize, BatchIterations);
             }
             else
             {

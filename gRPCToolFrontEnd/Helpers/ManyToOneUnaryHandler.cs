@@ -30,7 +30,7 @@ namespace gRPCToolFrontEnd.Helpers
             {
                // await _unaryRequestService.UnaryResponseAsync(ChannelUnique.Value, FileSize);
 
-                await _unaryRequestService.UnaryResponseIterativeAsync(null, FileSize);
+                await _unaryRequestService.UnaryResponseIterativeAsync(null, FileSize, BatchIterations);
 
             }
             else

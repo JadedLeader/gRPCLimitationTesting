@@ -72,11 +72,9 @@ namespace gRPCToolFrontEnd.Services
            return await newUnaryClient.UnaryResponseAsync(newDataRequest, metaData);
         }
 
-        public async Task<List<DataResponse>> UnaryResponseIterativeAsync(Guid? channelUnique, string fileSize)
+        public async Task<List<DataResponse>> UnaryResponseIterativeAsync(Guid? channelUnique, string fileSize, int amountOfIterations)
         {
             List<DataResponse> responseList = new List<DataResponse>();
-
-            CreateClientInstanceResponse newlyCreatedClientInstance = await _clientInstanceService.CreateClientInstanceAsync();
 
             string filePath = _clientHelper.FileSize(fileSize);
 
@@ -86,22 +84,7 @@ namespace gRPCToolFrontEnd.Services
 
             string newGuid = Guid.NewGuid().ToString();
 
-            var now = DateTime.UtcNow;
-            long ticks = now.Ticks;
-            string preciseTime = now.ToString("HH:mm:ss.ffffff");
-
-            DataRequest newDataRequest = new DataRequest
-            {
-                ClientUnique = newlyCreatedClientInstance.ClientUnique,
-                ConnectionAlive = false,
-                DataContent = content,
-                RequestType = "Unary",
-                DataSize = fileSize,
-                RequestId = newGuid,
-                RequestTimestamp = preciseTime,
-                DataContentSize = dataContent
-
-            };
+            
 
             Metadata metaData = new Metadata
             {
@@ -113,34 +96,78 @@ namespace gRPCToolFrontEnd.Services
             if (channelUnique == null)
             {
                 Log.Information($"Channel unique was null, generating multiple iterative unary requests for all channels");
+                
 
                 Dictionary<Guid, GrpcChannel> channels = _accountDetailsStore.GetChannels();
 
+                metaData.Add("open-channels", channels.Count.ToString());
+
                 foreach (var channel in channels)
                 {
-                    Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(channel.Value);
+                    int i = 0;
 
-                    metaData.Add("open-channels", channels.Count.ToString());
+                    while(i < amountOfIterations)
+                    {
 
-                    string uniqueRequestId = Guid.NewGuid().ToString();
-                    newDataRequest.RequestId = uniqueRequestId;
+                        var now = DateTime.UtcNow;
+                        long ticks = now.Ticks;
+                        string preciseTime = now.ToString("HH:mm:ss.ffffff");
 
-                    Log.Information($"Sending iterative unary request on channel ID {channel.Key} with unique message ID {newDataRequest.RequestId}");
+                        CreateClientInstanceResponse newlyCreatedClientInstance = await _clientInstanceService.CreateClientInstanceAsync();
 
-                    var response = await newUnaryClient.UnaryResponseAsync(newDataRequest, metaData);
+                        DataRequest newRequest = new DataRequest
+                        {
+                            ClientUnique = newlyCreatedClientInstance.ClientUnique,
+                            ConnectionAlive = false,
+                            DataContent = content,
+                            RequestType = "Unary",
+                            DataSize = fileSize,
+                            RequestId = Guid.NewGuid().ToString(),
+                            RequestTimestamp = preciseTime,
+                            DataContentSize = dataContent
 
-                    responseList.Add(response);
+                        };
 
+                        Log.Information($"Sending iterative unary request on channel ID {channel.Key} with unique message ID {newRequest.RequestId}");
+
+                        Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(channel.Value);
+
+                        var response = await newUnaryClient.UnaryResponseAsync(newRequest, metaData);
+
+                        responseList.Add(response);
+
+                        i++;
+
+                    }
+             
                 }
             }
             else
             {
                 Log.Information($"Channel unique was provided, generating multiple iterative unary requests for channel with ID: {channelUnique}");
 
+                CreateClientInstanceResponse newlyCreatedClientInstance = await _clientInstanceService.CreateClientInstanceAsync();
+
                 KeyValuePair<Guid, GrpcChannel> getChannel = _accountDetailsStore.GetGrpcChannel(channelUnique.Value);
 
-                Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(getChannel.Value);
+                var now = DateTime.UtcNow;
+                long ticks = now.Ticks;
+                string preciseTime = now.ToString("HH:mm:ss.ffffff");
 
+                DataRequest newDataRequest = new DataRequest
+                {
+                    ClientUnique = newlyCreatedClientInstance.ClientUnique,
+                    ConnectionAlive = false,
+                    DataContent = content,
+                    RequestType = "Unary",
+                    DataSize = fileSize,
+                    RequestId = newGuid,
+                    RequestTimestamp = preciseTime,
+                    DataContentSize = dataContent
+
+                };
+
+                Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(getChannel.Value);
               
                 await newUnaryClient.UnaryResponseAsync(newDataRequest, metaData);
             }
