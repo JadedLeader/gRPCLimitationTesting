@@ -84,29 +84,25 @@ namespace gRPCToolFrontEnd
                 o.Address = new Uri("https://localhost:5000");
             });
 
+            builder.Services.AddGrpcClient<Admin.AdminClient>(o =>
+            {
+                o.Address = new Uri("https://localhost:5000");
+            }); ;
+
 
             builder.Services.AddSingleton<UtilitiesService>();
 
             builder.Services.AddScoped<UnaryRequestService>();
+            builder.Services.AddScoped<AdminService>();
 
             builder.Services.AddScoped<ClientHelper>();
 
             builder.Services.AddSingleton<AccountDetailsStore>();
-
+            builder.Services.AddSingleton<RequestDelayStorage>();
+            builder.Services.AddSingleton<ClientStorage>();
+         
             builder.Services.AddScoped<StreamingLatencyService>();
             builder.Services.AddScoped<IRequestTypeHandlingFactory, RequestTypeHandlingFactory>();
-            
-
-            //factory things
-          /*  builder.Services.AddScoped<IRequestReceiver, ManyToManyStreamingHandler>();
-            builder.Services.AddScoped<IRequestReceiver, ManyToOneStreamingHandler>();
-            builder.Services.AddScoped<IRequestReceiver, OneToOneUnaryHandler>();
-            builder.Services.AddScoped<IRequestReceiver, OneToManyStreamingHandler>();
-
-            builder.Services.AddScoped<IRequestReceiver, ManyToManyStreamingHandler>();
-            builder.Services.AddScoped<IRequestReceiver, ManyToOneStreamingHandler>();
-            builder.Services.AddScoped<IRequestReceiver, OneToManyStreamingHandler>();
-            builder.Services.AddScoped<IRequestReceiver, ManyToOneStreamingHandler>(); */
 
             builder.Services.AddScoped<IRequestTypeHandlingFactory, RequestTypeHandlingFactory>();
             builder.Services.AddScoped<PresetService>();

@@ -18,11 +18,14 @@ namespace gRPCToolFrontEnd.Services
         private readonly ClientHelper _clientHelper;
 
         private readonly ClientInstanceService _clientInstanceService;
-        public UnaryRequestService(AccountDetailsStore accountDetailsStore, ClientHelper clientHelper, ClientInstanceService clientInstanceService)
+
+        private readonly ClientStorage _clientStorage;
+        public UnaryRequestService(AccountDetailsStore accountDetailsStore, ClientHelper clientHelper, ClientInstanceService clientInstanceService, ClientStorage clientStorage)
         {
             _accountDetailsStore = accountDetailsStore;
             _clientHelper = clientHelper;
             _clientInstanceService = clientInstanceService;
+            _clientStorage = clientStorage;
         }
 
         public async Task<DataResponse> UnaryResponseAsync(Guid channelId, string fileSize)
@@ -84,8 +87,6 @@ namespace gRPCToolFrontEnd.Services
 
             string newGuid = Guid.NewGuid().ToString();
 
-            
-
             Metadata metaData = new Metadata
             {
                 { "request-type", "Unary" },
@@ -96,7 +97,6 @@ namespace gRPCToolFrontEnd.Services
             if (channelUnique == null)
             {
                 Log.Information($"Channel unique was null, generating multiple iterative unary requests for all channels");
-                
 
                 Dictionary<Guid, GrpcChannel> channels = _accountDetailsStore.GetChannels();
 
@@ -131,6 +131,8 @@ namespace gRPCToolFrontEnd.Services
                         Log.Information($"Sending iterative unary request on channel ID {channel.Key} with unique message ID {newRequest.RequestId}");
 
                         Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(channel.Value);
+
+                        _clientStorage.TotalUnaryClients += 1;
 
                         var response = await newUnaryClient.UnaryResponseAsync(newRequest, metaData);
 
@@ -168,7 +170,9 @@ namespace gRPCToolFrontEnd.Services
                 };
 
                 Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(getChannel.Value);
-              
+
+                _clientStorage.TotalUnaryClients += 1;
+
                 await newUnaryClient.UnaryResponseAsync(newDataRequest, metaData);
             }
 
@@ -183,10 +187,11 @@ namespace gRPCToolFrontEnd.Services
 
             Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(getChannel.Value);
 
+            _clientStorage.TotalUnaryClients += 1;
+
             Metadata metaData = new Metadata();
 
             string batchRequestId = Guid.NewGuid().ToString();
-
 
             List<BatchDataRequestDetails> dataRequestDetails = await GeneratingBatchOfRequests(batchIterations, fileSize);
 
@@ -253,6 +258,8 @@ namespace gRPCToolFrontEnd.Services
                 {
                     Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(channel.Value);
 
+                    _clientStorage.TotalUnaryClients += 1;
+
                     foreach (var message in batchDataRequestUnary.BatchDataRequest_)
                     {
                         message.RequestId = Guid.NewGuid().ToString();
@@ -277,6 +284,8 @@ namespace gRPCToolFrontEnd.Services
                 KeyValuePair<Guid, GrpcChannel> getChannel = _accountDetailsStore.GetGrpcChannel(channelUnique.Value);
 
                 Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(getChannel.Value);
+
+                _clientStorage.TotalUnaryClients += 1;
 
                 BatchDataResponse serverResponse = await newUnaryClient.BatchUnaryResponseAsync(batchDataRequestUnary, metaData);
 
@@ -338,6 +347,7 @@ namespace gRPCToolFrontEnd.Services
 
             return dataRequestDetails;
         }
+
 
     }
 }

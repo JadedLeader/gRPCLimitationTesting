@@ -9,6 +9,7 @@
   <ItemGroup>
     <None Remove="Components\Pages\ChannelGenerationPage.razor.css" />
     <None Remove="Components\Pages\Counter.razor.css" />
+    <None Remove="Protos\Admin.proto" />
     <None Remove="Protos\AuthTokens.proto" />
     <None Remove="Protos\ClientInstances.proto" />
     <None Remove="Protos\Sessions.proto" />
@@ -35,7 +36,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="MudBlazor" Version="7.*" />
+    <PackageReference Include="MudBlazor" Version="8.0.0" />
     <PackageReference Include="Serilog" Version="4.2.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
@@ -44,6 +45,7 @@
 
 	<ItemGroup>
 		<Protobuf Include="Protos\Accounts.proto" GrpcServices="Client" />
+		<Protobuf Include="Protos\Admin.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\AuthTokens.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\ClientInstances.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\Sessions.proto" GrpcServices="Client " />

@@ -20,12 +20,13 @@ namespace gRPCToolFrontEnd.Services
         private readonly AccountDetailsStore _accountDetailsStore;  
         private readonly ClientHelper _clientHelper;
         private readonly ClientInstanceService _clientInstanceService;
-
-        public StreamingLatencyService(AccountDetailsStore accountDetailsStore, ClientHelper clientHelper, ClientInstanceService clientInstanceService)
+        private readonly ClientStorage _clientStorage;
+        public StreamingLatencyService(AccountDetailsStore accountDetailsStore, ClientHelper clientHelper, ClientInstanceService clientInstanceService, ClientStorage clientStorage)
         {
             _accountDetailsStore = accountDetailsStore;
             _clientHelper = clientHelper;
             _clientInstanceService = clientInstanceService;
+            _clientStorage = clientStorage;
         }
 
        
@@ -42,7 +43,9 @@ namespace gRPCToolFrontEnd.Services
                 Log.Information($"could not find a grpc channel via that GUID");
             }
 
-            StreamingLatency.StreamingLatencyClient newclient = new StreamingLatency.StreamingLatencyClient(getChannel.Value); 
+            StreamingLatency.StreamingLatencyClient newclient = new StreamingLatency.StreamingLatencyClient(getChannel.Value);
+
+            _clientStorage.TotalStreamingClients += 1;
 
             await GenerateStreamingRequest(newclient, newlyCreatedClient.ClientUnique, fileSize);
         }
@@ -62,6 +65,8 @@ namespace gRPCToolFrontEnd.Services
                 {
                     StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(channel.Value);
 
+                    _clientStorage.TotalStreamingClients += 1;
+
                     await GeneratingeManySingleStreamingRequests(streamingClient, amountOfRequests, newlyCreatedCleint.ClientUnique, fileSize);
                 }
             }
@@ -70,6 +75,8 @@ namespace gRPCToolFrontEnd.Services
                 var getChannel = _accountDetailsStore.GetGrpcChannel(channelUnique.Value);
 
                 StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(getChannel.Value);
+
+                _clientStorage.TotalStreamingClients += 1;
 
                 await GeneratingeManySingleStreamingRequests(streamingClient, amountOfRequests, newlyCreatedCleint.ClientUnique, fileSize);
             }
@@ -89,6 +96,8 @@ namespace gRPCToolFrontEnd.Services
             CreateClientInstanceResponse newlyCreatedClient = await _clientInstanceService.CreateClientInstanceAsync();
 
             StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(getChannel.Value);
+
+            _clientStorage.TotalStreamingClients += 1;
 
             await GeneratingSingularBatchStreamingRequest(streamingClient, requestsInBatch, newlyCreatedClient.ClientUnique, fileSize);
         }
@@ -114,6 +123,8 @@ namespace gRPCToolFrontEnd.Services
 
                     StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(channel.Value);
 
+                    _clientStorage.TotalStreamingClients += 1;
+
                     await GeneratingSingularBatchStreamingRequest(streamingClient, requestsInBatch, newlyCreatedClient.ClientUnique, fileSize);
                 }
             }
@@ -126,6 +137,8 @@ namespace gRPCToolFrontEnd.Services
                 KeyValuePair<Guid, GrpcChannel> getChannel = _accountDetailsStore.GetGrpcChannel(channelUnique.Value);
 
                 StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(getChannel.Value);
+
+                _clientStorage.TotalStreamingClients += 1;
 
                 await GeneratingSingularBatchStreamingRequest(streamingClient, requestsInBatch, newlyCreatedClient.ClientUnique, fileSize);
                 

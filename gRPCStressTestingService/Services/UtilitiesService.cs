@@ -4,6 +4,7 @@ using Grpc.Core;
 using gRPCStressTestingService.Interfaces.Services;
 using Microsoft.AspNetCore.OutputCaching;
 using Serilog;
+using System.Diagnostics;
 
 namespace gRPCStressTestingService.Services
 {
@@ -220,6 +221,8 @@ namespace gRPCStressTestingService.Services
             }
 
         }
+
+       
     }
 }
 

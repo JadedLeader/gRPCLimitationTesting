@@ -11,7 +11,8 @@ namespace gRPCToolFrontEnd.Services
     public class UtilitiesService : IDisposable
     {
 
-  
+        private readonly RequestDelayStorage _requestDelayStorage;
+
         private readonly Utilities.UtilitiesClient _utilitiesClient;
         private CancellationTokenSource _cancellationToken;
 
@@ -24,6 +25,7 @@ namespace gRPCToolFrontEnd.Services
         public UtilitiesService(Utilities.UtilitiesClient utilitiesClient)
         {
             _utilitiesClient = utilitiesClient;
+            
         }
 
         public void StartReceivingMessages(GetClientsWithMessagesRequest request, string sessionUnique)
@@ -115,6 +117,8 @@ namespace gRPCToolFrontEnd.Services
                     var response = call.ResponseStream.Current;
 
                     Log.Information($"streaming batch request received, message ID: {response.GatheringStreamingBatchDelays.MessageId} with delay : {response.GatheringStreamingBatchDelays.Delay}");
+
+                   
 
                     OnBatchReceived?.Invoke(response);
                 }

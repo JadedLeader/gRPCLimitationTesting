@@ -1,0 +1,314 @@
+﻿@page "/Metrics"
+@using Grpc.Net.Client
+@using Serilog
+@using gRPCToolFrontEnd.Components.Layout
+@using gRPCToolFrontEnd.Helpers
+@using gRPCToolFrontEnd.LocalStorage
+@using gRPCToolFrontEnd.Services
+@layout MainLayout 
+@inject AccountDetailsStore AccountDetailsStore
+@inject RequestDelayStorage RequestDelayStorage
+@inject UtilitiesService UtilitiesService
+@inject ClientHelper ClientHelper
+@inject ClientStorage ClientStorage
+
+<PageTitle>Metrics</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+
+    <MudPaper Class="chart-container" Elevation="6" Style="margin-top: 20px;">
+        <MudText Typo="Typo.h6" Align="Align.Center" Class="chart-title">
+            REQUEST COMPARISON
+        </MudText>
+        <MudText Typo="Typo.body2" Align="Align.Center" Class="chart-subtitle">
+            Comparing Requests: Unary, Streaming, and Batch
+        </MudText>
+        <MudChart ChartType="ChartType.Bar" Class="chart" ChartSeries="RequestComparsionSeries" />
+    </MudPaper>
+
+    <MudGrid Gutter="2" Class="mt-4">
+        <!-- Total Channels -->
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="metric-container" Elevation="3">
+                <MudText Typo="Typo.h6">Total Channels</MudText>
+                <MudText Typo="Typo.h4" Align="Align.Center">@TotalChannels</MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="metric-container" Elevation="3">
+                <MudText Typo="Typo.h6">Total Unary Clients</MudText>
+                <MudText Typo="Typo.h4" Align="Align.Center">@ActiveUnaryClients</MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="metric-container" Elevation="3">
+                <MudText Typo="Typo.h6">Total Streaming Clients</MudText>
+                <MudText Typo="Typo.h4" Align="Align.Center">@ActiveStreamingClients</MudText>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Class="metric-container" Elevation="3">
+                <MudText Typo="Typo.h6">Ephemeral Ports</MudText>
+                <MudText Typo="Typo.h4" Align="Align.Center">@EphemeralPorts</MudText>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+<style>
+ 
+    .header-title {
+        color: #ffffff;
+        text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+   
+    .chart-container {
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+    }
+
+    .chart-title {
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+
+    .chart-subtitle {
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+    }
+
+    .streaming-batch {
+        color: #ff5733;
+    }
+
+    .streaming-single {
+        color: #33b5e5;
+    }
+
+    .unary-single {
+        color: #9b59b6;
+    }
+
+    .unary-batch {
+        color: #27ae60;
+    }
+
+    .metric-container {
+        background: linear-gradient(145deg, #1a1a1a, #333333);
+        border-radius: 12px;
+        padding: 15px;
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
+        color: #ffffff;
+        text-align: center;
+    }
+
+    .chart {
+        height: 100%;
+        width: 100%
+    }
+
+</style>
+
+@code {
+
+    private int TotalChannels = 0; 
+
+    private int ActiveUnaryClients = 0; 
+
+    private int ActiveStreamingClients = 0; 
+
+    private int EphemeralPorts = 0;
+
+    private int MaxSize = 10_000;
+
+    private List<double> StreamingBatchDelays = new List<double>();
+
+    private List<double> StreamingSingleDelays = new List<double>();
+
+    private List<double> SingleUnaryDelays = new List<double>();
+
+    private List<double> SingleBatchDelays = new List<double>();
+
+    private List<ChartSeries> RequestComparsionSeries = new List<ChartSeries>
+    {
+        new ChartSeries()
+        {
+            Name = "StreamingSingle", 
+        },
+        new ChartSeries()
+        {
+            Name="StreamingBatch"
+        },
+        new ChartSeries()
+        {
+            Name="UnarySingle"
+        },
+        new ChartSeries()
+        {
+            Name="UnaryBatch"
+        }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        Dictionary<Guid, GrpcChannel> getChannels = AccountDetailsStore.GetChannels();
+
+        TotalChannels = getChannels.Count;
+
+        Log.Information($"Current amount of channels within the session: {TotalChannels}");
+
+        EphemeralPorts = getChannels.Count;
+
+        Log.Information($"Current amount of ephemeral ports within the session: {EphemeralPorts} ");
+
+        ActiveUnaryClients = ClientStorage.GetTotalUnaryClients();
+
+        Log.Information($"Current amount of unary clients: {ActiveUnaryClients}");
+
+        ActiveStreamingClients = ClientStorage.GetTotalStreamingClients();
+
+        Log.Information($"Current amount of streaming clients: {ActiveStreamingClients}");
+
+        string? sessionUnique = await ClientHelper.GetStringFromStringFromLocalStorage("session-unique");
+
+        UtilitiesService.OnBatchReceived += SettingStreamingBatchDelays;
+
+        GetStreamingBatchDelaysRequest streamingBatchDelays = new GetStreamingBatchDelaysRequest
+        { };
+
+        UtilitiesService.StartReceivingStreamingBatchMessages(streamingBatchDelays, sessionUnique);
+
+        UtilitiesService.OnStreamingSingleReceived += SettingStreamingSingleDelays;
+
+        GetStreamingDelaysRequest streamingSingleDelays = new GetStreamingDelaysRequest
+        { };
+
+        UtilitiesService.StartReceivingStreamingMessages(streamingSingleDelays, sessionUnique);
+
+        UtilitiesService.OnUnarySingleReceived += SettingUnarySingleDelays;
+
+        GetUnaryDelaysRequest unarySingleDelays = new GetUnaryDelaysRequest
+        { };
+
+        UtilitiesService.StartReceivingUnaryMessages(unarySingleDelays, sessionUnique);
+
+        UtilitiesService.OnUnaryBatchReceived += SettingUnaryBatchDelays;
+
+        GetUnaryBatchDelaysRequest unaryBatchDelays = new GetUnaryBatchDelaysRequest
+        { };
+
+        UtilitiesService.StartReceivingUnaryBatchMessages(unaryBatchDelays, sessionUnique);
+
+
+        StateHasChanged();
+
+    }
+
+    private async void SettingStreamingSingleDelays(GetStreamingDelaysResponse streamingSingleResponse)
+    {
+        ChartSeries gettingSeries = await GetSeries("StreamingSingle");
+
+        await InvokeAsync(() =>
+        {
+            if (TimeSpan.TryParse(streamingSingleResponse.GatheringStreamingDelays.Delay, out TimeSpan delay))
+            {
+                double delayMs = delay.TotalMilliseconds;
+
+                StreamingSingleDelays.Add(delayMs);
+
+                gettingSeries.Data = new double[] { StreamingSingleDelays.Count };
+            }
+
+            StateHasChanged();
+
+        });
+    }
+
+    private async void SettingStreamingBatchDelays(GetStreamingBatchDelaysResponse streamingBatchDelaysResponse)
+    {
+        ChartSeries gettingSeries = await GetSeries("StreamingBatch");
+
+        Log.Information($"Setting streaming batch delays received");
+
+        await InvokeAsync(() =>
+        {
+
+            if(TimeSpan.TryParse(streamingBatchDelaysResponse.GatheringStreamingBatchDelays.Delay, out TimeSpan delay))
+            {
+                double delayInMs = delay.TotalMilliseconds;
+
+                StreamingBatchDelays.Add(Convert.ToDouble(delayInMs));
+
+                gettingSeries.Data = new double[] {StreamingBatchDelays.Count}; 
+            }
+
+            StateHasChanged();
+
+        });
+    }
+
+    private async void SettingUnarySingleDelays(GetUnaryDelaysResponse singleUnaryDelaysResponse)
+    {
+        ChartSeries gettingSeries = await GetSeries("UnarySingle");
+
+        await InvokeAsync(() =>
+        {
+            if (TimeSpan.TryParse(singleUnaryDelaysResponse.GatheringUnaryDelays.Delay, out TimeSpan delay))
+            {
+                double delayInMs = delay.TotalMilliseconds; 
+
+                SingleUnaryDelays.Add(delayInMs);
+
+                gettingSeries.Data = new double[] {SingleUnaryDelays.Count};
+            }
+
+            StateHasChanged();
+
+        });
+    }
+
+    private async void SettingUnaryBatchDelays(GetUnaryBatchDelaysResponse unaryDelaysResponse)
+    {
+        ChartSeries getSeries = await GetSeries("UnaryBatch");
+
+        await InvokeAsync(() =>
+        {
+
+            if(TimeSpan.TryParse(unaryDelaysResponse.GatheringUnaryBatchDelays.Delay, out TimeSpan delay))
+            {
+                double delayInMs = delay.TotalMilliseconds;
+
+                SingleBatchDelays.Add(delayInMs);
+
+                getSeries.Data = new double[] { SingleBatchDelays.Count };
+
+            }
+
+            StateHasChanged();
+
+        });
+    }
+
+    private async Task<ChartSeries> GetSeries(string seriesName)
+    {
+        ChartSeries? series =  RequestComparsionSeries.FirstOrDefault(csn => csn.Name == seriesName);
+
+        if(series == null)
+        {
+            Log.Information($"could not retrieve series with name {seriesName}");
+        }
+
+        Log.Information($"found series with name {seriesName}");
+
+        return series;
+    }
+
+}

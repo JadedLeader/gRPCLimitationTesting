@@ -37,6 +37,6 @@ namespace gRPCStressTestingService.Implementations
             await _utilitiesService.GetUnaryBatchDelays(request, responseStream, context);
         }
 
-
+       
     }
 }

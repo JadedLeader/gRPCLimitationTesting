@@ -1,22 +1,31 @@
-﻿@using MudBlazor.Components.Chart.Models
+﻿@using Grpc.Net.Client
 @using gRPCToolFrontEnd.Components.Layout
+@using gRPCToolFrontEnd.LocalStorage
 @using gRPCToolFrontEnd.Services
 @using Serilog
 @using gRPCToolFrontEnd.Helpers
 @using gRPCToolFrontEnd.DataTypes.ChartDataTypes
 @using gRPCToolFrontEnd.DataTypes
-@using static MudBlazor.Components.Chart.Models.TimeSeriesChartSeries
 @page "/counter"
 @layout MainLayout
 @inject UtilitiesService UtilitiesService
 @inject ClientHelper ClientHelper
 @inject PresetService PresetService
+@inject AccountDetailsStore AccountDetailsStore
+@inject RequestDelayStorage RequestDelayStorage
+@inject AdminService AdminService
 
 <PageTitle>Real-Time display</PageTitle>
 
-
 <MudItem >
     <MudGrid Class="d-flex justify-end align-center" Style="margin-bottom: 20px;">
+
+        <MudItem> 
+            <MudTooltip Text="This button allows for the clearance of request results, removing all plots on the below graphs">
+                <MudButton @onclick="@ClearRequestResults" >Clear Request Results</MudButton>
+            </MudTooltip>
+        </MudItem>
+
         <MudItem> 
             <MudSelect T="string" Label="Stress levels" MultiSelection="false" Value="@_StressLevelValue" ValueChanged="@StressFlow" Style="margin-right: 20px; min-width: 200px;">
 
@@ -27,6 +36,17 @@
 
             </MudSelect>
         </MudItem>
+
+        <MudItem> 
+            <MudTextField @bind-Value="@_AmountOfChannels" T="int" Label="Number of channels" Style="margin-right: 20px; min-width: 200px;"></MudTextField>
+        </MudItem>
+
+        <MudItem> 
+            <MudTooltip Text="This button allows for the generation of channels, used within the request process ">
+                <MudButton Style="margin-right: 20px; min-width: 200px;" @onclick="@GeneratingChannels">Generate channels</MudButton>
+            </MudTooltip>
+        </MudItem>
+
     </MudGrid>
 </MudItem>
 
@@ -35,6 +55,10 @@
     <MudItem xs="12" sm="6" md="6" >
         <MudPaper Class="MyMudPaper" Style="height: 400px; width: 100%;">
 
+            <MudButton Color="Color.Error" @onclick="@AverageStreamingBatch">Average Streaming Batch</MudButton>
+
+            <span>Streaming Batch Average: @_StreamingBatchAverage ms </span>
+
             <MudText Align="Align.Center"> Streaming batch chart </MudText>
 
             <MudChart ChartType="ChartType.Line"
@@ -42,12 +66,19 @@
                       ChartSeries="@_series"
                       ChartOptions="@_options"
                       Style="height: 100%; width: 100%;" />
+            
         </MudPaper>
+
+       
     </MudItem>
 
 
     <MudItem xs="12" sm="6" md="6">
         <MudPaper Class="MyMudPaper" Style="height: 400px; width: 100%;">
+
+            <MudButton Color="Color.Error" @onclick="@AverageStreamingSingle">Average Streaming Single</MudButton>
+
+            <span>Streaming Single Average: @_StreamingSingleAverage ms </span>
 
             <MudText Align="Align.Center"> Streaming unary chart </MudText>
 
@@ -62,7 +93,13 @@
  
     <MudItem xs="12" sm="6" md="6">
         <MudPaper Class="MyMudPaper" Style="height: 400px; width: 100%;">
+
+            <MudButton Color="Color.Error" @onclick="@AverageUnarySingle">Average Unary Single</MudButton>
+
+            <span>Unary Single Average: @_UnarySingleAverage ms </span>
+
             <MudText Align="Align.Center"> Unary single chart </MudText>
+
             <MudChart ChartType="ChartType.Line"
                       Labels="@_UnarySingleLabels"
                       ChartOptions="@_options"
@@ -75,6 +112,10 @@
     <MudItem xs="12" sm="6" md="6">
         <MudPaper Class="MyMudPaper" Style="height: 400px; width: 100%;">
 
+            <MudButton Color="Color.Error" @onclick="@AverageUnaryBatch">Average Unary Batch</MudButton>
+
+            <span>Unary Batch Average: @_UnaryBatchAverage ms </span>
+
             <MudText Align="Align.Center"> Unary batch chart </MudText>
 
             <MudChart ChartType="ChartType.Line"
@@ -85,6 +126,7 @@
         </MudPaper>
     </MudItem>
 </MudGrid>
+
 <style> 
 
     .MyMudPaper {
@@ -103,6 +145,10 @@
 
 @code {
 
+    private int _AmountOfChannels = 0;
+
+    private string _AddressSpace = "https://localhost:5000";
+
     private List<string> StressLevels = new List<string>
     {
         "Low stress", 
@@ -118,7 +164,58 @@
 
     private bool _HighStressActive = false;
 
-    private const int MaxDataPoints = 1000;
+    private const int MaxDataPoints = 10_000;
+
+    private double _UnaryBatchAverage = 0;
+
+    private double _UnarySingleAverage = 0;
+
+    private double _StreamingSingleAverage = 0; 
+
+    private double _StreamingBatchAverage = 0; 
+
+    private async Task ClearRequestResults()
+    {
+
+        Log.Information($"Clearing request results received");
+
+        await AdminService.ClearChannelResults(_AddressSpace);
+
+        _series.Clear();
+        _series2.Clear();
+        _series3.Clear();
+        _series4.Clear();
+
+        StateHasChanged();
+    }
+
+    private async Task AverageUnaryBatch()
+    {
+        List<double> getUnaryBatchResults = await RequestDelayStorage.ReturnDelaysList(_UnaryBatchDelays);
+
+        _UnaryBatchAverage = getUnaryBatchResults.Average();
+    }
+
+    private async Task AverageUnarySingle()
+    {
+        List<double> getUnarySingle = await RequestDelayStorage.ReturnDelaysList(_UnarySingleDelays);
+
+        _UnarySingleAverage = getUnarySingle.Average();
+    }
+
+    private async Task AverageStreamingSingle()
+    {
+        List<double> getStreamingSingleResults = await RequestDelayStorage.ReturnDelaysList(_streamingSingleDelays);
+
+        _StreamingSingleAverage = getStreamingSingleResults.Average();
+    }
+
+    private async Task AverageStreamingBatch()
+    {
+        List<double> getStreamingBatchResults = await RequestDelayStorage.ReturnDelaysList(_delays);
+
+        _StreamingBatchAverage = getStreamingBatchResults.Average();
+    }
 
     private async Task StressFlow(string stressLevelValue)
     {
@@ -150,10 +247,20 @@
         }
 
         await StressFlowSelection();
-
-
     }
 
+
+
+    private async Task GeneratingChannels()
+    {
+        Dictionary<Guid, GrpcChannel> generatingChannels = await ClientHelper.GeneratingMutlipleChannels(_AmountOfChannels, _AddressSpace);
+
+        AccountDetailsStore.channels = generatingChannels;
+
+        Log.Information($"amount of channels created: {AccountDetailsStore.channels}");
+    }
+
+  
     private async Task StressFlowSelection()
     {
 
@@ -190,12 +297,14 @@
             XAxisLines = true,
             LineStrokeWidth = 2,
             YAxisFormat = "0 'seconds'",
+            ShowToolTips = true,
         };
 
     private ChartSeries _chart1 = new()
         {
             Name = "Batch Streaming Delay(s)",
-            Data = new double[] { }
+            Data = new double[] { }, 
+            Visible = true,
         };
 
     private ChartSeries _chart2 = new()
@@ -423,7 +532,7 @@
         });
     }
 
-
+   
     public void Dispose()
     {
         UtilitiesService.OnBatchReceived -= HandleBatchRequestReceived;

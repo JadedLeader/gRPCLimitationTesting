@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+option csharp_namespace = "gRPCToolFrontEnd";
+
+
+service Admin
+{ 
+	rpc ClientMessages(RetrievingClientMessagesViaIdRequest) returns (RetrievingClientMessagesViaIdResponse);
+	rpc DatabaseReset(DatabaseWipeRequest) returns (DatabaseWipeResponse);
+	rpc RetrievingAllClients(RetrievingAllClientsRequest) returns (RetrievingAllClientsResponse);
+	rpc GetAccountViaId(GetAcountViaIdRequest) returns (GetAcountViaIdResponse);
+	rpc RevokeToken(RevokeTokenRequest) returns (RevokeTokenResponse);
+	rpc RevokeSession(RevokeSessionRequest) returns (RevokeSessionResponse);
+	rpc RevokeClientInstances(RevokeClientInstanceRequest) returns (RevokeClientInstanceResponse);
+	rpc ClearDelayCalc(WipeDelayCalcRequest) returns (WipeDelayCalcResponse);
+}
+
+message RetrievingClientMessagesViaIdRequest
+{ 
+	string clientId = 1; 
+}
+
+message RetrievingClientMessagesViaIdResponse
+{ 
+	string clientId = 1; 
+	bool finished = 2;
+}
+
+message WipeDelayCalcRequest
+{ 
+
+}
+
+message WipeDelayCalcResponse
+{ 
+	bool finished = 1;
+}
+
+message DatabaseWipeRequest
+{ 
+
+}
+
+message DatabaseWipeResponse
+{ 
+	bool finished = 1;
+}
+
+message RetrievingAllClientsRequest
+{ 
+	string clientId = 1; 
+}
+
+message RetrievingAllClientsResponse
+{
+	ClientResponseObject clients = 1;
+}
+
+message ClientResponseObject
+{ 
+	string id = 1; 
+	string delayGuid = 2; 
+	string communicationType = 3; 
+	string dataLength = 4; 
+	string delay = 5;
+	string requestType = 6;
+}
+
+message GetAcountViaIdRequest
+{ 
+	string accountUnique = 1;
+}
+
+message GetAcountViaIdResponse
+{
+	string accountUnique = 1; 
+	bool success = 2;
+}
+
+message RevokeTokenRequest
+{ 
+	string TokenUnique = 1;
+}
+
+message RevokeTokenResponse
+{ 
+	string TokenUnique = 1; 
+	bool State = 2;
+}
+
+message RevokeSessionRequest
+{ 
+	string SessionUnique = 1;
+}
+
+message RevokeSessionResponse
+{ 
+	string SessionUnique = 1; 
+	string TimeOfSessionRevoke = 2;
+}
+
+message RevokeClientInstanceRequest
+{ 
+	string SessionUnique = 1; 
+}
+
+message RevokeClientInstanceResponse
+{ 
+	string SessionUnique = 1; 
+	string TimeOfClientRevoke = 2;
+}
+
