@@ -1,16 +1,10 @@
 ﻿using ConfigurationStuff.Abstracts;
 using DbManagerWorkerService.Interfaces.DataContext;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using ConfigurationStuff.DbModels;
 using ConfigurationStuff.Interfaces.Repos;
 using ConfigurationStuff.DbContexts;
 using Serilog;
-using Microsoft.Identity.Client;
 
 namespace DbManagerWorkerService.Repositories
 {

@@ -97,6 +97,7 @@ namespace gRPCToolFrontEnd
 
             builder.Services.AddScoped<ClientHelper>();
 
+            builder.Services.AddSingleton<PayloadUsageStore>();
             builder.Services.AddSingleton<AccountDetailsStore>();
             builder.Services.AddSingleton<RequestDelayStorage>();
             builder.Services.AddSingleton<ClientStorage>();

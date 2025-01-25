@@ -45,7 +45,7 @@ namespace gRPCToolFrontEnd.Services
 
             StreamingLatency.StreamingLatencyClient newclient = new StreamingLatency.StreamingLatencyClient(getChannel.Value);
 
-            _clientStorage.TotalStreamingClients += 1;
+            _clientStorage.IncrementStreamingClients();
 
             await GenerateStreamingRequest(newclient, newlyCreatedClient.ClientUnique, fileSize);
         }
@@ -65,7 +65,7 @@ namespace gRPCToolFrontEnd.Services
                 {
                     StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(channel.Value);
 
-                    _clientStorage.TotalStreamingClients += 1;
+                    _clientStorage.IncrementStreamingClients();
 
                     await GeneratingeManySingleStreamingRequests(streamingClient, amountOfRequests, newlyCreatedCleint.ClientUnique, fileSize);
                 }
@@ -76,7 +76,7 @@ namespace gRPCToolFrontEnd.Services
 
                 StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(getChannel.Value);
 
-                _clientStorage.TotalStreamingClients += 1;
+                _clientStorage.IncrementStreamingClients();
 
                 await GeneratingeManySingleStreamingRequests(streamingClient, amountOfRequests, newlyCreatedCleint.ClientUnique, fileSize);
             }
@@ -97,7 +97,7 @@ namespace gRPCToolFrontEnd.Services
 
             StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(getChannel.Value);
 
-            _clientStorage.TotalStreamingClients += 1;
+            _clientStorage.IncrementStreamingClients();
 
             await GeneratingSingularBatchStreamingRequest(streamingClient, requestsInBatch, newlyCreatedClient.ClientUnique, fileSize);
         }
@@ -123,7 +123,7 @@ namespace gRPCToolFrontEnd.Services
 
                     StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(channel.Value);
 
-                    _clientStorage.TotalStreamingClients += 1;
+                    _clientStorage.IncrementStreamingClients();
 
                     await GeneratingSingularBatchStreamingRequest(streamingClient, requestsInBatch, newlyCreatedClient.ClientUnique, fileSize);
                 }
@@ -138,7 +138,7 @@ namespace gRPCToolFrontEnd.Services
 
                 StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(getChannel.Value);
 
-                _clientStorage.TotalStreamingClients += 1;
+                _clientStorage.IncrementStreamingClients();
 
                 await GeneratingSingularBatchStreamingRequest(streamingClient, requestsInBatch, newlyCreatedClient.ClientUnique, fileSize);
                 
@@ -165,6 +165,8 @@ namespace gRPCToolFrontEnd.Services
 
             while(i < amountOfRequests)
             {
+                await _clientHelper.PayloadUsage(fileSize);
+
                 StreamingManySingleLatencyRequest streamingRequest = new StreamingManySingleLatencyRequest()
                 {
                     ClientUnique = clientUnique,
@@ -202,6 +204,8 @@ namespace gRPCToolFrontEnd.Services
             Metadata metaData = new Metadata();
 
             var call = streamingClient.StreamingSingleRequest();
+
+            await _clientHelper.PayloadUsage(fileSize);
 
             var singleRequest = new StreamingSingleLatencyRequest
             {
@@ -250,6 +254,8 @@ namespace gRPCToolFrontEnd.Services
 
             while(i < requestsInBatch)
             {
+                await _clientHelper.PayloadUsage(fileSize);
+
                 StreamingBatchDetailsRequest streamingBatchDetails = new StreamingBatchDetailsRequest
                 {
                     ClientUnique = clientUnique,

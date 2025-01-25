@@ -9,6 +9,8 @@ using gRPCToolFrontEnd;
 using Grpc.Net.Client.Balancer;
 using Serilog;
 using Blazored.LocalStorage;
+using Microsoft.EntityFrameworkCore.Metadata;
+using gRPCToolFrontEnd.LocalStorage;
 
 namespace gRPCToolFrontEnd.Helpers
 {
@@ -20,9 +22,12 @@ namespace gRPCToolFrontEnd.Helpers
         /// Contains general functionality
         /// </summary>
         private readonly ILocalStorageService _localStorageService;
-        public ClientHelper(ILocalStorageService LocalStorageService)
+
+        private readonly PayloadUsageStore _payloadUsageStorage;
+        public ClientHelper(ILocalStorageService LocalStorageService, PayloadUsageStore payloadUsageStore)
         {
             _localStorageService = LocalStorageService;
+            _payloadUsageStorage = payloadUsageStore;
         }
 
         /// <summary>
@@ -170,6 +175,28 @@ namespace gRPCToolFrontEnd.Helpers
             }
 
             return localStorageUsername;
+        }
+
+
+        public async Task PayloadUsage(string fileSize)
+        {
+            if (fileSize == "small")
+            {
+
+                Log.Information($"Small payload being used");
+                _payloadUsageStorage.IncrementSmallPayloadTotal();
+            }
+            else if (fileSize == "medium")
+            {
+
+                Log.Information($"Medium payload being used");
+                _payloadUsageStorage.IncrementMediumPayloadTotal();
+            }
+            else if (fileSize == "large")
+            {
+                Log.Information($"Large payload being used");
+                _payloadUsageStorage.IncrementLargePayloadTotal();
+            }
         }
 
 

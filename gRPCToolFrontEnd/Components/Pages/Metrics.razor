@@ -5,115 +5,127 @@
 @using gRPCToolFrontEnd.Helpers
 @using gRPCToolFrontEnd.LocalStorage
 @using gRPCToolFrontEnd.Services
+@using Microsoft.EntityFrameworkCore
 @layout MainLayout 
 @inject AccountDetailsStore AccountDetailsStore
 @inject RequestDelayStorage RequestDelayStorage
 @inject UtilitiesService UtilitiesService
 @inject ClientHelper ClientHelper
 @inject ClientStorage ClientStorage
+@inject PayloadUsageStore PayloadUsageStore
 
 <PageTitle>Metrics</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+<MudGrid Class="metrics-page" AlignItems="Center" >
+    <!-- Left Panel -->
+    <MudItem xs="12" sm="4">
+        <MudContainer Class="metrics-container">
 
-    <MudPaper Class="chart-container" Elevation="6" Style="margin-top: 20px;">
-        <MudText Typo="Typo.h6" Align="Align.Center" Class="chart-title">
-            REQUEST COMPARISON
-        </MudText>
-        <MudText Typo="Typo.body2" Align="Align.Center" Class="chart-subtitle">
-            Comparing Requests: Unary, Streaming, and Batch
-        </MudText>
-        <MudChart ChartType="ChartType.Bar" Class="chart" ChartSeries="RequestComparsionSeries" />
-    </MudPaper>
-
-    <MudGrid Gutter="2" Class="mt-4">
-        <!-- Total Channels -->
-        <MudItem xs="12" sm="6" md="3">
-            <MudPaper Class="metric-container" Elevation="3">
-                <MudText Typo="Typo.h6">Total Channels</MudText>
-                <MudText Typo="Typo.h4" Align="Align.Center">@TotalChannels</MudText>
+            <MudText Typo="Typo.h6" Class="metrics-header">Session Metrics</MudText>
+           
+            <MudPaper Class="metric-card" Elevation="2">
+                <MudText Typo="Typo.body1">Total Channels</MudText>
+                <MudText Typo="Typo.h5">@TotalChannels</MudText>
             </MudPaper>
-        </MudItem>
 
-        <MudItem xs="12" sm="6" md="3">
-            <MudPaper Class="metric-container" Elevation="3">
-                <MudText Typo="Typo.h6">Total Unary Clients</MudText>
-                <MudText Typo="Typo.h4" Align="Align.Center">@ActiveUnaryClients</MudText>
+            <MudPaper Class="metric-card" Elevation="2">
+                <MudText Typo="Typo.body1">Total Unary Clients</MudText>
+                <MudText Typo="Typo.h5">@ActiveUnaryClients</MudText>
             </MudPaper>
-        </MudItem>
 
-        <MudItem xs="12" sm="6" md="3">
-            <MudPaper Class="metric-container" Elevation="3">
-                <MudText Typo="Typo.h6">Total Streaming Clients</MudText>
-                <MudText Typo="Typo.h4" Align="Align.Center">@ActiveStreamingClients</MudText>
+            <MudPaper Class="metric-card" Elevation="2">
+                <MudText Typo="Typo.body1">Total Streaming Clients</MudText>
+                <MudText Typo="Typo.h5">@ActiveStreamingClients</MudText>
             </MudPaper>
-        </MudItem>
 
-        <MudItem xs="12" sm="6" md="3">
-            <MudPaper Class="metric-container" Elevation="3">
-                <MudText Typo="Typo.h6">Ephemeral Ports</MudText>
-                <MudText Typo="Typo.h4" Align="Align.Center">@EphemeralPorts</MudText>
+            <MudPaper Class="metric-card" Elevation="2">
+                <MudText Typo="Typo.body1">Ephemeral Ports</MudText>
+                <MudText Typo="Typo.h5">@EphemeralPorts</MudText>
             </MudPaper>
-        </MudItem>
-    </MudGrid>
-</MudContainer>
+
+            <MudPaper Class="metric-card" Elevation="2">
+                <MudText Typo="Typo.body1">Total Small Payloads</MudText>
+                <MudText Typo="Typo.h5">@SmallPayloadTotal</MudText>
+            </MudPaper>
+
+            <MudPaper Class="metric-card" Elevation="2">
+                <MudText Typo="Typo.body1">Total Medium Payloads</MudText>
+                <MudText Typo="Typo.h5">@MediumPayloadTotal</MudText>
+            </MudPaper>
+
+            <MudPaper Class="metric-card" Elevation="2">
+                <MudText Typo="Typo.body1">Total Large Payloads</MudText>
+                <MudText Typo="Typo.h5">@LargePayloadTotal</MudText>
+            </MudPaper>
+
+            <MudPaper Class="metric-card" Elevation="2">
+                <MudText Typo="Typo.body1">Put something here</MudText>
+                <MudText Typo="Typo.h5">@LargePayloadTotal</MudText>
+            </MudPaper>
+            
+
+        </MudContainer>
+    </MudItem>
+
+    <!-- Right Panel -->
+    <MudItem xs="12" sm="8" Class="chart-item">
+
+        <MudPaper Class="chart-container" Elevation="2">
+
+            <MudText Typo="Typo.h6" Align="Align.Center">Request Comparison</MudText>
+
+            <MudChart ChartType="ChartType.Bar" ChartSeries="RequestComparsionSeries" />
+
+        </MudPaper>
+    </MudItem>
+</MudGrid>
 
 <style>
- 
-    .header-title {
-        color: #ffffff;
-        text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.8);
-    }
+
    
+
+
+    .metrics-page {
+        height: 100vh;
+        display: flex;
+        align-items: stretch;
+        justify-content: center
+
+    }
+
+    .metrics-container {
+        margin-top: 10px;
+        padding: 15px;
+    }
+
+    .metrics-header {
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+
+    .metric-card {
+        margin-bottom: 10px;
+        padding: 15px;
+        background-color: rgba(0, 0, 0, 0.6);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+        color: #ffffff;
+    }
+
+    .chart-item {
+        display: flex;
+        align-items: center; 
+        justify-content: center; 
+    }
+
     .chart-container {
-        background: rgba(0, 0, 0, 0.6);
-        border-radius: 12px;
+        width: 90%; 
+        height: 60%; 
         padding: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background-color: rgba(0, 0, 0, 0.6);
+        border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
     }
-
-    .chart-title {
-        font-weight: bold;
-        text-transform: uppercase;
-        margin-bottom: 10px;
-    }
-
-    .chart-subtitle {
-        margin-bottom: 20px;
-        font-size: 0.9rem;
-    }
-
-    .streaming-batch {
-        color: #ff5733;
-    }
-
-    .streaming-single {
-        color: #33b5e5;
-    }
-
-    .unary-single {
-        color: #9b59b6;
-    }
-
-    .unary-batch {
-        color: #27ae60;
-    }
-
-    .metric-container {
-        background: linear-gradient(145deg, #1a1a1a, #333333);
-        border-radius: 12px;
-        padding: 15px;
-        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
-        color: #ffffff;
-        text-align: center;
-    }
-
-    .chart {
-        height: 100%;
-        width: 100%
-    }
-
 </style>
 
 @code {
@@ -125,6 +137,12 @@
     private int ActiveStreamingClients = 0; 
 
     private int EphemeralPorts = 0;
+
+    private int SmallPayloadTotal = 0; 
+
+    private int MediumPayloadTotal = 0; 
+
+    private int LargePayloadTotal = 0;
 
     private int MaxSize = 10_000;
 
@@ -169,13 +187,26 @@
 
         Log.Information($"Current amount of ephemeral ports within the session: {EphemeralPorts} ");
 
+        ClientStorage.OnUnaryClientsUpdated += HandlingUnaryClients;
+
         ActiveUnaryClients = ClientStorage.GetTotalUnaryClients();
 
         Log.Information($"Current amount of unary clients: {ActiveUnaryClients}");
 
+        ClientStorage.OnStreamingClientUpdated += HandlingStreamingClients;
+
         ActiveStreamingClients = ClientStorage.GetTotalStreamingClients();
 
         Log.Information($"Current amount of streaming clients: {ActiveStreamingClients}");
+
+        PayloadUsageStore.OnSmallPayloadReceived += HandlingSmallPayload;
+        SmallPayloadTotal = PayloadUsageStore.SmallPayloadTotal;
+
+        PayloadUsageStore.OnMediumPayloadReceived += HandlingMediumPayload;
+        MediumPayloadTotal = PayloadUsageStore.MediumPayloadTotal;
+
+        PayloadUsageStore.OnLargePayloadReceived += HandlingLargePayload;
+        LargePayloadTotal = PayloadUsageStore.LargePayloadTotal;
 
         string? sessionUnique = await ClientHelper.GetStringFromStringFromLocalStorage("session-unique");
 
@@ -210,6 +241,36 @@
 
         StateHasChanged();
 
+    }
+
+    private async void HandlingSmallPayload(int newSmallPayloadTotal)
+    {
+        SmallPayloadTotal = newSmallPayloadTotal; 
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void HandlingMediumPayload(int newMediumPayloadTotal)
+    {
+        MediumPayloadTotal = newMediumPayloadTotal;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void HandlingLargePayload(int newLargePayloadTotal)
+    {
+        LargePayloadTotal = newLargePayloadTotal; 
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void HandlingUnaryClients(int newUnaryClientCount)
+    {
+        ActiveUnaryClients = newUnaryClientCount;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void HandlingStreamingClients(int newStreamingClientCount)
+    {
+        ActiveStreamingClients = newStreamingClientCount;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async void SettingStreamingSingleDelays(GetStreamingDelaysResponse streamingSingleResponse)

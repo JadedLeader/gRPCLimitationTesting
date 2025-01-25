@@ -57,7 +57,9 @@
 
             <MudButton Color="Color.Error" @onclick="@AverageStreamingBatch">Average Streaming Batch</MudButton>
 
+           
             <span>Streaming Batch Average: @_StreamingBatchAverage ms </span>
+           
 
             <MudText Align="Align.Center"> Streaming batch chart </MudText>
 
@@ -78,7 +80,7 @@
 
             <MudButton Color="Color.Error" @onclick="@AverageStreamingSingle">Average Streaming Single</MudButton>
 
-            <span>Streaming Single Average: @_StreamingSingleAverage ms </span>
+           <span>Streaming Single Average: @_StreamingSingleAverage ms </span> 
 
             <MudText Align="Align.Center"> Streaming unary chart </MudText>
 
@@ -97,7 +99,7 @@
             <MudButton Color="Color.Error" @onclick="@AverageUnarySingle">Average Unary Single</MudButton>
 
             <span>Unary Single Average: @_UnarySingleAverage ms </span>
-
+       
             <MudText Align="Align.Center"> Unary single chart </MudText>
 
             <MudChart ChartType="ChartType.Line"
@@ -114,8 +116,11 @@
 
             <MudButton Color="Color.Error" @onclick="@AverageUnaryBatch">Average Unary Batch</MudButton>
 
+            
             <span>Unary Batch Average: @_UnaryBatchAverage ms </span>
-
+            
+            
+            
             <MudText Align="Align.Center"> Unary batch chart </MudText>
 
             <MudChart ChartType="ChartType.Line"
@@ -193,28 +198,44 @@
     {
         List<double> getUnaryBatchResults = await RequestDelayStorage.ReturnDelaysList(_UnaryBatchDelays);
 
-        _UnaryBatchAverage = getUnaryBatchResults.Average();
+        double getAverage = getUnaryBatchResults.Average();
+
+        double rounded = Math.Round(getAverage, 2);
+
+        _UnaryBatchAverage = rounded;
     }
 
     private async Task AverageUnarySingle()
     {
         List<double> getUnarySingle = await RequestDelayStorage.ReturnDelaysList(_UnarySingleDelays);
 
-        _UnarySingleAverage = getUnarySingle.Average();
+        double getUnarySingleAvg = getUnarySingle.Average();
+
+        double roundedAvg = Math.Round(getUnarySingleAvg, 2);
+
+        _UnarySingleAverage = roundedAvg;
     }
 
     private async Task AverageStreamingSingle()
     {
         List<double> getStreamingSingleResults = await RequestDelayStorage.ReturnDelaysList(_streamingSingleDelays);
 
-        _StreamingSingleAverage = getStreamingSingleResults.Average();
+        double getStreamingSingleAverage = getStreamingSingleResults.Average(); 
+
+        double roundedStreamingSingleAvg = Math.Round(getStreamingSingleAverage, 2);
+
+        _StreamingSingleAverage = roundedStreamingSingleAvg;
     }
 
     private async Task AverageStreamingBatch()
     {
         List<double> getStreamingBatchResults = await RequestDelayStorage.ReturnDelaysList(_delays);
 
-        _StreamingBatchAverage = getStreamingBatchResults.Average();
+        double getStreamingBatchAvg = getStreamingBatchResults.Average();
+
+        double roundedStreamingBatchAvg = Math.Round(getStreamingBatchAvg, 2);
+
+        _StreamingBatchAverage = roundedStreamingBatchAvg; 
     }
 
     private async Task StressFlow(string stressLevelValue)
