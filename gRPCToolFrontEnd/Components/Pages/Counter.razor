@@ -14,11 +14,21 @@
 @inject AccountDetailsStore AccountDetailsStore
 @inject RequestDelayStorage RequestDelayStorage
 @inject AdminService AdminService
+@inject LowStressRequestTimingStorage LowStressStorage
+@inject MediumStressRequestTimingStorage MediumStressStorage
+@inject HighStressRequestTimingStorage HighStressStorage
+@inject GlobalSettings GlobalSettings
 
 <PageTitle>Real-Time display</PageTitle>
 
 <MudItem >
     <MudGrid Class="d-flex justify-end align-center" Style="margin-bottom: 20px;">
+
+        <MudItem>
+            <MudTooltip Text="This button allows for the saving of graph results, based on the currently selected stress preset">
+                <MudButton @onclick="@SaveResults">Save Graphed Results</MudButton>
+            </MudTooltip>
+        </MudItem>
 
         <MudItem> 
             <MudTooltip Text="This button allows for the clearance of request results, removing all plots on the below graphs">
@@ -115,11 +125,8 @@
         <MudPaper Class="MyMudPaper" Style="height: 400px; width: 100%;">
 
             <MudButton Color="Color.Error" @onclick="@AverageUnaryBatch">Average Unary Batch</MudButton>
-
             
             <span>Unary Batch Average: @_UnaryBatchAverage ms </span>
-            
-            
             
             <MudText Align="Align.Center"> Unary batch chart </MudText>
 
@@ -178,6 +185,45 @@
     private double _StreamingSingleAverage = 0; 
 
     private double _StreamingBatchAverage = 0; 
+
+
+    private async Task SaveResults()
+    {
+        if(GlobalSettings.StressTestingPreset == "Low stress")
+        {
+            Log.Information($"Saving low stress results");
+
+            LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressUnaryBatch, _UnaryBatchDelays);
+            LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressUnarySingle, _UnarySingleDelays);
+            LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressStreamingSingle, _streamingSingleDelays);
+            LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressStreamingBatch, _delays);
+
+            //then we would probably want to clear the local lists
+
+        }
+        else if (GlobalSettings.StressTestingPreset == "Medium stress")
+        {
+            Log.Information($"Saving medium stress results");
+
+            MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressUnaryBatch, _UnaryBatchDelays);
+            MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressUnarySingle, _UnarySingleDelays);
+            MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressStreamingSingle, _streamingSingleDelays);
+            MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressStreamingBatch, _delays);
+        }
+        else if (GlobalSettings.StressTestingPreset == "High stress")
+        {
+            Log.Information($"Saving high stress results");
+
+            HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressUnaryBatch, _UnaryBatchDelays);
+            HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressUnarySingle, _UnarySingleDelays);
+            HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressStreamingSingle, _streamingSingleDelays);
+            HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressStreamingBatch, _delays);
+        }
+        else
+        {
+            Log.Warning($"No stress level preset is currently set in the global settings");
+        }
+    }
 
     private async Task ClearRequestResults()
     {
@@ -242,7 +288,11 @@
     {
         _StressLevelValue = stressLevelValue;
 
+        GlobalSettings.StressTestingPreset = _StressLevelValue;
+
         Log.Information($"Stress level value has changed to {stressLevelValue}");
+
+        Log.Information($"Global stress testing presset has changed to {GlobalSettings.StressTestingPreset}");
 
         if(stressLevelValue == "Low stress")
         {

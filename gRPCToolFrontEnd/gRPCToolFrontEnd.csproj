@@ -44,6 +44,11 @@
     <PackageReference Include="System.Reactive" Version="6.0.1" />
   </ItemGroup>
 
+
+  <ItemGroup>
+    <ProjectReference Include="..\SharedCommonalities\SharedCommonalities.csproj" />
+  </ItemGroup>
+
 	<ItemGroup>
 		<Protobuf Include="Protos\Accounts.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\Admin.proto" GrpcServices="Client" />

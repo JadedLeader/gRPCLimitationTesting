@@ -1,0 +1,175 @@
+﻿@page "/Comparison"
+@using gRPCToolFrontEnd.Components.Layout
+@using gRPCToolFrontEnd.LocalStorage
+@using Serilog
+@layout MainLayout
+@inject LowStressRequestTimingStorage LowStressStorage
+@inject MediumStressRequestTimingStorage MediumStressStorage
+@inject HighStressRequestTimingStorage HighStressStorage
+
+<MudGrid Spacing="1" Class="pa-4">
+
+    <!-- Top Row: Two Smaller Graphs -->
+    <MudItem xs="12" sm="6" md="6">
+        <MudPaper Class="MyMudPaper" Style="height: 400px; width: 100%;">
+            
+            <MudText Align="Align.Center">Low Stress Comparison</MudText>
+
+            <MudChart ChartType="ChartType.Line" ChartSeries="@LowStressSeries"  Style="height: 100%; width: 100%;" />
+
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12" sm="6" md="6">
+        <MudPaper Class="MyMudPaper" Style="height: 400px; width: 100%;">
+        
+            <MudText Align="Align.Center">Medium Stress Comparison</MudText>
+
+            <MudChart ChartType="ChartType.Line" ChartSeries="@MediumStressSeries" Style="height: 100%; width: 100%;" />
+
+        </MudPaper>
+    </MudItem>
+
+    <!-- Bottom Row: One Larger Graph -->
+    <MudItem xs="12">
+        <MudPaper Class="MyMudPaper" Style="height: 600px; width: 100%;">
+
+            <MudText Align="Align.Center">High Stress Comparison</MudText>
+
+            <MudChart ChartType="ChartType.Line" ChartSeries="@HighStressSeries"  Style="height: 100%; width: 100%;" />
+
+        </MudPaper>
+    </MudItem>
+
+</MudGrid>
+
+<style>
+    .MyMudPaper {
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+    }
+</style>
+
+@code {
+
+
+    private List<ChartSeries> LowStressSeries = new List<ChartSeries>()
+    {
+        new ChartSeries()
+        {
+            Name = "Streaming Single"
+        },
+
+        new ChartSeries()
+        {
+            Name = "Streaming Batch"
+        },
+
+        new ChartSeries()
+        {
+            Name = "Unary Single"
+        },
+
+        new ChartSeries()
+        {
+            Name = "Unary Batch"
+        }
+    };
+
+    private List<ChartSeries> MediumStressSeries = new List<ChartSeries>()
+    {
+        new ChartSeries()
+        {
+            Name = "Streaming Single"
+        },
+
+        new ChartSeries()
+        {
+            Name = "Streaming Batch"
+        },
+
+        new ChartSeries()
+        {
+            Name = "Unary Single"
+        },
+
+        new ChartSeries()
+        {
+            Name = "Unary Batch"
+        }
+    };
+
+    private List<ChartSeries> HighStressSeries = new List<ChartSeries>()
+    {
+        new ChartSeries()
+        {
+            Name = "Streaming Single"
+        },
+
+        new ChartSeries()
+        {
+            Name = "Streaming Batch"
+        },
+
+        new ChartSeries()
+        {
+            Name = "Unary Single"
+        },
+
+        new ChartSeries()
+        {
+            Name = "Unary Batch"
+        }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await PopulateLowStressSeries();
+
+        await PopulateMediumStressSeries(); 
+
+        await PopulateHighStressSeries();
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task PopulateLowStressSeries()
+    {
+        ChartSeries streamingSingle = await GetSeriesViaSeriesName(LowStressSeries, "Streaming Single");
+        ChartSeries streamingBatch = await GetSeriesViaSeriesName(LowStressSeries, "Streaming Batch");
+        ChartSeries unarySingle = await GetSeriesViaSeriesName(LowStressSeries, "Unary Single");
+        ChartSeries unaryBatch = await GetSeriesViaSeriesName(LowStressSeries, "Unary Batch");
+
+        streamingSingle.Data = LowStressStorage.LowStressStreamingSingle.ToArray();
+        streamingBatch.Data = LowStressStorage.LowStressStreamingBatch.ToArray();
+        unarySingle.Data = LowStressStorage.LowStressUnarySingle.ToArray();
+        unaryBatch.Data = LowStressStorage.LowStressUnaryBatch.ToArray();
+    }
+
+    private async Task PopulateMediumStressSeries()
+    {
+        throw new NotImplementedException();
+    }
+
+    private async Task PopulateHighStressSeries()
+    {
+        throw new NotImplementedException();
+    }
+
+    private async Task<ChartSeries> GetSeriesViaSeriesName(List<ChartSeries> chartSeries, string seriesName)
+    {
+        ChartSeries? chartSeriesToReturn = chartSeries.FirstOrDefault(cs => cs.Name == seriesName);
+
+        if(chartSeriesToReturn == null)
+        {
+            Log.Warning($"could not find a chartseries via name {seriesName}");
+            return null;
+        }
+
+        return chartSeriesToReturn;
+    }
+
+}

@@ -11,6 +11,7 @@ using gRPCToolFrontEnd.DictionaryModel;
 using gRPCToolFrontEnd.Interfaces;
 using Microsoft.AspNetCore.Components.Web;
 using System.Runtime.CompilerServices;
+using MudBlazor;
 
 namespace gRPCToolFrontEnd.Services
 {
@@ -36,12 +37,13 @@ namespace gRPCToolFrontEnd.Services
 
             KeyValuePair<Guid, GrpcChannel> getChannel = _accountDetailsStore.GetGrpcChannel(channelUnique);
 
-            CreateClientInstanceResponse newlyCreatedClient = await _clientInstanceService.CreateClientInstanceAsync();
-
-            if(getChannel.Value == null)
+            if (getChannel.Value == null)
             {
-                Log.Information($"could not find a grpc channel via that GUID");
+                Log.Warning($"could not find a single channel");
+                return;
             }
+
+            CreateClientInstanceResponse newlyCreatedClient = await _clientInstanceService.CreateClientInstanceAsync();
 
             StreamingLatency.StreamingLatencyClient newclient = new StreamingLatency.StreamingLatencyClient(getChannel.Value);
 
@@ -59,7 +61,13 @@ namespace gRPCToolFrontEnd.Services
 
             if (channelUnique == null)
             {
-                var channels = _accountDetailsStore.GetChannels();
+                Dictionary<Guid, GrpcChannel> channels = _accountDetailsStore.GetChannels();
+
+                if(channels.Count == 0)
+                {
+                    Log.Warning($"there are no channels available");
+                    return;
+                }
 
                 foreach (var channel in channels)
                 {
@@ -72,7 +80,13 @@ namespace gRPCToolFrontEnd.Services
             }
             else
             {
-                var getChannel = _accountDetailsStore.GetGrpcChannel(channelUnique.Value);
+                KeyValuePair<Guid, GrpcChannel> getChannel = _accountDetailsStore.GetGrpcChannel(channelUnique.Value);
+
+                if(getChannel.Value == null)
+                {
+                    Log.Warning($"could not find single channel");
+                    return;
+                }
 
                 StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(getChannel.Value);
 
@@ -91,6 +105,7 @@ namespace gRPCToolFrontEnd.Services
             if(getChannel.Value == null)
             {
                 Log.Warning($"There is no grpc channel established with the channel guid {channelUnique}");
+                return;
             }
 
             CreateClientInstanceResponse newlyCreatedClient = await _clientInstanceService.CreateClientInstanceAsync();
@@ -114,7 +129,8 @@ namespace gRPCToolFrontEnd.Services
 
                 if (getChannels.Count == 0)
                 {
-                    Log.Information($"there are no channels available");
+                    Log.Warning($"there are no channels available");
+                    return;
                 }
 
                 foreach (var channel in getChannels)
@@ -135,6 +151,13 @@ namespace gRPCToolFrontEnd.Services
                 CreateClientInstanceResponse newlyCreatedClient = await _clientInstanceService.CreateClientInstanceAsync();
 
                 KeyValuePair<Guid, GrpcChannel> getChannel = _accountDetailsStore.GetGrpcChannel(channelUnique.Value);
+
+                if(getChannel.Value == null)
+                {
+                    Log.Warning($"could not find single channel");
+
+                    return;
+                }
 
                 StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(getChannel.Value);
 

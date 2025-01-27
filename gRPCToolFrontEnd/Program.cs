@@ -97,10 +97,14 @@ namespace gRPCToolFrontEnd
 
             builder.Services.AddScoped<ClientHelper>();
 
+            builder.Services.AddSingleton<LowStressRequestTimingStorage>();
+            builder.Services.AddSingleton<MediumStressRequestTimingStorage>();
+            builder.Services.AddSingleton<HighStressRequestTimingStorage>();
             builder.Services.AddSingleton<PayloadUsageStore>();
             builder.Services.AddSingleton<AccountDetailsStore>();
             builder.Services.AddSingleton<RequestDelayStorage>();
             builder.Services.AddSingleton<ClientStorage>();
+            builder.Services.AddSingleton<GlobalSettings>();
          
             builder.Services.AddScoped<StreamingLatencyService>();
             builder.Services.AddScoped<IRequestTypeHandlingFactory, RequestTypeHandlingFactory>();
