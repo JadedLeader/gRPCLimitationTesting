@@ -1,4 +1,5 @@
 ﻿@using Grpc.Net.Client
+@using System.Collections.Concurrent
 @using gRPCToolFrontEnd.Components.Layout
 @using gRPCToolFrontEnd.LocalStorage
 @using gRPCToolFrontEnd.Services
@@ -32,7 +33,7 @@
 
         <MudItem> 
             <MudTooltip Text="This button allows for the clearance of request results, removing all plots on the below graphs">
-                <MudButton @onclick="@ClearRequestResults" >Clear Request Results</MudButton>
+                <MudButton @onclick="@ClearRequestResults">Clear Request Results</MudButton>
             </MudTooltip>
         </MudItem>
 
@@ -187,179 +188,6 @@
     private double _StreamingBatchAverage = 0; 
 
 
-    private async Task SaveResults()
-    {
-        if(GlobalSettings.StressTestingPreset == "Low stress")
-        {
-            Log.Information($"Saving low stress results");
-
-            LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressUnaryBatch, _UnaryBatchDelays);
-            LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressUnarySingle, _UnarySingleDelays);
-            LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressStreamingSingle, _streamingSingleDelays);
-            LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressStreamingBatch, _delays);
-
-            //then we would probably want to clear the local lists
-
-        }
-        else if (GlobalSettings.StressTestingPreset == "Medium stress")
-        {
-            Log.Information($"Saving medium stress results");
-
-            MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressUnaryBatch, _UnaryBatchDelays);
-            MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressUnarySingle, _UnarySingleDelays);
-            MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressStreamingSingle, _streamingSingleDelays);
-            MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressStreamingBatch, _delays);
-        }
-        else if (GlobalSettings.StressTestingPreset == "High stress")
-        {
-            Log.Information($"Saving high stress results");
-
-            HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressUnaryBatch, _UnaryBatchDelays);
-            HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressUnarySingle, _UnarySingleDelays);
-            HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressStreamingSingle, _streamingSingleDelays);
-            HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressStreamingBatch, _delays);
-        }
-        else
-        {
-            Log.Warning($"No stress level preset is currently set in the global settings");
-        }
-    }
-
-    private async Task ClearRequestResults()
-    {
-
-        Log.Information($"Clearing request results received");
-
-        await AdminService.ClearChannelResults(_AddressSpace);
-
-        _series.Clear();
-        _series2.Clear();
-        _series3.Clear();
-        _series4.Clear();
-
-        StateHasChanged();
-    }
-
-    private async Task AverageUnaryBatch()
-    {
-        List<double> getUnaryBatchResults = await RequestDelayStorage.ReturnDelaysList(_UnaryBatchDelays);
-
-        double getAverage = getUnaryBatchResults.Average();
-
-        double rounded = Math.Round(getAverage, 2);
-
-        _UnaryBatchAverage = rounded;
-    }
-
-    private async Task AverageUnarySingle()
-    {
-        List<double> getUnarySingle = await RequestDelayStorage.ReturnDelaysList(_UnarySingleDelays);
-
-        double getUnarySingleAvg = getUnarySingle.Average();
-
-        double roundedAvg = Math.Round(getUnarySingleAvg, 2);
-
-        _UnarySingleAverage = roundedAvg;
-    }
-
-    private async Task AverageStreamingSingle()
-    {
-        List<double> getStreamingSingleResults = await RequestDelayStorage.ReturnDelaysList(_streamingSingleDelays);
-
-        double getStreamingSingleAverage = getStreamingSingleResults.Average(); 
-
-        double roundedStreamingSingleAvg = Math.Round(getStreamingSingleAverage, 2);
-
-        _StreamingSingleAverage = roundedStreamingSingleAvg;
-    }
-
-    private async Task AverageStreamingBatch()
-    {
-        List<double> getStreamingBatchResults = await RequestDelayStorage.ReturnDelaysList(_delays);
-
-        double getStreamingBatchAvg = getStreamingBatchResults.Average();
-
-        double roundedStreamingBatchAvg = Math.Round(getStreamingBatchAvg, 2);
-
-        _StreamingBatchAverage = roundedStreamingBatchAvg; 
-    }
-
-    private async Task StressFlow(string stressLevelValue)
-    {
-        _StressLevelValue = stressLevelValue;
-
-        GlobalSettings.StressTestingPreset = _StressLevelValue;
-
-        Log.Information($"Stress level value has changed to {stressLevelValue}");
-
-        Log.Information($"Global stress testing presset has changed to {GlobalSettings.StressTestingPreset}");
-
-        if(stressLevelValue == "Low stress")
-        {
-            _LowStressActive = true;
-            _MediumStressActive = false; 
-            _HighStressActive = false;
-        }
-        else if(stressLevelValue == "Medium stress")
-        {
-            _LowStressActive = false;
-            _HighStressActive = false; 
-            _MediumStressActive = true;
-        }
-        else if(stressLevelValue == "High stress")
-        {
-            _LowStressActive = false;
-            _MediumStressActive = false; 
-            _HighStressActive = true;
-        }
-        else
-        {
-            Log.Warning("Unexpected value returned from the stress flow");
-        }
-
-        await StressFlowSelection();
-    }
-
-
-
-    private async Task GeneratingChannels()
-    {
-        Dictionary<Guid, GrpcChannel> generatingChannels = await ClientHelper.GeneratingMutlipleChannels(_AmountOfChannels, _AddressSpace);
-
-        AccountDetailsStore.channels = generatingChannels;
-
-        Log.Information($"amount of channels created: {AccountDetailsStore.channels}");
-    }
-
-  
-    private async Task StressFlowSelection()
-    {
-
-        if(_StressLevelValue == "Low stress" && _LowStressActive)
-        {
-            Log.Information($"Low stress has been activated");
-
-            await PresetService.LowStress(_LowStressActive);
-        }
-        else if(_StressLevelValue == "Medium stress" && _MediumStressActive)
-        {
-            Log.Information($"Medium stress has been activated");
-
-            await PresetService.MediumStress(_MediumStressActive);
-        }
-        else if(_StressLevelValue == "High stress" && _HighStressActive)
-        {
-            Log.Information($"High stress has been activated"); 
-
-            await PresetService.HighStress(_HighStressActive);
-        }
-        else
-        {
-            Log.Warning($"something went wrong within the stress flow selection process");
-        }
-
-    }
-
     private ChartOptions _options = new ChartOptions
         {
             YAxisLines = true,
@@ -451,6 +279,179 @@
         UtilitiesService.StartReceivingStreamingBatchMessages(newStreamingBatchDelay, sessionUnique); 
 
         await base.OnInitializedAsync();
+    }
+
+    private async Task SaveResults()
+    {
+        if (GlobalSettings.StressTestingPreset == "Low stress")
+        {
+            Log.Information($"Saving low stress results");
+
+            LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressUnaryBatch, _UnaryBatchDelays);
+            LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressUnarySingle, _UnarySingleDelays);
+            LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressStreamingSingle, _streamingSingleDelays);
+            LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressStreamingBatch, _delays);
+
+            //then we would want to clear the local lists
+
+        }
+        else if (GlobalSettings.StressTestingPreset == "Medium stress")
+        {
+            Log.Information($"Saving medium stress results");
+
+            MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressUnaryBatch, _UnaryBatchDelays);
+            MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressUnarySingle, _UnarySingleDelays);
+            MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressStreamingSingle, _streamingSingleDelays);
+            MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressStreamingBatch, _delays);
+        }
+        else if (GlobalSettings.StressTestingPreset == "High stress")
+        {
+            Log.Information($"Saving high stress results");
+
+            HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressUnaryBatch, _UnaryBatchDelays);
+            HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressUnarySingle, _UnarySingleDelays);
+            HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressStreamingSingle, _streamingSingleDelays);
+            HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressStreamingBatch, _delays);
+        }
+        else
+        {
+            Log.Warning($"No stress level preset is currently set in the global settings");
+        }
+    }
+
+    private async Task ClearRequestResults()
+    {
+
+        Log.Information($"Clearing request results received");
+
+        await AdminService.ClearChannelResults(_AddressSpace);
+
+        _series.Clear();
+        _series2.Clear();
+        _series3.Clear();
+        _series4.Clear();
+
+        StateHasChanged();
+    }
+
+    private async Task AverageUnaryBatch()
+    {
+        List<double> getUnaryBatchResults = await RequestDelayStorage.ReturnDelaysList(_UnaryBatchDelays);
+
+        double getAverage = getUnaryBatchResults.Average();
+
+        double rounded = Math.Round(getAverage, 2);
+
+        _UnaryBatchAverage = rounded;
+    }
+
+    private async Task AverageUnarySingle()
+    {
+        List<double> getUnarySingle = await RequestDelayStorage.ReturnDelaysList(_UnarySingleDelays);
+
+        double getUnarySingleAvg = getUnarySingle.Average();
+
+        double roundedAvg = Math.Round(getUnarySingleAvg, 2);
+
+        _UnarySingleAverage = roundedAvg;
+    }
+
+    private async Task AverageStreamingSingle()
+    {
+        List<double> getStreamingSingleResults = await RequestDelayStorage.ReturnDelaysList(_streamingSingleDelays);
+
+        double getStreamingSingleAverage = getStreamingSingleResults.Average();
+
+        double roundedStreamingSingleAvg = Math.Round(getStreamingSingleAverage, 2);
+
+        _StreamingSingleAverage = roundedStreamingSingleAvg;
+    }
+
+    private async Task AverageStreamingBatch()
+    {
+        List<double> getStreamingBatchResults = await RequestDelayStorage.ReturnDelaysList(_delays);
+
+        double getStreamingBatchAvg = getStreamingBatchResults.Average();
+
+        double roundedStreamingBatchAvg = Math.Round(getStreamingBatchAvg, 2);
+
+        _StreamingBatchAverage = roundedStreamingBatchAvg;
+    }
+
+    private async Task StressFlow(string stressLevelValue)
+    {
+        _StressLevelValue = stressLevelValue;
+
+        GlobalSettings.StressTestingPreset = _StressLevelValue;
+
+        Log.Information($"Stress level value has changed to {stressLevelValue}");
+
+        Log.Information($"Global stress testing presset has changed to {GlobalSettings.StressTestingPreset}");
+
+        if (stressLevelValue == "Low stress")
+        {
+            _LowStressActive = true;
+            _MediumStressActive = false;
+            _HighStressActive = false;
+        }
+        else if (stressLevelValue == "Medium stress")
+        {
+            _LowStressActive = false;
+            _HighStressActive = false;
+            _MediumStressActive = true;
+        }
+        else if (stressLevelValue == "High stress")
+        {
+            _LowStressActive = false;
+            _MediumStressActive = false;
+            _HighStressActive = true;
+        }
+        else
+        {
+            Log.Warning("Unexpected value returned from the stress flow");
+        }
+
+        await StressFlowSelection();
+    }
+
+
+
+    private async Task GeneratingChannels()
+    {
+        ConcurrentDictionary<Guid, GrpcChannel> generatingChannels = await ClientHelper.GeneratingMutlipleChannels(_AmountOfChannels, _AddressSpace);
+
+        AccountDetailsStore.channels = generatingChannels;
+
+        Log.Information($"amount of channels created: {AccountDetailsStore.channels}");
+    }
+
+
+    private async Task StressFlowSelection()
+    {
+
+        if (_StressLevelValue == "Low stress" && _LowStressActive)
+        {
+            Log.Information($"Low stress has been activated");
+
+            _ = Task.Run(() => PresetService.LowStress(_LowStressActive));
+        }
+        else if (_StressLevelValue == "Medium stress" && _MediumStressActive)
+        {
+            Log.Information($"Medium stress has been activated");
+
+            _ = Task.Run(() => PresetService.MediumStress(_MediumStressActive));
+        }
+        else if (_StressLevelValue == "High stress" && _HighStressActive)
+        {
+            Log.Information($"High stress has been activated");
+
+            _ = Task.Run(() => PresetService.HighStress(_HighStressActive));
+        }
+        else
+        {
+            Log.Warning($"something went wrong within the stress flow selection process");
+        }
+
     }
 
     private async void HandleUnaryBatchReceived(GetUnaryBatchDelaysResponse unaryBatchDelaysResponse)

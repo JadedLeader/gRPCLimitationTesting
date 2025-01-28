@@ -10,7 +10,7 @@ namespace gRPCToolFrontEnd.LocalStorage
     public class AccountDetailsStore
     {
 
-        public Dictionary<Guid, GrpcChannel> channels = new Dictionary<Guid, GrpcChannel>();
+        public ConcurrentDictionary<Guid, GrpcChannel> channels = new ConcurrentDictionary<Guid, GrpcChannel>();
 
         public Dictionary<Guid, List<Delay>> ClientInstancesWithMessages = new Dictionary<Guid, List<Delay>>();
 
@@ -48,7 +48,7 @@ namespace gRPCToolFrontEnd.LocalStorage
             return channels.FirstOrDefault(x => x.Key == channelUnique);
         }
 
-        public Dictionary<Guid, GrpcChannel> GetChannels()
+        public ConcurrentDictionary<Guid, GrpcChannel> GetChannels()
         {
             return channels;
         }

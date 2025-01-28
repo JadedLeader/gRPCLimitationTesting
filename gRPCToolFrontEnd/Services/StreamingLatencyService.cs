@@ -12,6 +12,7 @@ using gRPCToolFrontEnd.Interfaces;
 using Microsoft.AspNetCore.Components.Web;
 using System.Runtime.CompilerServices;
 using MudBlazor;
+using System.Collections.Concurrent;
 
 namespace gRPCToolFrontEnd.Services
 {
@@ -61,7 +62,7 @@ namespace gRPCToolFrontEnd.Services
 
             if (channelUnique == null)
             {
-                Dictionary<Guid, GrpcChannel> channels = _accountDetailsStore.GetChannels();
+                ConcurrentDictionary<Guid, GrpcChannel> channels = _accountDetailsStore.GetChannels();
 
                 if(channels.Count == 0)
                 {
@@ -125,7 +126,7 @@ namespace gRPCToolFrontEnd.Services
             {
                 Log.Information($"Channel unique was null for the creating many streaming batch requests, defaulting to many gRPC channels");
 
-                Dictionary<Guid, GrpcChannel> getChannels = _accountDetailsStore.GetChannels();
+                ConcurrentDictionary<Guid, GrpcChannel> getChannels = _accountDetailsStore.GetChannels();
 
                 if (getChannels.Count == 0)
                 {
@@ -166,8 +167,6 @@ namespace gRPCToolFrontEnd.Services
                 await GeneratingSingularBatchStreamingRequest(streamingClient, requestsInBatch, newlyCreatedClient.ClientUnique, fileSize);
                 
             }
-
-            
 
         }
 

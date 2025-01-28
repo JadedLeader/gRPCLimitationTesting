@@ -8,6 +8,7 @@ using MudBlazor.Services;
 using Serilog;
 using gRPCToolFrontEnd.Helpers;
 using gRPCToolFrontEnd.Interfaces;
+using ConfigurationStuff.ServicesConfig;
 
 
 namespace gRPCToolFrontEnd
@@ -89,6 +90,7 @@ namespace gRPCToolFrontEnd
                 o.Address = new Uri("https://localhost:5000");
             }); ;
 
+            ServiceConfig.AddSharedServices(builder.Services, builder.Configuration);
 
             builder.Services.AddSingleton<UtilitiesService>();
 
@@ -100,6 +102,7 @@ namespace gRPCToolFrontEnd
             builder.Services.AddSingleton<LowStressRequestTimingStorage>();
             builder.Services.AddSingleton<MediumStressRequestTimingStorage>();
             builder.Services.AddSingleton<HighStressRequestTimingStorage>();
+
             builder.Services.AddSingleton<PayloadUsageStore>();
             builder.Services.AddSingleton<AccountDetailsStore>();
             builder.Services.AddSingleton<RequestDelayStorage>();

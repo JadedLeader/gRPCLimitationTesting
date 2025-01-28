@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Serilog;
+using System.Collections.Concurrent;
 using System.Threading.Channels;
 
 namespace gRPCToolFrontEnd.Services
@@ -88,8 +89,6 @@ namespace gRPCToolFrontEnd.Services
 
             string newGuid = Guid.NewGuid().ToString();
 
-            
-
             Metadata metaData = new Metadata
             {
                 { "request-type", "Unary" },
@@ -101,7 +100,7 @@ namespace gRPCToolFrontEnd.Services
             {
                 Log.Information($"Channel unique was null, generating multiple iterative unary requests for all channels");
 
-                Dictionary<Guid, GrpcChannel> channels = _accountDetailsStore.GetChannels();
+                ConcurrentDictionary<Guid, GrpcChannel> channels = _accountDetailsStore.GetChannels();
 
                 metaData.Add("open-channels", channels.Count.ToString());
 
@@ -256,7 +255,7 @@ namespace gRPCToolFrontEnd.Services
             {
                 Log.Information($"No channel unique was provided, generating many unary batch requests for all gRPC channels");
 
-                Dictionary<Guid, GrpcChannel> channels = _accountDetailsStore.GetChannels();
+                ConcurrentDictionary<Guid, GrpcChannel> channels = _accountDetailsStore.GetChannels();
 
                 Log.Information($"amount of iterations: {batchIterations}");
 

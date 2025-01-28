@@ -1,4 +1,5 @@
-﻿@using gRPCToolFrontEnd.Components.Layout
+﻿@using System.Collections.Concurrent
+@using gRPCToolFrontEnd.Components.Layout
 @using gRPCToolFrontEnd.DictionaryModel
 @using gRPCToolFrontEnd.Helpers
 @using gRPCToolFrontEnd.LocalStorage
@@ -155,7 +156,7 @@
 
 @code {
 
-    private Dictionary<Guid, GrpcChannel> _ChannelGuids = new();
+    private ConcurrentDictionary<Guid, GrpcChannel> _ChannelGuids = new();
 
     private BehaviorSubject<Dictionary<Guid, GrpcChannel>> _ChannelSubject;
 
@@ -172,13 +173,13 @@
     protected override void OnInitialized()
     {
 
-        Dictionary<Guid, GrpcChannel> channelsFromSingleton = AccountDetailsStore.GetChannels();
+        ConcurrentDictionary<Guid, GrpcChannel> channelsFromSingleton = AccountDetailsStore.GetChannels();
 
         _ChannelGuids = channelsFromSingleton;
 
-        _ChannelSubject = new BehaviorSubject<Dictionary<Guid, GrpcChannel>>(_ChannelGuids);
+        //_ChannelSubject = new BehaviorSubject<Dictionary<Guid, GrpcChannel>>(_ChannelGuids);
 
-        _ChannelSubscription = _ChannelSubject.Subscribe(updateDictionary =>
+       /* _ChannelSubscription = _ChannelSubject.Subscribe(updateDictionary =>
         {
             Log.Information($"State has changed worked");
             _ChannelGuids = updateDictionary;
@@ -187,7 +188,7 @@
         });
 
         Log.Information(AccountDetailsStore.channels.Count().ToString());
-        Log.Information($"Current target address: {_TargetAddress}");
+        Log.Information($"Current target address: {_TargetAddress}"); */
     }
 
     private async Task ItemSelected(string selectedItem)
@@ -218,7 +219,7 @@
             Log.Warning($"The number of channels generated cannot be zero");
         }
 
-        Dictionary<Guid, GrpcChannel> channelDict = await ClientHelper.GeneratingMutlipleChannels(_NumOfChannels, _TargetAddress);
+        ConcurrentDictionary<Guid, GrpcChannel> channelDict = await ClientHelper.GeneratingMutlipleChannels(_NumOfChannels, _TargetAddress);
 
         _ChannelGuids = channelDict;
 

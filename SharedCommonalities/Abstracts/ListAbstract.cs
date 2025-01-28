@@ -12,7 +12,7 @@ namespace SharedCommonalities.Abstracts
 
         public virtual void CopyRequestToStorage(List<double> storageList, List<double> requestList)
         {
-            storageList = requestList;
+            storageList.AddRange(requestList);
         }
 
     }

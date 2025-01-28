@@ -8,6 +8,7 @@ using gRPCStressTestingService;
 using gRPCStressTestingService.DelayCalculations;
 using gRPCStressTestingService.Interfaces.Services;
 using gRPCStressTestingService.proto;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Serilog;
 using SharedCommonalities.ObjectMapping;
 using SharedCommonalities.Storage;
@@ -26,11 +27,11 @@ namespace gRPCStressTestingService.Services
         private readonly delayCalcRepo _delayCalcRepo;
         private readonly DelayCalculation _delayCalculations;
         private readonly DatabaseTransportationService _dbTransportationService;
-        private readonly IClientInstanceRepo _clientInstanceRepo;   
-
+        private readonly IClientInstanceRepo _clientInstanceRepo;
+        private readonly ThroughputStorage _throughputStorage;
         public UnaryService(ClientStorage storage, RequestResponseTimeStorage timeStorage, ObjectCreation objectCreation, 
             delayCalcRepo delayCalcRepo, DelayCalculation delayCalculations, DatabaseTransportationService databaseTransportationService,
-            IClientInstanceRepo clientInstanceRepo)
+            IClientInstanceRepo clientInstanceRepo, ThroughputStorage throughputStorage)
         {
             _storage = storage;
             _timeStorage = timeStorage;
@@ -39,6 +40,7 @@ namespace gRPCStressTestingService.Services
             _delayCalculations = delayCalculations;
             _dbTransportationService = databaseTransportationService;
             _clientInstanceRepo = clientInstanceRepo;
+            _throughputStorage = throughputStorage;
         }
 
         /// <summary>
@@ -71,6 +73,8 @@ namespace gRPCStressTestingService.Services
                 ResponseTimestamp = preciseTime, 
                 ClientUnique = request.ClientUnique,  
             };
+
+            _throughputStorage.IncrementThroughputCount();
 
             ClientDetails clientDetails = _objectCreation.MappingToClientDetails(Guid.Parse(request.RequestId), 0, true, null,Guid.Parse( request.ClientUnique), request.DataContentSize);
             
@@ -177,7 +181,9 @@ namespace gRPCStressTestingService.Services
                 RequestType = typeOfDataFromMetaData
             };
 
-            if(!_storage.Clients.ContainsKey(clientUnique))
+            
+
+            if (!_storage.Clients.ContainsKey(clientUnique))
             {
                 ClientActivity newClientActivity = new ClientActivity();
 
@@ -269,6 +275,9 @@ namespace gRPCStressTestingService.Services
 
             foreach(BatchDataRequestDetails details in batchRequestData)
             {
+
+                _throughputStorage.IncrementThroughputCount();
+
                 Log.Information($"Client ID : {details.ClientUnique} with overarching ID { details.BatchRequestId} handles batch messages -> {details.RequestId}");
 
                 int lengthOfData = LengthOfBatchRequest(details);

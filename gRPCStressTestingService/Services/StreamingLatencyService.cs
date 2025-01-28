@@ -22,15 +22,17 @@ namespace gRPCStressTestingService.Services
         private readonly DelayCalculation _delayCalculation;
         private readonly DatabaseTransportationService _dbTransportationService;
         private readonly IClientInstanceRepo _clientInstanceRepo;
+        private readonly ThroughputStorage _throughputStorage;
 
         public StreamingLatencyService(RequestResponseTimeStorage responseTimeStorage, delayCalcRepo delayCalcRepo, DelayCalculation delayCalculation,
-            DatabaseTransportationService databaseTransportationService, IClientInstanceRepo clientInstanceRepo)
+            DatabaseTransportationService databaseTransportationService, IClientInstanceRepo clientInstanceRepo, ThroughputStorage throughputStorage)
         {
             _responseTimeStorage = responseTimeStorage;
             _delayCalcRepo = delayCalcRepo;
             _delayCalculation = delayCalculation;
             _dbTransportationService = databaseTransportationService;
             _clientInstanceRepo = clientInstanceRepo;
+            _throughputStorage = throughputStorage;
         }
 
         /// <summary>
@@ -70,6 +72,8 @@ namespace gRPCStressTestingService.Services
                     RequestType = request.RequestType,
                     RequestTimestamp = preciseTime,
                 };
+
+                _throughputStorage.IncrementThroughputCount();
 
                 UnaryInfo streamingInfoResponse = await CreateUnaryInfoStreamingRequest(DateTime.Parse(serverResponse.RequestTimestamp), request.RequestType, request.DataContent,
                     request.RequestType, request.DataContentSize, findingClientInstance, "1", null);
@@ -147,6 +151,8 @@ namespace gRPCStressTestingService.Services
                     RequestType = request.RequestType,
                 };
 
+                _throughputStorage.IncrementThroughputCount();
+
                 await responseStream.WriteAsync(serverResponse);
 
                 await _delayCalculation.CalculatingDelay(keys, keys);
@@ -196,6 +202,8 @@ namespace gRPCStressTestingService.Services
                         RequestType = requestPayload.RequestType,
                         ResponseTimestamp = preciseTime
                     };
+
+                    _throughputStorage.IncrementThroughputCount();
 
                     await responseStream.WriteAsync(serverResponse);
 

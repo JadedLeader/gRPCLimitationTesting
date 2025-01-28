@@ -11,6 +11,7 @@ using Serilog;
 using Blazored.LocalStorage;
 using Microsoft.EntityFrameworkCore.Metadata;
 using gRPCToolFrontEnd.LocalStorage;
+using System.Collections.Concurrent;
 
 namespace gRPCToolFrontEnd.Helpers
 {
@@ -37,11 +38,11 @@ namespace gRPCToolFrontEnd.Helpers
         /// </summary>
         /// <param name="amountOfChannels"></param>
         /// <returns>A list of channels that were created</returns>
-        public async Task<Dictionary<Guid, GrpcChannel>> GeneratingMutlipleChannels(int amountOfChannels, string forAddress)
+        public async Task<ConcurrentDictionary<Guid, GrpcChannel>> GeneratingMutlipleChannels(int amountOfChannels, string forAddress)
         {
             int i = 0;
 
-            Dictionary<Guid, GrpcChannel> channels = new Dictionary<Guid, GrpcChannel>();
+            ConcurrentDictionary<Guid, GrpcChannel> channels = new ConcurrentDictionary<Guid, GrpcChannel>();
            
             while(amountOfChannels > i)
             {
@@ -53,7 +54,7 @@ namespace gRPCToolFrontEnd.Helpers
 
                 Guid channelUnique = Guid.NewGuid();
 
-                channels.Add(channelUnique, newChannel);
+                channels.TryAdd(channelUnique, newChannel);
 
                 Log.Information($"Channel created with ID {channelUnique}");
 

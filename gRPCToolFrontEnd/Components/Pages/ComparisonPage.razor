@@ -55,12 +55,16 @@
 
 @code {
 
+    
+       
 
     private List<ChartSeries> LowStressSeries = new List<ChartSeries>()
     {
         new ChartSeries()
         {
             Name = "Streaming Single"
+            
+            
         },
 
         new ChartSeries()
@@ -151,12 +155,28 @@
 
     private async Task PopulateMediumStressSeries()
     {
-        throw new NotImplementedException();
+        ChartSeries streamingSingle = await GetSeriesViaSeriesName(MediumStressSeries, "Streaming Single");
+        ChartSeries streamingBatch = await GetSeriesViaSeriesName(MediumStressSeries, "Streaming Batch");
+        ChartSeries unarySingle = await GetSeriesViaSeriesName(MediumStressSeries, "Unary Single");
+        ChartSeries unaryBatch = await GetSeriesViaSeriesName(MediumStressSeries, "Unary Batch");
+
+        streamingSingle.Data = MediumStressStorage.MediumStressStreamingSingle.ToArray();
+        streamingBatch.Data = MediumStressStorage.MediumStressStreamingBatch.ToArray();
+        unarySingle.Data = MediumStressStorage.MediumStressUnarySingle.ToArray();
+        unaryBatch.Data = MediumStressStorage.MediumStressUnaryBatch.ToArray();
     }
 
     private async Task PopulateHighStressSeries()
     {
-        throw new NotImplementedException();
+        ChartSeries streamingSingle = await GetSeriesViaSeriesName(HighStressSeries, "Streaming Single");
+        ChartSeries streamingBatch = await GetSeriesViaSeriesName(HighStressSeries, "Streaming Batch");
+        ChartSeries unarySingle = await GetSeriesViaSeriesName(HighStressSeries, "Unary Single");
+        ChartSeries unaryBatch = await GetSeriesViaSeriesName(HighStressSeries, "Unary Batch");
+
+        streamingSingle.Data = HighStressStorage.HighStressStreamingSingle.ToArray();
+        streamingBatch.Data = HighStressStorage.HighStressStreamingBatch.ToArray();
+        unarySingle.Data = HighStressStorage.HighStressUnarySingle.ToArray();
+        unaryBatch.Data = HighStressStorage.HighStressUnaryBatch.ToArray();
     }
 
     private async Task<ChartSeries> GetSeriesViaSeriesName(List<ChartSeries> chartSeries, string seriesName)

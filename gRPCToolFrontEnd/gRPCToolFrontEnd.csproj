@@ -46,6 +46,7 @@
 
 
   <ItemGroup>
+    <ProjectReference Include="..\ConfigurationStuff\ConfigurationStuff.csproj" />
     <ProjectReference Include="..\SharedCommonalities\SharedCommonalities.csproj" />
   </ItemGroup>
 

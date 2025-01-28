@@ -1,6 +1,7 @@
 ﻿@page "/Metrics"
 @using Grpc.Net.Client
 @using Serilog
+@using System.Collections.Concurrent
 @using gRPCToolFrontEnd.Components.Layout
 @using gRPCToolFrontEnd.Helpers
 @using gRPCToolFrontEnd.LocalStorage
@@ -59,11 +60,15 @@
             </MudPaper>
 
             <MudPaper Class="metric-card" Elevation="2">
-                <MudText Typo="Typo.body1">Put something here</MudText>
-                <MudText Typo="Typo.h5">@LargePayloadTotal</MudText>
+                <MudText Typo="Typo.body1">Throughput</MudText>
+                <MudText Typo="Typo.h5">@BestThroughput</MudText>
+            </MudPaper>
+
+            <MudPaper Class="metric-card" Elevation="2">
+                <MudText Typo="Typo.body1">Send Rate</MudText>
+                <MudText Typo="Typo.h5">@sendRatePerSecond</MudText>
             </MudPaper>
             
-
         </MudContainer>
     </MudItem>
 
@@ -144,6 +149,10 @@
 
     private int LargePayloadTotal = 0;
 
+    private int BestThroughput = 0;
+
+    private int sendRatePerSecond = 0;
+
     private int MaxSize = 10_000;
 
     private List<double> StreamingBatchDelays = new List<double>();
@@ -177,7 +186,7 @@
     protected override async Task OnInitializedAsync()
     {
 
-        Dictionary<Guid, GrpcChannel> getChannels = AccountDetailsStore.GetChannels();
+        ConcurrentDictionary<Guid, GrpcChannel> getChannels = AccountDetailsStore.GetChannels();
 
         TotalChannels = getChannels.Count;
 
@@ -239,8 +248,21 @@
         UtilitiesService.StartReceivingUnaryBatchMessages(unaryBatchDelays, sessionUnique);
 
 
+        UtilitiesService.OnBestThroughputReceived += HandlingBestThroughput;
+
+        GetBestThroughputRequest bestThroughputRequest = new GetBestThroughputRequest
+        {};
+
+        UtilitiesService.StartReceivingBestThroughput(bestThroughputRequest);
+
         StateHasChanged();
 
+    }
+
+    private async void HandlingBestThroughput(GetBestThroughputResponse bestThroughputResponse)
+    {
+        BestThroughput = bestThroughputResponse.BestThroughput;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async void HandlingSmallPayload(int newSmallPayloadTotal)

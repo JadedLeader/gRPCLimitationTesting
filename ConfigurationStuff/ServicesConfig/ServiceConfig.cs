@@ -37,6 +37,7 @@ namespace ConfigurationStuff.ServicesConfig
             
             services.AddSingleton<ClientStorage>();
             services.AddSingleton<RequestResponseTimeStorage>();
+            services.AddSingleton<ThroughputStorage>();
             
 
 

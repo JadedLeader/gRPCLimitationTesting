@@ -22,6 +22,8 @@ namespace gRPCToolFrontEnd.Services
         public event Action<GetUnaryDelaysResponse> OnUnarySingleReceived;
         public event Action<GetUnaryBatchDelaysResponse> OnUnaryBatchReceived;
 
+        public event Action<GetBestThroughputResponse> OnBestThroughputReceived;
+
         public UtilitiesService(Utilities.UtilitiesClient utilitiesClient)
         {
             _utilitiesClient = utilitiesClient;
@@ -64,11 +66,34 @@ namespace gRPCToolFrontEnd.Services
             Task.Run(() => ReceivingUnaryBatchStream(unaryBatchRequest, _cancellationToken.Token, sessionUnique));
         }
 
+        public void StartReceivingBestThroughput(GetBestThroughputRequest bestThroughputRequest)
+        {
+            _cancellationToken = new CancellationTokenSource();
+
+            Task.Run(() => ReceivingBestThroughput(bestThroughputRequest, _cancellationToken.Token));
+        }
+
         public void StopReceivingMessages()
         {
             if(_cancellationToken != null && !_cancellationToken.IsCancellationRequested)
             {
                 _cancellationToken.Cancel();
+            }
+        }
+
+        public async Task ReceivingBestThroughput(GetBestThroughputRequest bestThroughputRequest, CancellationToken cancellationToken)
+        {
+            Log.Information($"Started receiving best through from gRPC stream");
+
+            using var call = _utilitiesClient.GetBestThroughput(bestThroughputRequest);
+
+            while(await call.ResponseStream.MoveNext(cancellationToken))
+            {
+                var response = call.ResponseStream.Current;
+
+               
+                OnBestThroughputReceived?.Invoke(response);
+
             }
         }
 
@@ -150,8 +175,6 @@ namespace gRPCToolFrontEnd.Services
                 OnStreamingSingleReceived?.Invoke(response);
             }
             
-
-
         }
 
         public async Task ReceivingUnaryStream(GetUnaryDelaysRequest unaryRequest, CancellationToken cancellationToken, string sessionUnique)

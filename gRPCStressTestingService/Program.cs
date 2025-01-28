@@ -15,6 +15,7 @@ using System.Text;
 using ConfigurationStuff.ServicesConfig;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using gRPCStressTestingService.DelayCalculations;
+using gRPCStressTestingService.BackgroundServices;
 
 namespace gRPCStressTestingService
 {
@@ -92,6 +93,8 @@ namespace gRPCStressTestingService
 
             builder.Services.AddScoped<ObjectCreation>();
             builder.Services.AddScoped<delayCalcRepo>();
+
+            builder.Services.AddHostedService<ThroughputReporter>();
          
             var app = builder.Build();
             
