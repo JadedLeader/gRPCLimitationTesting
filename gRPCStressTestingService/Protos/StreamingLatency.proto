@@ -9,7 +9,6 @@ service StreamingLatency
 	rpc StreamingManySingleRequest(stream StreamingManySingleLatencyRequest) returns (stream StreamingManySingleLatencyResponse);
 
 	rpc StreamingSingleBatchRequest(stream StreamingBatchLatencyRequest) returns (stream StreamingBatchLatencyResponse);
-
 }
 
 message StreamingSingleLatencyRequest
