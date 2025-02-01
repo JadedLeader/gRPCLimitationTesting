@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+option csharp_namespace = "gRPCToolFrontEnd";
+
+
+service Throughput
+{ 
+	rpc GetStreamingSingleThroughput(GetStreamingSingleThroughputRequest) returns (stream GetStreamingSingleThroughputResponse);
+	rpc GetStreamingBatchThroughput(GetStreamingBatchThroughputRequest) returns (stream GetStreamingBatchThroughputResponse);
+	rpc GetUnarySingleThroughput(GetUnarySingleThroughputRequest) returns (stream GetUnarySingleThroughputResponse);
+	rpc GetUnaryBatchThroughput(GetUnaryBatchThroughputRequest) returns (stream GetUnaryBatchThroughputResponse);
+}
+
+message GetStreamingSingleThroughputRequest
+{ 
+
+}
+
+message GetStreamingSingleThroughputResponse
+{ 
+	int32 currentThroughput = 1;
+}
+
+message GetStreamingBatchThroughputRequest
+{ 
+
+}
+
+message GetStreamingBatchThroughputResponse
+{ 
+	int32 currentThroughput = 1;
+}
+
+message GetUnarySingleThroughputRequest
+{ 
+
+}
+
+message GetUnarySingleThroughputResponse
+{
+	int32 currentThroughput = 1;
+}
+
+message GetUnaryBatchThroughputRequest
+{ 
+
+}
+
+message GetUnaryBatchThroughputResponse
+{ 
+	int32 currentThroughput = 1;
+}

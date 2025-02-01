@@ -73,7 +73,7 @@ namespace gRPCStressTestingService.Services
                     RequestTimestamp = preciseTime,
                 };
 
-                _throughputStorage.IncrementThroughputCount();
+                _throughputStorage.IncrementSingleStreamingThroughput();
 
                 UnaryInfo streamingInfoResponse = await CreateUnaryInfoStreamingRequest(DateTime.Parse(serverResponse.RequestTimestamp), request.RequestType, request.DataContent,
                     request.RequestType, request.DataContentSize, findingClientInstance, "1", null);
@@ -151,7 +151,7 @@ namespace gRPCStressTestingService.Services
                     RequestType = request.RequestType,
                 };
 
-                _throughputStorage.IncrementThroughputCount();
+                _throughputStorage.IncrementSingleStreamingThroughput();
 
                 await responseStream.WriteAsync(serverResponse);
 
@@ -203,7 +203,7 @@ namespace gRPCStressTestingService.Services
                         ResponseTimestamp = preciseTime
                     };
 
-                    _throughputStorage.IncrementThroughputCount();
+                    _throughputStorage.IncrementBatchStreamingThroughput();
 
                     await responseStream.WriteAsync(serverResponse);
 

@@ -18,9 +18,16 @@
     <None Remove="Migrations\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Protos\Throughput.proto" />
+  </ItemGroup>
+
   
   <ItemGroup>
     <Protobuf Include="Protos\greet.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\Throughput.proto">
+      <GrpcServices>Client</GrpcServices>
+    </Protobuf>
 	<Protobuf Include="Protos\UnaryLatency.proto" GrpcServices="Server" />
 	<Protobuf Include="Protos\Admin.proto" GrpcServices="Server" />
 	<Protobuf Include="Protos\Accounts.proto" GrpcServices="Server" />
@@ -29,6 +36,7 @@
 	<Protobuf Include="Protos\ClientInstances.proto" GrpcServices="Server" />
 	<Protobuf Include="Protos\Utilities.proto" GrpcServices="Server" />
 	<Protobuf Include="Protos\StreamingLatency.proto" GrpcServices="Server" />
+	  <Protobuf Include="Protos\Throughput.proto" GrpcServices="Server" />
 	  
   </ItemGroup>
 

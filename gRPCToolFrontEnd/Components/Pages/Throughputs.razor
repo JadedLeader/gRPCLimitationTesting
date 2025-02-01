@@ -1,59 +1,43 @@
 ﻿@page "/Throughput"
+@using System.Diagnostics
+@using Serilog
 @using gRPCToolFrontEnd.Components.Layout
+@using gRPCToolFrontEnd.Services
+@using gRPCToolFrontEnd.LocalStorage
 @layout MainLayout
-
-@page "/throughput-dashboard"
-
-@using MudBlazor
+@inject UnaryRequestService UnaryRequestService
+@inject StreamingLatencyService StreamingLatencyService
+@inject SentRequestStorage SentRequestStorage
+@inject ThroughputService ThroughputService
 
 <MudContainer MaxWidth="MaxWidth.False" Class="MyMudPaper">
-    <MudGrid Gutter="Gutter.None">
-        <!-- Top Section: Controls -->
+    <MudGrid>
+        <!-- 1) Top Section: Buttons & Iterations -->
         <MudItem xs="12">
             <MudGrid>
-                <!-- Unary Single Button -->
-                <MudItem xs="12" sm="6" md="2">
-                    <MudTooltip Text="Tests the maximum throughput of a unary single request">
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
-                            Throughput Unary Single
-                        </MudButton>
-                    </MudTooltip>
+                <MudItem xs="6" md="2">
+                    <MudButton Variant="Variant.Filled" FullWidth="true" @onclick="@SendUnarySingleThroughput">
+                        Throughput Unary Single
+                    </MudButton> 
                 </MudItem>
-
-                <!-- Unary Batch Button -->
-                <MudItem xs="12" sm="6" md="2">
-                    <MudTooltip Text="Tests the maximum throughput of a unary batch request">
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
-                            Throughput Unary Batch
-                        </MudButton>
-                    </MudTooltip>
+                <MudItem xs="6" md="2">
+                    <MudButton Variant="Variant.Filled" FullWidth="true" @onclick="@SendUnaryBatchThroughput">
+                        Throughput Unary Batch
+                    </MudButton>
                 </MudItem>
-
-                <!-- Streaming Single Button -->
-                <MudItem xs="12" sm="6" md="2">
-                    <MudTooltip Text="Tests the maximum throughput of a streaming single request">
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
-                            Throughput Streaming Single
-                        </MudButton>
-                    </MudTooltip>
+                <MudItem xs="6" md="2">
+                    <MudButton Variant="Variant.Filled" FullWidth="true" @onclick="@SendStreamingSingleThroughput">
+                        Throughput Streaming Single
+                    </MudButton>
                 </MudItem>
-
-                <!-- Streaming Batch Button -->
-                <MudItem xs="12" sm="6" md="2">
-                    <MudTooltip Text="Tests the maximum throughput of a streaming batch request">
-                        <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
-                            Throughput Streaming Batch
-                        </MudButton>
-                    </MudTooltip>
+                <MudItem xs="6" md="2">
+                    <MudButton Variant="Variant.Filled" FullWidth="true" @onclick="@SendStreamingBatchThroughput">
+                        Throughput Streaming Batch
+                    </MudButton>
                 </MudItem>
-
-                <!-- Request Iterations TextField -->
-                <MudItem xs="12" sm="6" md="2">
-                    <MudTextField Label="Amount of requests per test"
-                                  HelperText="Specify the number of requests for each test"
-                                  HelperTextOnFocus="true"
+                <MudItem xs="12" md="2">
+                    <MudTextField Label="Requests per Test"
                                   T="int"
-                                  ReadOnly="false"
                                   @bind-Value="@RequestIterations"
                                   FullWidth="true"
                                   Type="Number" />
@@ -61,96 +45,125 @@
             </MudGrid>
         </MudItem>
 
-        <MudGrid Gutter="Gutter.None">
+        <!-- 2) Main Content Section -->
+        <MudItem xs="6">
+            <MudGrid>
+                <MudItem xs="12" md="7">
+                    <MudGrid Gutter="Gutter.None">
+                        <MudItem xs="12" sm="6">
+                            <MudCard Class="metric-card">
+                                <MudCardContent>
+                                    <MudText Typo="Typo.h6" Align="Align.Center">
+                                        Unary Single Throughput
+                                    </MudText>
+                                    <MudText Typo="Typo.h4" Align="Align.Center">
+                                        @UnarySingleMaxThroughput req/s
+                                    </MudText>
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudCard Class="metric-card">
+                                <MudCardContent>
+                                    <MudText Typo="Typo.h6" Align="Align.Center">
+                                        Unary Single Requests Sent
+                                    </MudText>
+                                    <MudText Typo="Typo.h4" Align="Align.Center">
+                                        @UnarySingleRequestsSent
+                                    </MudText>
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
 
-            <!-- UNARY SINGLE -->
-            <!-- Row title (optional) -->
-            <MudItem xs="12">
-                <MudText Typo="Typo.h5" Align="Align.Center">Unary Single</MudText>
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudCard Class="metric-card">
-                    <MudCardContent>
-                        <MudText Typo="Typo.h6" Align="Align.Center">Unary Single Throughput</MudText>
-                        <MudText Typo="Typo.h4" Align="Align.Center">@UnarySingleMaxThroughput req/s</MudText>
-                    </MudCardContent>
-                </MudCard>
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudCard Class="metric-card">
-                    <MudCardContent>
-                        <MudText Typo="Typo.h6" Align="Align.Center">Unary Single Requests Sent</MudText>
-                        <MudText Typo="Typo.h4" Align="Align.Center">@UnarySingleRequestsSent</MudText>
-                    </MudCardContent>
-                </MudCard>
-            </MudItem>
+                        <!-- Unary Batch -->
+                        <MudItem xs="12" sm="6">
+                            <MudCard Class="metric-card">
+                                <MudCardContent>
+                                    <MudText Typo="Typo.h6" Align="Align.Center">
+                                        Unary Batch Throughput
+                                    </MudText>
+                                    <MudText Typo="Typo.h4" Align="Align.Center">
+                                        @UnaryBatchMaxThroughput req/s
+                                    </MudText>
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudCard Class="metric-card">
+                                <MudCardContent>
+                                    <MudText Typo="Typo.h6" Align="Align.Center">
+                                        Unary Batch Requests Sent
+                                    </MudText>
+                                    <MudText Typo="Typo.h4" Align="Align.Center">
+                                        @UnaryBatchRequestsSent
+                                    </MudText>
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
 
-            <!-- UNARY BATCH -->
-            <MudItem xs="12">
-                <MudText Typo="Typo.h5" Align="Align.Center">Unary Batch</MudText>
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudCard Class="metric-card">
-                    <MudCardContent>
-                        <MudText Typo="Typo.h6" Align="Align.Center">Unary Batch Throughput</MudText>
-                        <MudText Typo="Typo.h4" Align="Align.Center">@UnaryBatchMaxThroughput req/s</MudText>
-                    </MudCardContent>
-                </MudCard>
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudCard Class="metric-card">
-                    <MudCardContent>
-                        <MudText Typo="Typo.h6" Align="Align.Center">Unary Batch Requests Sent</MudText>
-                        <MudText Typo="Typo.h4" Align="Align.Center">@UnaryBatchRequestsSent</MudText>
-                    </MudCardContent>
-                </MudCard>
-            </MudItem>
+                        <!-- Streaming Single -->
+                        <MudItem xs="12" sm="6">
+                            <MudCard Class="metric-card">
+                                <MudCardContent>
+                                    <MudText Typo="Typo.h6" Align="Align.Center">
+                                        Streaming Single Throughput
+                                    </MudText>
+                                    <MudText Typo="Typo.h4" Align="Align.Center">
+                                        @StreamingSingleMaxThroughput req/s
+                                    </MudText>
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudCard Class="metric-card">
+                                <MudCardContent>
+                                    <MudText Typo="Typo.h6" Align="Align.Center">
+                                        Streaming Single Requests Sent
+                                    </MudText>
+                                    <MudText Typo="Typo.h4" Align="Align.Center">
+                                        @StreamingSingleRequestsSent
+                                    </MudText>
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
 
-            <!-- STREAMING SINGLE -->
-            <MudItem xs="12">
-                <MudText Typo="Typo.h5" Align="Align.Center">Streaming Single</MudText>
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudCard Class="metric-card">
-                    <MudCardContent>
-                        <MudText Typo="Typo.h6" Align="Align.Center">Streaming Single Throughput</MudText>
-                        <MudText Typo="Typo.h4" Align="Align.Center">@StreamingSingleMaxThroughput req/s</MudText>
-                    </MudCardContent>
-                </MudCard>
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudCard Class="metric-card">
-                    <MudCardContent>
-                        <MudText Typo="Typo.h6" Align="Align.Center">Streaming Single Requests Sent</MudText>
-                        <MudText Typo="Typo.h4" Align="Align.Center">@StreamingSingleRequestsSent</MudText>
-                    </MudCardContent>
-                </MudCard>
-            </MudItem>
-
-            <!-- STREAMING BATCH -->
-            <MudItem xs="12">
-                <MudText Typo="Typo.h5" Align="Align.Center">Streaming Batch</MudText>
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudCard Class="metric-card">
-                    <MudCardContent>
-                        <MudText Typo="Typo.h6" Align="Align.Center">Streaming Batch Throughput</MudText>
-                        <MudText Typo="Typo.h4" Align="Align.Center">@StreamingBatchMaxThroughput req/s</MudText>
-                    </MudCardContent>
-                </MudCard>
-            </MudItem>
-            <MudItem xs="12" sm="6">
-                <MudCard Class="metric-card">
-                    <MudCardContent>
-                        <MudText Typo="Typo.h6" Align="Align.Center">Streaming Batch Requests Sent</MudText>
-                        <MudText Typo="Typo.h4" Align="Align.Center">@StreamingBatchRequestsSent</MudText>
-                    </MudCardContent>
-                </MudCard>
-            </MudItem>
-
-        </MudGrid>
+                        <!-- Streaming Batch -->
+                        <MudItem xs="12" sm="6">
+                            <MudCard Class="metric-card">
+                                <MudCardContent>
+                                    <MudText Typo="Typo.h6" Align="Align.Center">
+                                        Streaming Batch Throughput
+                                    </MudText>
+                                    <MudText Typo="Typo.h4" Align="Align.Center">
+                                        @StreamingBatchMaxThroughput req/s
+                                    </MudText>
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudCard Class="metric-card">
+                                <MudCardContent>
+                                    <MudText Typo="Typo.h6" Align="Align.Center">
+                                        Streaming Batch Requests Sent
+                                    </MudText>
+                                    <MudText Typo="Typo.h4" Align="Align.Center">
+                                        @StreamingBatchRequestsSent
+                                    </MudText>
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
+                    </MudGrid>
+                </MudItem>
+            </MudGrid>
+        </MudItem>
     </MudGrid>
 </MudContainer>
+
+<MudItem xs="12" md="5" Style="height: 750px; width: 100%;">
+    <MudPaper Class="right-side-paper" Style="width: 100%">
+        <MudChart ChartType="ChartType.Line" Style="height: 100%; width: 100%;"></MudChart>
+    </MudPaper>
+</MudItem>
 
 <style> 
 
@@ -174,6 +187,7 @@
     }
 
     .MyMudPaper {
+        min-height: 100vh;
         background: rgba(0, 0, 0, 0.6);
         border-radius: 12px;
         padding: 20px;
@@ -195,36 +209,98 @@
     private int StreamingSingleRequestsSent = 0;
     private int StreamingBatchRequestsSent = 0;
 
-    private int RequestIterations = 2000;
+    private int RequestIterations = 100;
 
-    protected override Task OnInitializedAsync()
+    private string FileSize = "small";
+
+    protected async override Task OnInitializedAsync()
     {
-        return base.OnInitializedAsync();
+        SentRequestStorage.OnSingleUnaryRequestsSent += HandleSingleUnaryRequestSent;
+
+        UnarySingleRequestsSent = SentRequestStorage.SingleUnaryRequestsSent;
+
+        SentRequestStorage.OnBatchUnaryRequestsSent += HandleBatchUnaryRequestSent; 
+
+        UnaryBatchRequestsSent = SentRequestStorage.BatchUnaryRequestsSent;
+
+        SentRequestStorage.OnSingleStreamingRequestSent += HandleSingleStreamingRequestSent; 
+
+        StreamingSingleRequestsSent = SentRequestStorage.SingleStreamingRequestsSent; 
+
+        SentRequestStorage.OnBatchStreamingRequestsSent += HandleBatchStreamingRequestSent; 
+
+        StreamingBatchRequestsSent = SentRequestStorage.BatchStreamingRequestsSent;
+
+        ThroughputService.OnStreamingSingleThroughput += HandleStreamingSingleThroughput;
+
+        GetStreamingSingleThroughputRequest newStreamingSingle = new GetStreamingSingleThroughputRequest
+        {};
+
+        ThroughputService.StartReceivingStreamingSingleThroughput(newStreamingSingle);
+
+        await base.OnInitializedAsync();
     }
 
-    public async Task TestRequestFlow()
+    public async void HandleStreamingSingleThroughput(GetStreamingSingleThroughputResponse getStreamingSingleThroughput)
     {
-        throw new NotImplementedException();
+        StreamingSingleMaxThroughput = getStreamingSingleThroughput.CurrentThroughput;
+
+        await InvokeAsync(StateHasChanged);
     }
 
     public async Task SendUnarySingleThroughput()
     {
-        throw new NotImplementedException();
+
+        await UnaryRequestService.UnaryResponseIterativeAsync(null, FileSize, RequestIterations);
     }
 
     public async Task SendUnaryBatchThroughput()
     {
-        throw new NotImplementedException();
+        await UnaryRequestService.UnaryBatchIterativeAsync(null, RequestIterations, FileSize);
     }
 
     public async Task SendStreamingSingleThroughput()
     {
-        throw new NotImplementedException();
+
+        Log.Information($"Started streaming single throughputs");
+
+        await StreamingLatencyService.CreateManySingleStreamingRequests(null, null, RequestIterations, FileSize);
+        
     }
 
     public async Task SendStreamingBatchThroughput()
     {
-        throw new NotImplementedException(); 
+        await StreamingLatencyService.CreateManyStreamingBatchRequest(null, RequestIterations, FileSize);
     }
 
+    public async void HandleSingleUnaryRequestSent(int newSingleUnaryCount)
+    {
+        UnarySingleRequestsSent = newSingleUnaryCount;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async void HandleBatchUnaryRequestSent(int newBatchUnaryCount)
+    {
+        
+        UnaryBatchRequestsSent = newBatchUnaryCount;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async void HandleSingleStreamingRequestSent(int newSingleStreamingCount)
+    {
+        StreamingSingleRequestsSent = newSingleStreamingCount; 
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async void HandleBatchStreamingRequestSent(int newBatchStreamingCount)
+    {
+        StreamingBatchRequestsSent = newBatchStreamingCount; 
+
+        await InvokeAsync(StateHasChanged);
+    }
+  
 }
+

@@ -88,7 +88,12 @@ namespace gRPCToolFrontEnd
             builder.Services.AddGrpcClient<Admin.AdminClient>(o =>
             {
                 o.Address = new Uri("https://localhost:5000");
-            }); ;
+            });
+
+            builder.Services.AddGrpcClient<Throughput.ThroughputClient>(o =>
+            {
+                o.Address = new Uri("https://localhost:5000");
+            }); 
 
             ServiceConfig.AddSharedServices(builder.Services, builder.Configuration);
 
@@ -96,6 +101,8 @@ namespace gRPCToolFrontEnd
 
             builder.Services.AddScoped<UnaryRequestService>();
             builder.Services.AddScoped<AdminService>();
+
+            builder.Services.AddScoped<ThroughputService>();
 
             builder.Services.AddScoped<ClientHelper>();
 
@@ -108,6 +115,7 @@ namespace gRPCToolFrontEnd
             builder.Services.AddSingleton<RequestDelayStorage>();
             builder.Services.AddSingleton<ClientStorage>();
             builder.Services.AddSingleton<GlobalSettings>();
+            builder.Services.AddSingleton<SentRequestStorage>();
          
             builder.Services.AddScoped<StreamingLatencyService>();
             builder.Services.AddScoped<IRequestTypeHandlingFactory, RequestTypeHandlingFactory>();

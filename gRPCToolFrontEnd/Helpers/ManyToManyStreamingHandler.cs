@@ -33,7 +33,7 @@ namespace gRPCToolFrontEnd.Helpers
 
             if(UnaryOrBatch)
             {
-                await _streamingLatencyService.CreateManySingleStreamingRequests(null, AmountOfRequests, FileSize);
+                await _streamingLatencyService.CreateManySingleStreamingRequests(null, null, AmountOfRequests, FileSize);
             }
             else
             {

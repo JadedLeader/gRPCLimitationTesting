@@ -74,7 +74,7 @@ namespace gRPCStressTestingService.Services
                 ClientUnique = request.ClientUnique,  
             };
 
-            _throughputStorage.IncrementThroughputCount();
+            _throughputStorage.IncrementSingleUnaryThroughput();
 
             ClientDetails clientDetails = _objectCreation.MappingToClientDetails(Guid.Parse(request.RequestId), 0, true, null,Guid.Parse( request.ClientUnique), request.DataContentSize);
             
@@ -276,7 +276,7 @@ namespace gRPCStressTestingService.Services
             foreach(BatchDataRequestDetails details in batchRequestData)
             {
 
-                _throughputStorage.IncrementThroughputCount();
+                _throughputStorage.IncrementBatchUnaryThroughput();
 
                 Log.Information($"Client ID : {details.ClientUnique} with overarching ID { details.BatchRequestId} handles batch messages -> {details.RequestId}");
 

@@ -59,15 +59,6 @@
                 <MudText Typo="Typo.h5">@LargePayloadTotal</MudText>
             </MudPaper>
 
-            <MudPaper Class="metric-card" Elevation="2">
-                <MudText Typo="Typo.body1">Throughput</MudText>
-                <MudText Typo="Typo.h5">@BestThroughput</MudText>
-            </MudPaper>
-
-            <MudPaper Class="metric-card" Elevation="2">
-                <MudText Typo="Typo.body1">Send Rate</MudText>
-                <MudText Typo="Typo.h5">@sendRatePerSecond</MudText>
-            </MudPaper>
             
         </MudContainer>
     </MudItem>
@@ -247,24 +238,11 @@
 
         UtilitiesService.StartReceivingUnaryBatchMessages(unaryBatchDelays, sessionUnique);
 
-
-        UtilitiesService.OnBestThroughputReceived += HandlingBestThroughput;
-
-        GetBestThroughputRequest bestThroughputRequest = new GetBestThroughputRequest
-        {};
-
-        UtilitiesService.StartReceivingBestThroughput(bestThroughputRequest);
-
         StateHasChanged();
 
     }
 
-    private async void HandlingBestThroughput(GetBestThroughputResponse bestThroughputResponse)
-    {
-        BestThroughput = bestThroughputResponse.BestThroughput;
-        await InvokeAsync(StateHasChanged);
-    }
-
+   
     private async void HandlingSmallPayload(int newSmallPayloadTotal)
     {
         SmallPayloadTotal = newSmallPayloadTotal; 

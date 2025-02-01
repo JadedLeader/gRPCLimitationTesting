@@ -10,8 +10,6 @@ service Utilities
 	rpc GetUnaryDelays(GetUnaryDelaysRequest) returns (stream GetUnaryDelaysResponse);
 	rpc GetUnaryBatchDelays(GetUnaryBatchDelaysRequest) returns (stream GetUnaryBatchDelaysResponse);
 	rpc GetstreamingBatchDelays(GetStreamingBatchDelaysRequest) returns (stream GetStreamingBatchDelaysResponse);
-	rpc GetBestThroughput(GetBestThroughputRequest) returns (stream GetBestThroughputResponse);
-	rpc GetWorstThroughput(GetWorstThroughputRequest) returns (stream GetWorstThroughputResponse);
 }
 
 message GetClientsWithMessagesRequest
@@ -77,25 +75,5 @@ message GatheringDelays
 	string requestType = 3;
 	string dataContent = 4;
 	string responseTimestamp = 5;
-}
-
-message GetBestThroughputRequest
-{ 
-
-}
-
-message GetBestThroughputResponse
-{ 
-	int32 bestThroughput = 1;
-}
-
-message GetWorstThroughputRequest
-{ 
-
-}
-
-message GetWorstThroughputResponse
-{ 
-	int32 worstThroughput = 1;
 }
 

@@ -227,62 +227,7 @@ namespace gRPCStressTestingService.Services
 
         }
 
-        public async Task GetBestThroughput(GetBestThroughputRequest request, IServerStreamWriter<GetBestThroughputResponse> responseStream, ServerCallContext context)
-        {
-            while(!context.CancellationToken.IsCancellationRequested)
-            {
-
-                ConcurrentBag<int> currentThroughputs = await _throughputStorage.ReturnThroughputBag();
-
-                if(currentThroughputs.Count == 0)
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(0.3));
-                }
-                else
-                {
-                    int MaxThroughput = currentThroughputs.Max();
-
-                    Log.Information($"Current largest throughput: {MaxThroughput}");
-
-                    GetBestThroughputResponse serverResponse = new GetBestThroughputResponse
-                    {
-                        BestThroughput = MaxThroughput,
-                    };
-
-                    await responseStream.WriteAsync(serverResponse);
-                }
-
-            }
-        }
-
-        public async Task GetWorstThroughput(GetWorstThroughputRequest request, IServerStreamWriter<GetWorstThroughputResponse> responseStream, ServerCallContext context)
-        {
-            while(!context.CancellationToken.IsCancellationRequested)
-            {
-
-                ConcurrentBag<int> getThroughputBag = await _throughputStorage.ReturnThroughputBag();
-
-                if(getThroughputBag.Count == 0)
-                {
-                    await Task.Delay(TimeSpan.FromSeconds(0.3));
-                }
-                else
-                {
-
-                    int WorstCurrentThroughput = getThroughputBag.Min();
-
-                    Log.Information($"Current smallest throughput: {WorstCurrentThroughput}");
-
-                    GetWorstThroughputResponse serverResponse = new GetWorstThroughputResponse
-                    {
-                        WorstThroughput = WorstCurrentThroughput,
-                    };
-
-                    await responseStream.WriteAsync(serverResponse);
-                }
-
-            }
-        }
+        
 
 
 

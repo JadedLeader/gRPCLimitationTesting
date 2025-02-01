@@ -91,6 +91,8 @@ namespace gRPCStressTestingService
 
             builder.Services.AddScoped<IStreamingLatencyService, StreamingLatencyService>();
 
+            builder.Services.AddScoped<IThroughputService, ThroughputService>();
+
             builder.Services.AddScoped<ObjectCreation>();
             builder.Services.AddScoped<delayCalcRepo>();
 
@@ -108,6 +110,7 @@ namespace gRPCStressTestingService
             app.MapGrpcService<ClientInstanceImplementation>();
             app.MapGrpcService<UtilitiesImplementation>();
             app.MapGrpcService<StreamingImplementation>();
+            app.MapGrpcService<ThroughputImplementation>();
 
             // Configure the HTTP request pipeline.
             app.MapGrpcService<GreeterService>();

@@ -23,12 +23,15 @@ namespace gRPCToolFrontEnd.Services
         private readonly ClientHelper _clientHelper;
         private readonly ClientInstanceService _clientInstanceService;
         private readonly ClientStorage _clientStorage;
-        public StreamingLatencyService(AccountDetailsStore accountDetailsStore, ClientHelper clientHelper, ClientInstanceService clientInstanceService, ClientStorage clientStorage)
+        private readonly SentRequestStorage _sentRequestStorage;
+        public StreamingLatencyService(AccountDetailsStore accountDetailsStore, ClientHelper clientHelper, ClientInstanceService clientInstanceService, ClientStorage clientStorage,
+            SentRequestStorage sentRequestStorage)
         {
             _accountDetailsStore = accountDetailsStore;
             _clientHelper = clientHelper;
             _clientInstanceService = clientInstanceService;
             _clientStorage = clientStorage;
+            _sentRequestStorage = sentRequestStorage;
         }
 
        
@@ -54,11 +57,13 @@ namespace gRPCToolFrontEnd.Services
         }
 
         
-        public async Task CreateManySingleStreamingRequests(Guid? channelUnique, int amountOfRequests, string fileSize)
+        public async Task CreateManySingleStreamingRequests(CancellationToken? cancellationToken, Guid? channelUnique, int amountOfRequests, string fileSize)
         {
             Log.Information($"Creating many single streaming requests detected");
 
             CreateClientInstanceResponse newlyCreatedCleint = await _clientInstanceService.CreateClientInstanceAsync();
+
+            cancellationToken?.ThrowIfCancellationRequested();
 
             if (channelUnique == null)
             {
@@ -92,7 +97,7 @@ namespace gRPCToolFrontEnd.Services
                 StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(getChannel.Value);
 
                 _clientStorage.IncrementStreamingClients();
-
+              
                 await GeneratingeManySingleStreamingRequests(streamingClient, amountOfRequests, newlyCreatedCleint.ClientUnique, fileSize);
             }
 
@@ -201,6 +206,8 @@ namespace gRPCToolFrontEnd.Services
                     RequestType = "Streaming"
                 };
 
+                _sentRequestStorage.IncrementSingleStreamingRequest();
+
                 Log.Information($"This is the single streaming request, client Unique : {streamingRequest.ClientUnique}, Message ID: {streamingRequest.RequestId}");
 
                 await call.RequestStream.WriteAsync(streamingRequest);
@@ -272,7 +279,7 @@ namespace gRPCToolFrontEnd.Services
 
             int i = 0; 
 
-            string batchRequestId = Guid.NewGuid().ToString();  
+            string batchRequestId = Guid.NewGuid().ToString();
 
             while(i < requestsInBatch)
             {
@@ -290,6 +297,8 @@ namespace gRPCToolFrontEnd.Services
                     DataSize = requestsInBatch.ToString(),
                     RequestTimestamp = DateTime.Now.ToString(),   
                 };
+
+                _sentRequestStorage.IncrementBatchStreamingRequest(1);
 
                 Log.Information($"generated one streaming request with client unique : {streamingBatchDetails.ClientUnique} : batch ID {streamingBatchDetails.BatchRequestId} message ID : {streamingBatchDetails.MessageId}");
 

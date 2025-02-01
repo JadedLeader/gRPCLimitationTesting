@@ -36,7 +36,7 @@ namespace gRPCToolFrontEnd.Services
 
                  var t1 = _unaryRequestService.UnaryBatchIterativeAsync(null, 1, fileSize);
 
-                 var t2 = _streamingLatencyService.CreateManySingleStreamingRequests(null, 1, fileSize);
+                 var t2 = _streamingLatencyService.CreateManySingleStreamingRequests(null, null, 1, fileSize);
 
                  var t3 = _streamingLatencyService.CreateManyStreamingBatchRequest(null, 1, fileSize);
 
@@ -98,7 +98,7 @@ namespace gRPCToolFrontEnd.Services
 
                  var t1 = _unaryRequestService.UnaryBatchIterativeAsync(null, 3, fileSize);
 
-                 var t2 = _streamingLatencyService.CreateManySingleStreamingRequests(null, 3, fileSize);
+                 var t2 = _streamingLatencyService.CreateManySingleStreamingRequests(null, null, 3, fileSize);
 
                  var t3 = _streamingLatencyService.CreateManyStreamingBatchRequest(null, 3, fileSize);
 
@@ -170,7 +170,7 @@ namespace gRPCToolFrontEnd.Services
 
                  var t1 = _unaryRequestService.UnaryBatchIterativeAsync(null, amountOfRequests, fileSize);
 
-                 var t2 = _streamingLatencyService.CreateManySingleStreamingRequests(null, amountOfRequests, fileSize);
+                 var t2 = _streamingLatencyService.CreateManySingleStreamingRequests(null, null, amountOfRequests, fileSize);
 
                  var t3 = _streamingLatencyService.CreateManyStreamingBatchRequest(null, amountOfRequests, fileSize);
 

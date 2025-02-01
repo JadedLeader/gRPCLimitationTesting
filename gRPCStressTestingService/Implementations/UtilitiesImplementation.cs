@@ -37,16 +37,6 @@ namespace gRPCStressTestingService.Implementations
             await _utilitiesService.GetUnaryBatchDelays(request, responseStream, context);
         }
 
-        public override async Task GetBestThroughput(GetBestThroughputRequest request, IServerStreamWriter<GetBestThroughputResponse> responseStream, ServerCallContext context)
-        {
-            await _utilitiesService.GetBestThroughput(request, responseStream, context);
-        }
-
-        public override async Task GetWorstThroughput(GetWorstThroughputRequest request, IServerStreamWriter<GetWorstThroughputResponse> responseStream, ServerCallContext context)
-        {
-            await _utilitiesService.GetWorstThroughput(request, responseStream, context);
-        }
-
-
+      
     }
 }

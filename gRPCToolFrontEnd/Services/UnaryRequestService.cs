@@ -22,12 +22,16 @@ namespace gRPCToolFrontEnd.Services
 
         private readonly ClientStorage _clientStorage;
 
-        public UnaryRequestService(AccountDetailsStore accountDetailsStore, ClientHelper clientHelper, ClientInstanceService clientInstanceService, ClientStorage clientStorage)
+        private readonly SentRequestStorage _sentRequestStorage;
+
+        public UnaryRequestService(AccountDetailsStore accountDetailsStore, ClientHelper clientHelper, ClientInstanceService clientInstanceService, ClientStorage clientStorage,
+            SentRequestStorage sentRequestStorage)
         {
             _accountDetailsStore = accountDetailsStore;
             _clientHelper = clientHelper;
             _clientInstanceService = clientInstanceService;
             _clientStorage = clientStorage;
+            _sentRequestStorage = sentRequestStorage;
         }
 
         public async Task<DataResponse> UnaryResponseAsync(Guid channelId, string fileSize)
@@ -102,6 +106,8 @@ namespace gRPCToolFrontEnd.Services
 
                 ConcurrentDictionary<Guid, GrpcChannel> channels = _accountDetailsStore.GetChannels();
 
+                _sentRequestStorage.IncrementBatchUnaryRequest(amountOfIterations);
+
                 metaData.Add("open-channels", channels.Count.ToString());
 
                 foreach (var channel in channels)
@@ -175,6 +181,8 @@ namespace gRPCToolFrontEnd.Services
 
                 Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(getChannel.Value);
 
+
+                _sentRequestStorage.IncrementSingleUnaryRequest();
                 _clientStorage.IncrementUnaryClients();
                 await _clientHelper.PayloadUsage(fileSize);
 
