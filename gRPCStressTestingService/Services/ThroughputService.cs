@@ -39,6 +39,8 @@ namespace gRPCStressTestingService.Services
                         CurrentThroughput = bestThroughput,
                     };
 
+                    await Task.Delay(TimeSpan.FromSeconds(0.4));
+
                     await responseStream.WriteAsync(serverResponse);
 
                 }
@@ -67,6 +69,8 @@ namespace gRPCStressTestingService.Services
                         CurrentThroughput = bestBatchThroughput,
                     };
 
+                    await Task.Delay(TimeSpan.FromSeconds(0.4));
+
                     await responseStream.WriteAsync(serverResponse);
                 }
 
@@ -93,6 +97,8 @@ namespace gRPCStressTestingService.Services
                         CurrentThroughput = bestSingleThroughput
                     };
 
+                    await Task.Delay(TimeSpan.FromSeconds(0.4));
+
                     await responseStream.WriteAsync(serverResponse);
                 }
             }
@@ -118,6 +124,8 @@ namespace gRPCStressTestingService.Services
                     {
                         CurrentThroughput = bestBatchThroughput
                     };
+
+                    await Task.Delay(TimeSpan.FromSeconds(0.4));
 
                     await responseStream.WriteAsync(serverResponse);
                 }

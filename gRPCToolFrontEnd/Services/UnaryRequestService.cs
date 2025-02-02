@@ -106,8 +106,6 @@ namespace gRPCToolFrontEnd.Services
 
                 ConcurrentDictionary<Guid, GrpcChannel> channels = _accountDetailsStore.GetChannels();
 
-                _sentRequestStorage.IncrementBatchUnaryRequest(amountOfIterations);
-
                 metaData.Add("open-channels", channels.Count.ToString());
 
                 foreach (var channel in channels)
@@ -143,6 +141,8 @@ namespace gRPCToolFrontEnd.Services
                         Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(channel.Value);
 
                         _clientStorage.IncrementUnaryClients();
+
+                        _sentRequestStorage.IncrementSingleUnaryRequest();
 
                         var response = await newUnaryClient.UnaryResponseAsync(newRequest, metaData);
 
@@ -356,6 +356,7 @@ namespace gRPCToolFrontEnd.Services
                 };
 
                 await _clientHelper.PayloadUsage(fileSize);
+                _sentRequestStorage.IncrementBatchUnaryRequest(1);
 
                 Log.Information($"New batch data request has been added to the batch, request is owned by client ID {singleRequest.ClientUnique} with over-arching ID : {singleRequest.BatchRequestId} handles {singleRequest.RequestId}");
 

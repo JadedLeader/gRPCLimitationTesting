@@ -39,18 +39,10 @@ namespace gRPCToolFrontEnd.Services
                  var t2 = _streamingLatencyService.CreateManySingleStreamingRequests(null, null, 1, fileSize);
 
                  var t3 = _streamingLatencyService.CreateManyStreamingBatchRequest(null, 1, fileSize);
-
+                
                  var t4 = _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize, 1);
 
-                 await Task.WhenAll(t1, t2, t3, t4); 
-
-               /* await _unaryRequestService.UnaryBatchIterativeAsync(null, 1, fileSize);
-
-                await _streamingLatencyService.CreateManySingleStreamingRequests(null, 1, fileSize);
-
-                await _streamingLatencyService.CreateManyStreamingBatchRequest(null, 1, fileSize);
-
-                await _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize, 1); */
+                 await Task.WhenAll(t1,t2,t3,t4); 
 
             }
 
@@ -105,14 +97,6 @@ namespace gRPCToolFrontEnd.Services
                  var t4 = _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize, 3);
 
                  await Task.WhenAll(t1, t2, t3, t4); 
-
-                /*await _unaryRequestService.UnaryBatchIterativeAsync(null, 3, fileSize);
-
-                await _streamingLatencyService.CreateManySingleStreamingRequests(null, 3, fileSize);
-
-                await _streamingLatencyService.CreateManyStreamingBatchRequest(null, 3, fileSize);
-
-                await _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize, 3); */
 
             }
 
@@ -177,15 +161,6 @@ namespace gRPCToolFrontEnd.Services
                  var t4 = _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize, amountOfRequests);
 
                  await Task.WhenAll(t1, t2, t3, t4);  
-
-                /*await _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize, amountOfRequests);
-
-                await _unaryRequestService.UnaryBatchIterativeAsync(null, amountOfRequests, fileSize);
-
-                await _streamingLatencyService.CreateManySingleStreamingRequests(null, amountOfRequests, fileSize);
-
-                await _streamingLatencyService.CreateManyStreamingBatchRequest(null, amountOfRequests, fileSize); */
-
 
             }
         }

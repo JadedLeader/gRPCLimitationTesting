@@ -25,6 +25,7 @@ namespace gRPCStressTestingService.BackgroundServices
                 }
                 else
                 {
+
                     _throughputStorage.AddBatchStreamingThroughputToBag();
                     _throughputStorage.AddBatchUnaryThroughputToBag();
                     _throughputStorage.AddSingleUnaryThroughputToBag();

@@ -331,7 +331,7 @@
         _series3.Clear();
         _series4.Clear();
 
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task AverageUnaryBatch()
@@ -608,6 +608,10 @@
     public void Dispose()
     {
         UtilitiesService.OnBatchReceived -= HandleBatchRequestReceived;
+        UtilitiesService.OnStreamingSingleReceived -= HandleStreamingSingleReceived; 
+        UtilitiesService.OnUnarySingleReceived -= HandleUnarySingleReceived; 
+        UtilitiesService.OnUnaryBatchReceived -= HandleUnaryBatchReceived; 
+
 
         UtilitiesService.StopReceivingMessages();
     }

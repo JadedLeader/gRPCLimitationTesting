@@ -16,7 +16,7 @@ namespace gRPCToolFrontEnd.Services
         private readonly Utilities.UtilitiesClient _utilitiesClient;
         private CancellationTokenSource _cancellationToken;
 
-        public event Action<GetClientsWithMessagesResponse> OnUpdateReceived;
+     
         public event Action<GetStreamingBatchDelaysResponse> OnBatchReceived;
         public event Action<GetStreamingDelaysResponse> OnStreamingSingleReceived;
         public event Action<GetUnaryDelaysResponse> OnUnarySingleReceived;
@@ -28,13 +28,7 @@ namespace gRPCToolFrontEnd.Services
             
         }
 
-        public void StartReceivingMessages(GetClientsWithMessagesRequest request, string sessionUnique)
-        {
-            _cancellationToken = new CancellationTokenSource();
-
-            Task.Run(() => ReceivingMessageStream(request, _cancellationToken.Token, sessionUnique));
-        }
-
+       
         public void StartReceivingStreamingBatchMessages(GetStreamingBatchDelaysRequest request, string sessionUnique)
         {
             _cancellationToken = new CancellationTokenSource();
@@ -72,34 +66,6 @@ namespace gRPCToolFrontEnd.Services
             }
         }
 
-        public async Task ReceivingMessageStream(GetClientsWithMessagesRequest messageRequest, CancellationToken cancellationToken, string sessionUnique)
-        {
-            Log.Information("Started receiving messages from gRPC stream.");
-
-            try
-            {
-                Metadata metaData = new Metadata();
-
-                metaData.Add("session-unique", sessionUnique);
-
-                using var call = _utilitiesClient.GetClientsWithMessages(messageRequest, metaData);
-
-                while (await call.ResponseStream.MoveNext(cancellationToken))
-                {
-                    var response = call.ResponseStream.Current;
-
-                    Log.Debug($"Received update for ClientUnique: {response.ClientUnique}");
-                    OnUpdateReceived?.Invoke(response);
-                }
-                
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error while reading the gRPC stream.");
-                throw;
-            }
-        }
-
         public async Task ReceivingStreamingBatchStream(GetStreamingBatchDelaysRequest batchStreamingRequest, CancellationToken cancellationToken, string sessionUnique)
         {
             Log.Information($"Started receiving messages from streaming batch utilities endpoint");
@@ -117,8 +83,6 @@ namespace gRPCToolFrontEnd.Services
                     var response = call.ResponseStream.Current;
 
                     Log.Information($"streaming batch request received, message ID: {response.GatheringStreamingBatchDelays.MessageId} with delay : {response.GatheringStreamingBatchDelays.Delay}");
-
-                   
 
                     OnBatchReceived?.Invoke(response);
                 }
