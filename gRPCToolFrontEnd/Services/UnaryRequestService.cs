@@ -114,7 +114,6 @@ namespace gRPCToolFrontEnd.Services
 
                     while(i < amountOfIterations)
                     {
-
                         await _clientHelper.PayloadUsage(fileSize);
 
                         var now = DateTime.UtcNow;

@@ -99,6 +99,7 @@ namespace gRPCToolFrontEnd
 
             builder.Services.AddSingleton<UtilitiesService>();
 
+            builder.Services.AddScoped<MutliClientMultiChannelService>();
             builder.Services.AddScoped<UnaryRequestService>();
             builder.Services.AddScoped<AdminService>();
 

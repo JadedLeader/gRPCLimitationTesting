@@ -176,7 +176,7 @@ namespace gRPCToolFrontEnd.Services
         }
 
 
-        private async Task GeneratingeManySingleStreamingRequests(StreamingLatency.StreamingLatencyClient streamingClient, int amountOfRequests, string clientUnique, string fileSize)
+        public async Task GeneratingeManySingleStreamingRequests(StreamingLatency.StreamingLatencyClient streamingClient, int amountOfRequests, string clientUnique, string fileSize)
         {
             var call = streamingClient.StreamingManySingleRequest();
 
@@ -260,7 +260,7 @@ namespace gRPCToolFrontEnd.Services
 
         
 
-        private async Task GeneratingSingularBatchStreamingRequest(StreamingLatency.StreamingLatencyClient streamingClient, int requestsInBatch, string clientUnique, 
+        public async Task GeneratingSingularBatchStreamingRequest(StreamingLatency.StreamingLatencyClient streamingClient, int requestsInBatch, string clientUnique, 
             string fileSize)
         {
             Metadata metadata = new Metadata();

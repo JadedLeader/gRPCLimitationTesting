@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using Microsoft.Identity.Client;
+using Serilog;
 using Serilog.Sinks.File;
 
 namespace gRPCToolFrontEnd.Services
@@ -10,10 +11,13 @@ namespace gRPCToolFrontEnd.Services
         private readonly UnaryRequestService _unaryRequestService;
 
         private readonly StreamingLatencyService _streamingLatencyService;
-        public PresetService(UnaryRequestService unaryRequestService, StreamingLatencyService streamingLatencyService)
+
+        private readonly MutliClientMultiChannelService _multiClientMultiChannelService;
+        public PresetService(UnaryRequestService unaryRequestService, StreamingLatencyService streamingLatencyService, MutliClientMultiChannelService multiClientMultiChannelService)
         {
             _streamingLatencyService = streamingLatencyService;
             _unaryRequestService = unaryRequestService;
+            _multiClientMultiChannelService = multiClientMultiChannelService;
         }
 
 
@@ -161,6 +165,120 @@ namespace gRPCToolFrontEnd.Services
                  var t4 = _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize, amountOfRequests);
 
                  await Task.WhenAll(t1, t2, t3, t4);  
+
+            }
+
+       
+        }
+
+        public async Task MutliClientLowStress(bool lowStressRunning)
+        {
+            string fileSize = "small";
+
+            while (lowStressRunning)
+            {
+
+                await _multiClientMultiChannelService.StreamingClientToChannelAllocation(5, 1, fileSize);
+
+                await _multiClientMultiChannelService.StreamingBatchClientToChannelAllocation(5, 1, fileSize);
+
+                await _multiClientMultiChannelService.UnaryClientToChannelAllocation(5, fileSize);
+
+                await _multiClientMultiChannelService.UnaryBatchClientToChannelAllocation(5, fileSize);
+
+            }
+
+            Log.Information($"Low stress mutli-client has stopped running");
+        }
+
+        public async Task MutliClientMediumStress(bool mediumStressRunning)
+        {
+            while (mediumStressRunning)
+            {
+
+                string fileSize = "";
+
+                Random random = new Random();
+
+                int number = random.Next(2);
+
+                Log.Information($"Number chose for medium stress : {number}");
+
+                if (number == 0)
+                {
+                    fileSize = "small";
+                }
+                else if (number == 1)
+                {
+                    fileSize = "medium";
+                }
+                else
+                {
+                    Log.Information($"Something went wrong with the random number generation for the medium stress");
+                }
+
+
+
+                await _multiClientMultiChannelService.StreamingClientToChannelAllocation(10, 3, fileSize);
+
+                await _multiClientMultiChannelService.StreamingBatchClientToChannelAllocation(10, 3, fileSize);
+
+                await _multiClientMultiChannelService.UnaryClientToChannelAllocation(10, fileSize);
+
+                await _multiClientMultiChannelService.UnaryBatchClientToChannelAllocation(10, fileSize);
+
+            }
+
+            Log.Information($"Medium stress has stopped running");
+        }
+
+        public async Task MultiClientHighStress(bool highStressRunning)
+        {
+            while (highStressRunning)
+            {
+
+                int amountOfRequests = 0;
+
+                string fileSize = "";
+
+                Random random = new Random();
+
+                int number = random.Next(3);
+
+                if (number == 0)
+                {
+                    fileSize = "small";
+
+                    amountOfRequests = 30;
+                }
+                else if (number == 1)
+                {
+                    fileSize = "medium";
+
+                    amountOfRequests = 3;
+                }
+                else if (number == 2)
+                {
+                    fileSize = "large";
+
+                    amountOfRequests = 1;
+                }
+                else
+                {
+                    Log.Information($"Something went wrong when generating the file size decider for the high stress test");
+                }
+
+                Log.Information($"Amount of requests : {amountOfRequests}");
+
+                await _multiClientMultiChannelService.StreamingClientToChannelAllocation(15, 5, fileSize);
+
+                await _multiClientMultiChannelService.StreamingBatchClientToChannelAllocation(15, 5, fileSize);
+
+                await _multiClientMultiChannelService.UnaryClientToChannelAllocation(15, fileSize);
+
+                await _multiClientMultiChannelService.UnaryBatchClientToChannelAllocation(15, fileSize);
+
+
 
             }
         }
