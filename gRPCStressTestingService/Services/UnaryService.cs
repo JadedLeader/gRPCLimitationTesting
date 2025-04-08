@@ -181,8 +181,6 @@ namespace gRPCStressTestingService.Services
                 RequestType = typeOfDataFromMetaData
             };
 
-            
-
             if (!_storage.Clients.ContainsKey(clientUnique))
             {
                 ClientActivity newClientActivity = new ClientActivity();

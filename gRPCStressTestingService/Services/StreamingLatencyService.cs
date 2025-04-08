@@ -218,7 +218,7 @@ namespace gRPCStressTestingService.Services
 
         private string GetPreciseTimeNow()
         {
-            DateTime now = DateTime.UtcNow;
+            DateTime now = DateTime.Now;
             long ticks = now.Ticks;
 
             string precisetime = now.ToString("HH:mm:ss.ffffff");
