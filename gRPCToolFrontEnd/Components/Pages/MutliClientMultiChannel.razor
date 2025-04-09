@@ -352,19 +352,19 @@
         {
             Log.Information($"Low stress has been activated");
 
-            await PresetService.LowStress(_LowStressActive);
+            await PresetService.MutliClientLowStress(_LowStressActive);
         }
         else if (_StressLevelValue == "Medium stress" && _MediumStressActive)
         {
             Log.Information($"Medium stress has been activated");
 
-            await PresetService.MediumStress(_MediumStressActive);
+            await PresetService.MutliClientMediumStress(_MediumStressActive);
         }
         else if (_StressLevelValue == "High stress" && _HighStressActive)
         {
             Log.Information($"High stress has been activated");
 
-            await PresetService.HighStress(_HighStressActive);
+            await PresetService.MultiClientHighStress(_HighStressActive);
         }
         else
         {

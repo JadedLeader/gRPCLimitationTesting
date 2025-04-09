@@ -20,7 +20,6 @@ namespace SharedCommonalities.ReturnModels.ReturnTypes
         public string DataContentSize { get; set; }
         public string? BatchRequestId { get; set; }
         public object? ClientInstance { get; set; }
-
         public string DataIterations { get; set; }
 
 
