@@ -27,118 +27,100 @@ namespace gRPCToolFrontEnd.Services
         }
 
 
-        public async Task StreamingClientToChannelAllocation(int ammountOfClientsPerChannel, int amountOfRequests, string fileSize)
+        public async Task StreamingClientToChannelAllocation(int ammountOfClientsPerChannel, int amountOfRequests, string fileSize, int amountOfChannels)
         {
-            var channelsCurrentlyAvailable = GetCurrentAvailableChannels();
+            
 
             CreateClientInstanceResponse newlyCreatedClient = await _clientInstanceService.CreateClientInstanceAsync();
 
             var tasks = new List<Task>();
 
-            foreach(var channel in channelsCurrentlyAvailable)
+            
+            int i = 0;
+
+            while (i < ammountOfClientsPerChannel)
             {
-                int i = 0;
-
-                while (i < ammountOfClientsPerChannel)
+                tasks.Add(Task.Run(async () =>
                 {
-                    tasks.Add(Task.Run(async () =>
-                    {
 
-                        StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(channel.Value);
+                    await _streamingLatencyService.CreateManySingleStreamingRequests(null, false, amountOfRequests, fileSize, amountOfChannels);
 
-                        Log.Information($"Streaming client connected to channel {channel.Key}");
+                    _clientStorage.IncrementStreamingClients();
 
-                        await _streamingLatencyService.GeneratingeManySingleStreamingRequests(streamingClient, amountOfRequests, newlyCreatedClient.ClientUnique, fileSize);
+                }));
 
-                        _clientStorage.IncrementStreamingClients();
-
-                    }));
-
-                    i++;
+                 i++;
                     
-                }
             }
+            
         }
 
-        public async Task StreamingBatchClientToChannelAllocation(int amountOfClientsPerChannel, int amountOfRequests, string fileSize)
+        public async Task StreamingBatchClientToChannelAllocation(int amountOfClientsPerChannel, int amountOfRequests, string fileSize, int amountOfChannels)
         {
-            var channelsCurrentlyAvailable = GetCurrentAvailableChannels();
+            
 
             CreateClientInstanceResponse newlyCreatedClient = await _clientInstanceService.CreateClientInstanceAsync();
 
             var tasks = new List<Task>();
+            
+            int i = 0;
 
-            foreach (var channel in channelsCurrentlyAvailable)
+            while(i < amountOfClientsPerChannel)
             {
-                int i = 0;
-
-
-                while(i < amountOfClientsPerChannel)
+                tasks.Add(Task.Run(async () =>
                 {
-                    tasks.Add(Task.Run(async () =>
-                    {
-                        StreamingLatency.StreamingLatencyClient streamingClient = new StreamingLatency.StreamingLatencyClient(channel.Value);
 
-                        await _streamingLatencyService.GeneratingSingularBatchStreamingRequest(streamingClient, amountOfRequests, newlyCreatedClient.ClientUnique, fileSize);
 
-                        _clientStorage.IncrementStreamingClients();
-                    }));
+                    await _streamingLatencyService.CreateManyStreamingBatchRequest(false, amountOfRequests, fileSize, amountOfChannels);
 
-                  
-                    i++;
-                }
+                    _clientStorage.IncrementStreamingClients();
+                }));
+
+                i++;
+
+              
             }
         }
 
-        public async Task UnaryClientToChannelAllocation(int amountOfUnaryClientsPerChannel, string fileSize, int amountOfRequests)
+        public async Task UnaryClientToChannelAllocation(int amountOfUnaryClientsPerChannel, string fileSize, int amountOfRequests, int amountOfChannels)
         {
-            var channelsCurrentlyAvailable = GetCurrentAvailableChannels();
-
+         
             var tasks = new List<Task>();
 
-            foreach (var channel in channelsCurrentlyAvailable)
+            
+            int i = 0;
+
+            while(i < amountOfUnaryClientsPerChannel)
             {
-                int i = 0;
 
-                while(i < amountOfUnaryClientsPerChannel)
-                {
+                 tasks.Add(Task.Run(async () =>
+                 {
+                        await _unaryRequestService.UnaryResponseIterativeAsync(false,  fileSize, amountOfRequests, amountOfChannels);
+                 }));
 
-                    tasks.Add(Task.Run(async () =>
-                    {
-                        Unary.UnaryClient unaryClient = new Unary.UnaryClient(channel.Value);
-
-                        await _unaryRequestService.UnaryResponseIterativeAsync(null, fileSize, amountOfRequests);
-                    }));
-
-                    i++;
-                }
+                 i++;
+                
             }
         }
 
-        public async Task UnaryBatchClientToChannelAllocation(int amountOfUnaryClientsPerChannel, string fileSize, int amountOfRequests)
+        public async Task UnaryBatchClientToChannelAllocation(int amountOfUnaryClientsPerChannel, string fileSize, int amountOfRequests, int amountOfChannels)
         {
-            var channelsCurrentlyAvailable = GetCurrentAvailableChannels();
-
+         
             var tasks = new List<Task>();
 
-            foreach (var channel in channelsCurrentlyAvailable)
+            
+            int i = 0;
+
+            while (i < amountOfUnaryClientsPerChannel)
             {
-                int i = 0;
-
-                while(i <  amountOfUnaryClientsPerChannel)
+                tasks.Add(Task.Run(async () =>
                 {
-                    tasks.Add(Task.Run(async () =>
-                    {
-                        Unary.UnaryClient unaryClient = new Unary.UnaryClient(channel.Value);
+                        await _unaryRequestService.UnaryBatchIterativeAsync(false, amountOfRequests, fileSize, amountOfChannels);
+                }));
 
-                        await _unaryRequestService.UnaryBatchIterativeAsync(null, amountOfRequests, fileSize);
-                    }));
-
-                   
-                    i++;
-                }
+                i++;
             }
-
+                
             
         }
 

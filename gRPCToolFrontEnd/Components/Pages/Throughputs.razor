@@ -296,12 +296,12 @@
     public async Task SendUnarySingleThroughput()
     {
 
-        await UnaryRequestService.UnaryResponseIterativeAsync(null, FileSize, RequestIterations);
+        await UnaryRequestService.UnaryResponseIterativeAsync(true, FileSize, RequestIterations, 1);
     }
 
     public async Task SendUnaryBatchThroughput()
     {
-        await UnaryRequestService.UnaryBatchIterativeAsync(null, RequestIterations, FileSize);
+        await UnaryRequestService.UnaryBatchIterativeAsync(true, RequestIterations, FileSize, 1);
     }
 
     public async Task SendStreamingSingleThroughput()
@@ -309,13 +309,13 @@
 
         Log.Information($"Started streaming single throughputs");
 
-        await StreamingLatencyService.CreateManySingleStreamingRequests(null, null, RequestIterations, FileSize);
+        await StreamingLatencyService.CreateManySingleStreamingRequests(null, true, RequestIterations, FileSize, 1);
 
     }
 
     public async Task SendStreamingBatchThroughput()
     {
-        await StreamingLatencyService.CreateManyStreamingBatchRequest(null, RequestIterations, FileSize);
+        await StreamingLatencyService.CreateManyStreamingBatchRequest(true, RequestIterations, FileSize, 1);
     }
 
     public async void HandleSingleUnaryRequestSent(int newSingleUnaryCount)

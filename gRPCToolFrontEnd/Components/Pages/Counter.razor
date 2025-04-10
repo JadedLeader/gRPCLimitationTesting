@@ -418,9 +418,11 @@
 
     private async Task GeneratingChannels()
     {
-        ConcurrentDictionary<Guid, GrpcChannel> generatingChannels = await ClientHelper.GeneratingMutlipleChannels(_AmountOfChannels, _AddressSpace);
+        //ConcurrentDictionary<Guid, GrpcChannel> generatingChannels = await ClientHelper.GeneratingMutlipleChannels(_AmountOfChannels, _AddressSpace);
 
-        AccountDetailsStore.channels = generatingChannels;
+        // AccountDetailsStore.channels = generatingChannels;
+
+        Log.Information($"AMOUNT OF CHANNELS GENERATED FOR SINGLE CLIENTS {_AmountOfChannels}");
 
         Log.Information($"amount of channels created: {AccountDetailsStore.channels}");
     }
@@ -433,19 +435,19 @@
         {
             Log.Information($"Low stress has been activated");
 
-            _ = Task.Run(() => PresetService.LowStress(_LowStressActive));
+            await PresetService.LowStress(_LowStressActive, _AmountOfChannels);
         }
         else if (_StressLevelValue == "Medium stress" && _MediumStressActive)
         {
             Log.Information($"Medium stress has been activated");
 
-            _ = Task.Run(() => PresetService.MediumStress(_MediumStressActive));
+            await PresetService.MediumStress(_MediumStressActive, _AmountOfChannels);
         }
         else if (_StressLevelValue == "High stress" && _HighStressActive)
         {
             Log.Information($"High stress has been activated");
 
-            _ = Task.Run(() => PresetService.HighStress(_HighStressActive));
+            await PresetService.HighStress(_HighStressActive, _AmountOfChannels);
         }
         else
         {

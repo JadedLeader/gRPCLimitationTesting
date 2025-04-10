@@ -24,14 +24,17 @@ namespace gRPCToolFrontEnd.Services
 
         private readonly SentRequestStorage _sentRequestStorage;
 
+        private readonly GlobalSettings _globalSettings;
+
         public UnaryRequestService(AccountDetailsStore accountDetailsStore, ClientHelper clientHelper, ClientInstanceService clientInstanceService, ClientStorage clientStorage,
-            SentRequestStorage sentRequestStorage)
+            SentRequestStorage sentRequestStorage, GlobalSettings globalSettings)
         {
             _accountDetailsStore = accountDetailsStore;
             _clientHelper = clientHelper;
             _clientInstanceService = clientInstanceService;
             _clientStorage = clientStorage;
             _sentRequestStorage = sentRequestStorage;
+            _globalSettings = globalSettings;
         }
 
         public async Task<DataResponse> UnaryResponseAsync(Guid channelId, string fileSize)
@@ -75,15 +78,19 @@ namespace gRPCToolFrontEnd.Services
             metaData.Add("open-channels", 0.ToString());
             metaData.Add("active-clients", 0.ToString());
             metaData.Add("data-iterations", "1");
-           
+
             Log.Information($"Sending single unary request on channel ID : {getChannel.Key} ");
 
-           return await newUnaryClient.UnaryResponseAsync(newDataRequest, metaData);
+            return await newUnaryClient.UnaryResponseAsync(newDataRequest, metaData);
+
+            return null;
         }
 
-        public async Task<List<DataResponse>> UnaryResponseIterativeAsync(Guid? channelUnique, string fileSize, int amountOfIterations)
+        public async Task<List<DataResponse>> UnaryResponseIterativeAsync(bool isSingleClient, string fileSize, int amountOfIterations, int amountOfChannels)
         {
             List<DataResponse> responseList = new List<DataResponse>();
+
+            ConcurrentDictionary<Guid, GrpcChannel> channels = new ConcurrentDictionary<Guid, GrpcChannel>();
 
             string filePath = _clientHelper.FileSize(fileSize);
 
@@ -100,16 +107,19 @@ namespace gRPCToolFrontEnd.Services
                 { "data-iterations", "1" },
             };
 
-            if (channelUnique == null)
+            if(!isSingleClient)
             {
-                Log.Information($"Channel unique was null, generating multiple iterative unary requests for all channels");
+               channels = _accountDetailsStore.GetChannels();
+            }
+            else
+            {
+                channels = await _clientHelper.GeneratingMutlipleChannels(amountOfChannels, _globalSettings.CurrentLocalHost);
+            }
 
-                ConcurrentDictionary<Guid, GrpcChannel> channels = _accountDetailsStore.GetChannels();
+            metaData.Add("open-channels", channels.Count.ToString());
 
-                metaData.Add("open-channels", channels.Count.ToString());
-
-                foreach (var channel in channels)
-                {
+            foreach (var channel in channels)
+            {
                     int i = 0;
 
                     while(i < amountOfIterations)
@@ -142,7 +152,7 @@ namespace gRPCToolFrontEnd.Services
                         _clientStorage.IncrementUnaryClients();
 
                         _sentRequestStorage.IncrementSingleUnaryRequest();
-
+                 
                         var response = await newUnaryClient.UnaryResponseAsync(newRequest, metaData);
 
                         responseList.Add(response);
@@ -151,43 +161,8 @@ namespace gRPCToolFrontEnd.Services
 
                     }
              
-                }
             }
-            else
-            {
-                Log.Information($"Channel unique was provided, generating multiple iterative unary requests for channel with ID: {channelUnique}");
-
-                CreateClientInstanceResponse newlyCreatedClientInstance = await _clientInstanceService.CreateClientInstanceAsync();
-
-                KeyValuePair<Guid, GrpcChannel> getChannel = _accountDetailsStore.GetGrpcChannel(channelUnique.Value);
-
-                var now = DateTime.UtcNow;
-                long ticks = now.Ticks;
-                string preciseTime = now.ToString("HH:mm:ss.ffffff");
-
-                DataRequest newDataRequest = new DataRequest
-                {
-                    ClientUnique = newlyCreatedClientInstance.ClientUnique,
-                    ConnectionAlive = false,
-                    DataContent = content,
-                    RequestType = "Unary",
-                    DataSize = fileSize,
-                    RequestId = newGuid,
-                    RequestTimestamp = preciseTime,
-                    DataContentSize = dataContent
-
-                };
-
-                Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(getChannel.Value);
-
-
-                _sentRequestStorage.IncrementSingleUnaryRequest();
-                _clientStorage.IncrementUnaryClients();
-                await _clientHelper.PayloadUsage(fileSize);
-
-                await newUnaryClient.UnaryResponseAsync(newDataRequest, metaData);
-            }
-
+            
             return responseList;
 
         }
@@ -230,13 +205,15 @@ namespace gRPCToolFrontEnd.Services
             return await newUnaryClient.BatchUnaryResponseAsync(batchDataRequestUnary, metaData);
         }
 
-        public async Task<List<BatchDataResponse>> UnaryBatchIterativeAsync(Guid? channelUnique, int batchIterations, string fileSize)
+        public async Task<List<BatchDataResponse>> UnaryBatchIterativeAsync(bool isSingleClient, int batchIterations, string fileSize, int amountOfChannels)
         {
             List<BatchDataResponse> responseList = new List<BatchDataResponse>();
 
             List<BatchDataRequestDetails> dataRequestDetails = await GeneratingBatchOfRequests(batchIterations, fileSize);
 
             CreateClientInstanceResponse newlyCreatedClient = await _clientInstanceService.CreateClientInstanceAsync();
+
+            ConcurrentDictionary<Guid, GrpcChannel> channels = new ConcurrentDictionary<Guid, GrpcChannel>();
 
             BatchDataRequest batchDataRequestUnary = new BatchDataRequest
             {
@@ -258,26 +235,27 @@ namespace gRPCToolFrontEnd.Services
             metaData.Add("batch-request-count", batchDataRequestUnary.BatchDataRequest_.Count.ToString());
             metaData.Add("active-clients", "0");
 
-            if (channelUnique == null)
+            if(!isSingleClient)
             {
-                Log.Information($"No channel unique was provided, generating many unary batch requests for all gRPC channels");
+                channels = _accountDetailsStore.GetChannels();
+            }
+            else
+            {
+                channels = await _clientHelper.GeneratingMutlipleChannels(amountOfChannels, _globalSettings.CurrentLocalHost);
+            }
 
-                ConcurrentDictionary<Guid, GrpcChannel> channels = _accountDetailsStore.GetChannels();
+            Log.Information($"amount of iterations: {batchIterations}");
 
-                Log.Information($"amount of iterations: {batchIterations}");
+            foreach (var channel in channels)
+            {
+                Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(channel.Value);
 
-                foreach (var channel in channels)
-                {
-                    Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(channel.Value);
-
-                    _clientStorage.IncrementUnaryClients();
+                _clientStorage.IncrementUnaryClients();
 
                     foreach (var message in batchDataRequestUnary.BatchDataRequest_)
                     {
                         message.RequestId = Guid.NewGuid().ToString();
                         message.BatchRequestId = batchRequestId;
-
-                    
                     }
 
                     var id = batchDataRequestUnary.BatchDataRequest_[0];
@@ -289,24 +267,8 @@ namespace gRPCToolFrontEnd.Services
                     BatchDataResponse response = await newUnaryClient.BatchUnaryResponseAsync(batchDataRequestUnary, metaData);
 
                     responseList.Add(response);
-                }
             }
-            else
-            {
-                Log.Information($"Channel unique was provided, generating batch iterative request for channel with ID : {channelUnique}");
-
-                KeyValuePair<Guid, GrpcChannel> getChannel = _accountDetailsStore.GetGrpcChannel(channelUnique.Value);
-
-                Unary.UnaryClient newUnaryClient = new Unary.UnaryClient(getChannel.Value);
-
-                await _clientHelper.PayloadUsage(fileSize);
-
-                _clientStorage.IncrementUnaryClients();
-
-                BatchDataResponse serverResponse = await newUnaryClient.BatchUnaryResponseAsync(batchDataRequestUnary, metaData);
-
-                responseList.Add(serverResponse);
-            }
+            
 
             return responseList;
         }

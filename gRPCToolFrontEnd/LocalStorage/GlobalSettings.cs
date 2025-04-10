@@ -5,7 +5,7 @@
 
         public string StressTestingPreset { get; set; }
 
-        public string CurrentLocalHost { get; set; }
+        public string CurrentLocalHost = "https://localhost:5000";
 
     }
 }
