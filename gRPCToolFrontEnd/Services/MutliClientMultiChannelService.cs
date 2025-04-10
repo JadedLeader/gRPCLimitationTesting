@@ -87,7 +87,6 @@ namespace gRPCToolFrontEnd.Services
          
             var tasks = new List<Task>();
 
-            
             int i = 0;
 
             while(i < amountOfUnaryClientsPerChannel)

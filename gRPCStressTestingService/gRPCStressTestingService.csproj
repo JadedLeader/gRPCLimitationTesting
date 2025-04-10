@@ -69,10 +69,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ClientManagementWorker\ClientManagementWorkerService.csproj" />
     <ProjectReference Include="..\ConfigurationStuff\ConfigurationStuff.csproj" />
-    <ProjectReference Include="..\DbManagerWorkerService\DbManagerWorkerService.csproj" />
-    <ProjectReference Include="..\DelayCalculationWorkerService\DelayCalculationWorkerService.csproj" />
     <ProjectReference Include="..\GrpcTestingLimitationsClient\GrpcTestingLimitationsClient.csproj" />
     <ProjectReference Include="..\SharedCommonalities\SharedCommonalities.csproj" />
   </ItemGroup>

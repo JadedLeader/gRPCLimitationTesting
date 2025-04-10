@@ -1,14 +1,11 @@
-﻿using Azure.Core;
-using ConfigurationStuff.DbModels;
+﻿using ConfigurationStuff.DbModels;
 using ConfigurationStuff.Interfaces.Repos;
 using DbManagerWorkerService.Repositories;
 using Google.Protobuf.Collections;
 using Grpc.Core;
-using gRPCStressTestingService;
 using gRPCStressTestingService.DelayCalculations;
 using gRPCStressTestingService.Interfaces.Services;
 using gRPCStressTestingService.proto;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Serilog;
 using SharedCommonalities.ObjectMapping;
 using SharedCommonalities.Storage;
@@ -19,8 +16,6 @@ namespace gRPCStressTestingService.Services
 {
     public class UnaryService  : IUnaryService
     {
-
-
         private readonly RequestResponseTimeStorage _timeStorage;
         private readonly ClientStorage _storage;
         private readonly ObjectCreation _objectCreation;
@@ -105,32 +100,24 @@ namespace gRPCStressTestingService.Services
                 Log.Warning($"The guid ({request.RequestId}) or the response time ({request.RequestTimestamp}) from the meta data was null");
             }
 
-            UnaryInfo requestUnaryInfo = MapToRequest(Convert.ToDateTime(request.RequestTimestamp), typeOfDataFromMetaData, Convert.ToInt32(dataIterations), request.DataContent, typeOfDataFromMetaData, null, request.DataContentSize, getClientInstance, dataIterations);
+            UnaryInfo requestUnaryInfo = MapToRequest(Convert.ToDateTime(request.RequestTimestamp), typeOfDataFromMetaData, Convert.ToInt32(dataIterations), request.DataContent, 
+                typeOfDataFromMetaData, null, request.DataContentSize, getClientInstance, dataIterations);
 
-            UnaryInfo responseUnaryInfo = MapToResponse(Convert.ToDateTime(dataReturn.ResponseTimestamp), typeOfDataFromMetaData, Convert.ToInt32(dataIterations), request.DataContent, typeOfDataFromMetaData, null, request.DataContentSize, getClientInstance, dataIterations);
+            UnaryInfo responseUnaryInfo = MapToResponse(Convert.ToDateTime(dataReturn.ResponseTimestamp), typeOfDataFromMetaData, Convert.ToInt32(dataIterations), request.DataContent, 
+                typeOfDataFromMetaData, null, request.DataContentSize, getClientInstance, dataIterations);
 
-            ClientMessageId requestKeys = new ClientMessageId()
-            {
-                ClientId = dataReturn.ClientUnique,
-                MessageId = request.RequestId,
-            };
+            ClientMessageId requestAndResponseKeys = CreateClientMessageId(dataReturn.ClientUnique, request.RequestId);
 
-            ClientMessageId responseKeys = new ClientMessageId()
-            {
-                ClientId = dataReturn.ClientUnique,
-                MessageId = request.RequestId,
-            };
+            _timeStorage.AddToConcurrentDict(_timeStorage._ClientRequestTiming, requestAndResponseKeys, requestUnaryInfo);
 
-            _timeStorage.AddToConcurrentDict(_timeStorage._ClientRequestTiming, requestKeys, requestUnaryInfo);
-
-            _timeStorage.AddToConcurrentDict(_timeStorage._ServerResponseTiming, responseKeys, responseUnaryInfo );
+            _timeStorage.AddToConcurrentDict(_timeStorage._ServerResponseTiming, requestAndResponseKeys, responseUnaryInfo );
 
             Console.WriteLine($"Client Id : {request.ClientUnique} handles message with ID : {request.RequestId}");
 
             Log.Information($"This is the request send time for the unary request : {requestUnaryInfo.TimeOfRequest} -> {request.RequestTimestamp}");
             Log.Information($"This is the server response time for the unary request : {responseUnaryInfo.TimeOfRequest} -> {preciseTime}");
           
-            await _delayCalculations.CalculatingDelay(requestKeys, responseKeys);
+            await _delayCalculations.CalculatingDelay(requestAndResponseKeys, requestAndResponseKeys);
 
             await _dbTransportationService.AddingDelayToDb();
 
@@ -205,26 +192,16 @@ namespace gRPCStressTestingService.Services
             Log.Information($"This is the data content size : {responseUnaryInfo.DataContentSize}");
             Log.Information($"THIS IS THE DATA CONTENT : {responseUnaryInfo.LengthOfData}");
 
-            ClientMessageId requestKeys = new ClientMessageId()
-            {
-                ClientId = clientUnique.ToString(), 
-                MessageId = batchRequestId.ToString(),
-            };
+            ClientMessageId requestAndResponseKeys = CreateClientMessageId(clientUnique.ToString(), batchRequestId.ToString());
 
-            ClientMessageId responseKeys = new ClientMessageId()
-            {
-                ClientId = clientUnique.ToString(), 
-                MessageId = batchRequestId.ToString(),
-            };
+            _timeStorage.AddToConcurrentDictLock(_timeStorage._ClientRequestTiming, requestAndResponseKeys, requestUnaryInfo);
 
-            _timeStorage.AddToConcurrentDictLock(_timeStorage._ClientRequestTiming, requestKeys, requestUnaryInfo);
-
-            _timeStorage.AddToConcurrentDictLock(_timeStorage._ServerResponseTiming, responseKeys, responseUnaryInfo);
+            _timeStorage.AddToConcurrentDictLock(_timeStorage._ServerResponseTiming, requestAndResponseKeys, responseUnaryInfo);
 
             Log.Information($"This is the request send time for the unary batch request : {requestUnaryInfo.TimeOfRequest} -> {batchTimestampFromMetaData}");
             Log.Information($"This is the server response time for the unary batch request : {responseUnaryInfo.TimeOfRequest} -> {preciseTime}");
 
-            await _delayCalculations.CalculatingDelay(requestKeys, responseKeys);
+            await _delayCalculations.CalculatingDelay(requestAndResponseKeys, requestAndResponseKeys);
 
             await _dbTransportationService.AddingDelayToDb();
 
@@ -308,6 +285,17 @@ namespace gRPCStressTestingService.Services
             }
 
             return batchDataRequestDetails.DataSize.Length;
+        }
+
+        private ClientMessageId CreateClientMessageId(string clientId, string messageId)
+        {
+            ClientMessageId clientMessageId = new ClientMessageId
+            {
+                ClientId = clientId,
+                MessageId = messageId
+            };
+
+            return clientMessageId;
         }
     }
 }

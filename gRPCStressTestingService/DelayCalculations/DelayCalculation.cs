@@ -31,19 +31,9 @@ namespace gRPCStressTestingService.DelayCalculations
                 {
                     if (!_timeStorage._ActualDelayCalculations.ContainsKey(requestKeys))
                     {
-                        var delayResult = new UnaryInfo
-                        { 
-                            Delay = calc.Duration(),
-                            LengthOfData = serverTiming.LengthOfData,
-                            TypeOfData = clientTiming.TypeOfData,
-                            DataContents = clientTiming.DataContents,
-                            BatchRequestId = clientTiming.BatchRequestId,
-                            RequestType = clientTiming.RequestType,
-                            TimeOfRequest = clientTiming.TimeOfRequest,
-                            DataContentSize = clientTiming.DataContentSize,
-                            ClientInstance = clientTiming.ClientInstance,
-                            DataIterations = clientTiming.DataIterations,
-                        };
+                      
+                        UnaryInfo delayResult = CreateUnaryInfo(calc.Duration(), serverTiming.LengthOfData, clientTiming.TypeOfData, clientTiming.DataContents, clientTiming.BatchRequestId,
+                        clientTiming.RequestType, clientTiming.TimeOfRequest, clientTiming.DataContentSize, clientTiming.ClientInstance, clientTiming.DataIterations);
 
                         _timeStorage.AddToConcurrentDictLock(_timeStorage._ActualDelayCalculations, requestKeys, delayResult);
                     }
@@ -51,39 +41,18 @@ namespace gRPCStressTestingService.DelayCalculations
 
                 else if (clientTiming.RequestType == "Unary")
                 {
-                    var delayResult = new UnaryInfo
-                    {
-                        Delay = calc.Duration(),
-                        LengthOfData = serverTiming.LengthOfData,
-                        TypeOfData = clientTiming.TypeOfData,
-                        DataContents = clientTiming.DataContents,
-                        BatchRequestId = null,
-                        RequestType = clientTiming.RequestType,
-                        TimeOfRequest = clientTiming.TimeOfRequest,
-                        DataContentSize = clientTiming.DataContentSize,
-                        ClientInstance = clientTiming.ClientInstance,
-                        DataIterations = clientTiming.DataIterations,
-                    };
+                  
+                    UnaryInfo delayResult = CreateUnaryInfo(calc.Duration(), serverTiming.LengthOfData, clientTiming.TypeOfData, clientTiming.DataContents, null,
+                       clientTiming.RequestType, clientTiming.TimeOfRequest, clientTiming.DataContentSize, clientTiming.ClientInstance, clientTiming.DataIterations);
 
                     _timeStorage.AddToConcurrentDictLock(_timeStorage._ActualDelayCalculations, requestKeys, delayResult);
                 }
 
                 else if(clientTiming.RequestType == "Streaming")
                 {
-                    var delayResult = new UnaryInfo
-                    {
-                        Delay = calc.Duration(),
-                        LengthOfData = serverTiming.LengthOfData,
-                        TypeOfData = clientTiming.TypeOfData,
-                        DataContents = clientTiming.DataContents,
-                        BatchRequestId = null,
-                        RequestType = clientTiming.RequestType,
-                        TimeOfRequest = clientTiming.TimeOfRequest,
-                        DataContentSize = clientTiming.DataContentSize,
-                        ClientInstance = clientTiming.ClientInstance,
-                        DataIterations= clientTiming.DataIterations,
-                        
-                    };
+                   
+                    UnaryInfo delayResult = CreateUnaryInfo(calc.Duration(), serverTiming.LengthOfData, clientTiming.TypeOfData, clientTiming.DataContents, null,
+                        clientTiming.RequestType, clientTiming.TimeOfRequest, clientTiming.DataContentSize, clientTiming.ClientInstance, clientTiming.DataIterations);
 
                     _timeStorage.AddToConcurrentDictLock(_timeStorage._ActualDelayCalculations, requestKeys, delayResult);
                 }
@@ -91,22 +60,10 @@ namespace gRPCStressTestingService.DelayCalculations
                 else if(clientTiming.RequestType == "StreamingBatch")
                 {
                     
-                    var delayResult = new UnaryInfo
-                    {
-                            Delay = calc.Duration(),
-                            LengthOfData = serverTiming.LengthOfData,
-                            TypeOfData = clientTiming.TypeOfData,
-                            DataContents = clientTiming.DataContents,
-                            BatchRequestId = clientTiming.BatchRequestId,
-                            RequestType = clientTiming.RequestType,
-                            TimeOfRequest = clientTiming.TimeOfRequest,
-                            DataContentSize = clientTiming.DataContentSize,
-                            ClientInstance = clientTiming.ClientInstance,
-                            DataIterations = clientTiming.DataIterations,
+                    UnaryInfo delayResult = CreateUnaryInfo(calc.Duration(), serverTiming.LengthOfData, clientTiming.TypeOfData, clientTiming.DataContents, clientTiming.BatchRequestId,
+                        clientTiming.RequestType, clientTiming.TimeOfRequest, clientTiming.DataContentSize, clientTiming.ClientInstance, clientTiming.DataIterations);
 
-                    };
-
-                        _timeStorage.AddToConcurrentDictLock(_timeStorage._ActualDelayCalculations, requestKeys, delayResult);
+                    _timeStorage.AddToConcurrentDictLock(_timeStorage._ActualDelayCalculations, requestKeys, delayResult);
                     
                 }
 
@@ -117,6 +74,26 @@ namespace gRPCStressTestingService.DelayCalculations
             {
                 Log.Warning($"Could not find matching request and response for delay calculation.");
             }
+        }
+
+        private UnaryInfo CreateUnaryInfo(TimeSpan? Delay, int lengthOfData, string? typeOfData, string dataContents, string? batchRequestId, string requestType, 
+            DateTime? timeOfRequest, string dataContentSize, object? clientInstance, string dataIterations)
+        {
+            UnaryInfo unaryInfo = new UnaryInfo
+            {
+                Delay = Delay,
+                LengthOfData = lengthOfData,
+                TypeOfData = typeOfData,
+                DataContents = dataContents,
+                BatchRequestId = batchRequestId,
+                RequestType = requestType,
+                TimeOfRequest = timeOfRequest,
+                DataContentSize = dataContentSize,
+                ClientInstance = clientInstance,
+                DataIterations = dataIterations
+            }; 
+
+            return unaryInfo;
         }
 
     }

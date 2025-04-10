@@ -40,124 +40,94 @@ namespace gRPCStressTestingService.Services
 
                 if (item.Value.TypeOfData == "BatchUnary")
                 {
-
-                    Log.Information($"Batch unary data detected");
-
-                    if (!string.IsNullOrEmpty(item.Value.BatchRequestId))
-                    {
-                        DelayCalc transportingToDb = new DelayCalc
-                        {
-                            messageId = Guid.Parse(item.Value.BatchRequestId),
-                            RequestType = item.Value.TypeOfData,
-                            ClientUnique = Guid.Parse(item.Key.ClientId),
-                            CommunicationType = "Batch",
-                            DataIterations = Convert.ToInt32(item.Value.DataIterations),
-                            DataContent = item.Value.DataContentSize,
-                            Delay = item.Value.Delay,
-                            ClientInstance = null,
-                            RecordCreation = DateTime.Now,
-                        };
-
-                        Log.Information($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
-
-                     
-                        var gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(transportingToDb.ClientUnique);
-
-                        transportingToDb.ClientInstance = gettingClientInstance;
-
-                        await _delayCalcRepo.AddToDbAsync(transportingToDb);
-
-                        await _delayCalcRepo.SaveAsync();
-                    }
+                    await HandleBatchUnaryCase(item);
 
                 }
                 else if (item.Value.TypeOfData == "Unary")
                 {
 
-                    Log.Information($"Unary data detected");
-
-                    DelayCalc transportingToDb = new DelayCalc
-                    {
-                        messageId = Guid.Parse(item.Key.MessageId),
-                        RequestType = item.Value.TypeOfData,
-                        ClientUnique = Guid.Parse(item.Key.ClientId),
-                        CommunicationType = item.Value.TypeOfData,
-                        DataIterations = Convert.ToInt32(item.Value.DataIterations),
-                        DataContent = item.Value.DataContentSize,
-                        Delay = item.Value.Delay,
-                        ClientInstance = null,
-                        RecordCreation = DateTime.Now,
-                    };
-
-                    Log.Information($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
-
-                    var gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(transportingToDb.ClientUnique);
-
-                    transportingToDb.ClientInstance = gettingClientInstance;
-
-                    await _delayCalcRepo.AddToDbAsync(transportingToDb);
-
-                    await _delayCalcRepo.SaveAsync();
+                    await HandleUnaryCase(item);
                 }
                 else if (item.Value.TypeOfData == "Streaming")
                 {
-
-                    Log.Information($"Streaming data detected");
-
-                    DelayCalc transportingToDb = new DelayCalc
-                    {
-                        messageId = Guid.Parse(item.Key.MessageId),
-                        RequestType = item.Value.TypeOfData,
-                        ClientUnique = Guid.Parse(item.Key.ClientId),
-                        CommunicationType = item.Value.TypeOfData,
-                        DataIterations = Convert.ToInt32(item.Value.DataIterations),
-                        DataContent = item.Value.DataContentSize,
-                        Delay = item.Value.Delay,
-                        ClientInstance = null,
-                        RecordCreation = DateTime.Now,
-                        
-                    };
-
-                    Log.Information($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
-
-                    var gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(transportingToDb.ClientUnique);
-
-                    transportingToDb.ClientInstance = gettingClientInstance;
-
-                    await _delayCalcRepo.AddToDbAsync(transportingToDb);
-
-                    await _delayCalcRepo.SaveAsync();
+                   
+                    await HandleStreamingCase(item);
 
                 }
                 else if(item.Value.TypeOfData == "StreamingBatch")
                 {
-                    Log.Information($"streaming batch detected");
-
-                    DelayCalc transportingToDb = new DelayCalc
-                    {
-                        messageId = Guid.Parse(item.Key.MessageId),
-                        RequestType = item.Value.TypeOfData,
-                        ClientUnique = Guid.Parse(item.Key.ClientId),
-                        CommunicationType = item.Value.TypeOfData,
-                        DataIterations = Convert.ToInt32(item.Value.DataIterations),
-                        DataContent = item.Value.DataContentSize,
-                        Delay = item.Value.Delay,
-                        ClientInstance = null,
-                        RecordCreation = DateTime.Now,
-                    };
-
-                    var gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(transportingToDb.ClientUnique);
-
-                    transportingToDb.ClientInstance = gettingClientInstance;
-
-                    await _delayCalcRepo.AddToDbAsync(transportingToDb);
-
-                    await _delayCalcRepo.SaveAsync();
-
+                  
+                    await HandleStreamingBatchCase(item);
                 
                 }
 
             }
+        }
+
+        private async Task HandleUnaryCase(KeyValuePair<ClientMessageId, UnaryInfo> clientWithInfo)
+        {
+            Log.Information($"Unary data detected");
+
+            DelayCalc transportingToDb = await CreateDelayCalc(Guid.Parse(clientWithInfo.Key.MessageId), clientWithInfo.Value.TypeOfData, Guid.Parse(clientWithInfo.Key.ClientId), clientWithInfo.Value.TypeOfData,
+                Convert.ToInt32(clientWithInfo.Value.DataIterations), clientWithInfo.Value.DataContentSize, clientWithInfo.Value.Delay, null, DateTime.Now);
+
+            Log.Information($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
+
+            var gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(transportingToDb.ClientUnique);
+
+            transportingToDb.ClientInstance = gettingClientInstance;
+
+            await AddToDbAndSave(transportingToDb);
+        }
+
+        private async Task HandleBatchUnaryCase(KeyValuePair<ClientMessageId, UnaryInfo> clientWithInfo)
+        {
+            Log.Information($"Batch unary data detected");
+
+            if (!string.IsNullOrEmpty(clientWithInfo.Value.BatchRequestId))
+            {
+
+                DelayCalc transportingToDb = await CreateDelayCalc(Guid.Parse(clientWithInfo.Value.BatchRequestId), clientWithInfo.Value.TypeOfData, Guid.Parse(clientWithInfo.Key.ClientId), "Batch",
+                    Convert.ToInt32(clientWithInfo.Value.DataIterations), clientWithInfo.Value.DataContentSize, clientWithInfo.Value.Delay, null, DateTime.Now);
+
+                Log.Information($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
+
+                var gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(transportingToDb.ClientUnique);
+
+                transportingToDb.ClientInstance = gettingClientInstance;
+
+                await AddToDbAndSave(transportingToDb);
+            }
+        }
+
+        private async Task HandleStreamingCase(KeyValuePair<ClientMessageId, UnaryInfo> clientWithInfo)
+        {
+            Log.Information($"Streaming data detected");
+
+            DelayCalc transportingToDb = await CreateDelayCalc(Guid.Parse(clientWithInfo.Key.MessageId), clientWithInfo.Value.TypeOfData, Guid.Parse(clientWithInfo.Key.ClientId), clientWithInfo.Value.TypeOfData,
+                Convert.ToInt32(clientWithInfo.Value.DataIterations), clientWithInfo.Value.DataContentSize, clientWithInfo.Value.Delay, null, DateTime.Now);
+
+            Log.Information($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
+
+            var gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(transportingToDb.ClientUnique);
+
+            transportingToDb.ClientInstance = gettingClientInstance;
+
+            await AddToDbAndSave(transportingToDb);
+        }
+
+        private async Task HandleStreamingBatchCase(KeyValuePair<ClientMessageId, UnaryInfo> clientWithInfo)
+        {
+            Log.Information($"streaming batch detected");
+
+            DelayCalc transportingToDb = await CreateDelayCalc(Guid.Parse(clientWithInfo.Key.MessageId), clientWithInfo.Value.TypeOfData, Guid.Parse(clientWithInfo.Key.ClientId), clientWithInfo.Value.TypeOfData,
+                Convert.ToInt32(clientWithInfo.Value.DataIterations), clientWithInfo.Value.DataContentSize, clientWithInfo.Value.Delay, null, DateTime.Now);
+
+            var gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(transportingToDb.ClientUnique);
+
+            transportingToDb.ClientInstance = gettingClientInstance;
+
+            await AddToDbAndSave(transportingToDb);
         }
 
         private async Task<ClientInstance> IdentifyingClientInstance(Guid? clientUnique, DelayCalc delay)
@@ -177,6 +147,32 @@ namespace gRPCStressTestingService.Services
             }
 
             return client;
+        }
+
+        private async Task<DelayCalc> CreateDelayCalc(Guid messageId,  string? requestType, Guid? clientUnique, string? communicationType, int dataIterations, string? dataContent, TimeSpan? delay, 
+             ClientInstance? clientInstance, DateTime recordCreation)
+        {
+            DelayCalc delayCalc = new DelayCalc
+            {
+                messageId = messageId,
+                RequestType = requestType,
+                CommunicationType = communicationType,
+                DataIterations = dataIterations,
+                DataContent = dataContent,
+                Delay = delay,
+                ClientInstance = clientInstance,
+                RecordCreation = recordCreation,
+
+            };
+
+            return delayCalc;
+        }
+
+        private async Task AddToDbAndSave(DelayCalc delayInstance)
+        {
+            await _delayCalcRepo.AddToDbAsync(delayInstance);
+
+            await _delayCalcRepo.SaveAsync();
         }
 
     }

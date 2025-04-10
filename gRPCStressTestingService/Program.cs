@@ -2,10 +2,6 @@ global using SharedCommonalities.ReturnModels.ReturnTypes;
 global using gRPCStressTestingService.protos;
 using gRPCStressTestingService.Implementations;
 using gRPCStressTestingService.Services;
-using DbManagerWorkerService;
-using DbManagerWorkerService.Services;
-using ClientManagementWorkerService.Interfaces;
-using ClientManagementWorkerService.Services;
 using SharedCommonalities.ObjectMapping;
 using gRPCStressTestingService.Interfaces.Services;
 using DbManagerWorkerService.Repositories;
@@ -74,7 +70,7 @@ namespace gRPCStressTestingService
             builder.Services.AddScoped<DelayCalculation>();
             builder.Services.AddScoped<DatabaseTransportationService>();
 
-            builder.Services.AddSingleton<IClientManagementService, ClientManagementService>();
+       
 
             builder.Services.AddScoped<IAccountService, AccountService>();
 
@@ -85,7 +81,7 @@ namespace gRPCStressTestingService
             builder.Services.AddScoped<IClientInstanceService, ClientInstanceService>();
 
             builder.Services.AddScoped<IUtilitiesService, UtilitiesService>();
-            builder.Services.AddScoped<ICommunicationDelayService, CommunicationDelayService>();
+        
 
             builder.Services.AddScoped<IAdminService, AdminService>();
 

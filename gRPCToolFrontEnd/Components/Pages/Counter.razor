@@ -291,9 +291,6 @@
             LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressUnarySingle, _UnarySingleDelays);
             LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressStreamingSingle, _streamingSingleDelays);
             LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressStreamingBatch, _delays);
-
-            //then we would want to clear the local lists
-
         }
         else if (GlobalSettings.StressTestingPreset == "Medium stress")
         {
@@ -326,10 +323,10 @@
 
         await AdminService.ClearChannelResults(_AddressSpace);
 
-        _series.Clear();
-        _series2.Clear();
-        _series3.Clear();
-        _series4.Clear();
+        _chart1.Data = new double[] { };
+        _chart2.Data = new double[] { };
+        _chart3.Data = new double[] { };
+        _chart4.Data = new double[] { };
 
         await InvokeAsync(StateHasChanged);
     }
@@ -418,10 +415,7 @@
 
     private async Task GeneratingChannels()
     {
-        //ConcurrentDictionary<Guid, GrpcChannel> generatingChannels = await ClientHelper.GeneratingMutlipleChannels(_AmountOfChannels, _AddressSpace);
-
-        // AccountDetailsStore.channels = generatingChannels;
-
+      
         Log.Information($"AMOUNT OF CHANNELS GENERATED FOR SINGLE CLIENTS {_AmountOfChannels}");
 
         Log.Information($"amount of channels created: {AccountDetailsStore.channels}");
@@ -568,7 +562,6 @@
 
     private async void HandleBatchRequestReceived(GetStreamingBatchDelaysResponse streamingBatchDelaysResponse)
     {
-
 
         await InvokeAsync(() =>
         {

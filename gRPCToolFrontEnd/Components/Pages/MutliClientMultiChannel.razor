@@ -153,6 +153,7 @@
 
 </style>
 
+
 @code {
 
 
@@ -249,34 +250,7 @@
         _series3.Add(_chart3);
         _series4.Add(_chart4);
 
-        UtilitiesService.OnUnaryBatchReceived += HandleUnaryBatchReceived;
-
-        GetUnaryBatchDelaysRequest newUnaryBatchDelays = new GetUnaryBatchDelaysRequest
-        { };
-
-        UtilitiesService.StartReceivingUnaryBatchMessages(newUnaryBatchDelays, sessionUnique);
-
-        UtilitiesService.OnUnarySingleReceived += HandleUnarySingleReceived;
-
-        GetUnaryDelaysRequest newUnaryDelay = new GetUnaryDelaysRequest
-        { };
-
-        UtilitiesService.StartReceivingUnaryMessages(newUnaryDelay, sessionUnique);
-
-        UtilitiesService.OnStreamingSingleReceived += HandleStreamingSingleReceived;
-
-        GetStreamingDelaysRequest newStreamingDelay = new GetStreamingDelaysRequest
-        { };
-
-        UtilitiesService.StartReceivingStreamingMessages(newStreamingDelay, sessionUnique);
-
-
-        UtilitiesService.OnBatchReceived += HandleBatchRequestReceived;
-
-        GetStreamingBatchDelaysRequest newStreamingBatchDelay = new GetStreamingBatchDelaysRequest
-        { };
-
-        UtilitiesService.StartReceivingStreamingBatchMessages(newStreamingBatchDelay, sessionUnique);
+        await AttachToGraphStreaming(sessionUnique);
 
         await base.OnInitializedAsync();
     }
@@ -297,10 +271,10 @@
 
         await AdminService.ClearChannelResults(_AddressSpace);
 
-         _series.Clear();
-         _series2.Clear();
-         _series3.Clear();
-         _series4.Clear();
+        _chart1.Data = new double[] {};
+        _chart2.Data = new double[] {};
+        _chart3.Data = new double[] {};
+        _chart4.Data = new double[] {};
 
         await InvokeAsync(StateHasChanged);
     }
@@ -339,11 +313,6 @@
         }
 
         await PresetServiceInititation();
-    }
-
-    private async Task SaveAmountOfClientsForEachChannel()
-    {
-        throw new NotImplementedException();
     }
 
     private async Task PresetServiceInititation()
@@ -459,7 +428,6 @@
         {
             try
             {
-
                 TimeSpan delayTimeSpan = TimeSpan.Parse(
                     unaryDelaysResponse.GatheringUnaryDelays.Delay);
 
@@ -529,8 +497,6 @@
 
     private async void HandleBatchRequestReceived(GetStreamingBatchDelaysResponse streamingBatchDelaysResponse)
     {
-
-
         await InvokeAsync(() =>
         {
             try
@@ -577,8 +543,6 @@
             LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressStreamingSingle, _streamingSingleDelays);
             LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressStreamingBatch, _delays);
 
-            //then we would want to clear the local lists
-
         }
         else if (GlobalSettings.StressTestingPreset == "Medium stress")
         {
@@ -602,6 +566,43 @@
         {
             Log.Warning($"No stress level preset is currently set in the global settings");
         }
+    }
+
+    private async Task AttachToGraphStreaming(string sessionUnique)
+    {
+        UtilitiesService.OnUnaryBatchReceived += HandleUnaryBatchReceived;
+
+        GetUnaryBatchDelaysRequest newUnaryBatchDelays = new GetUnaryBatchDelaysRequest
+        { };
+
+        UtilitiesService.StartReceivingUnaryBatchMessages(newUnaryBatchDelays, sessionUnique);
+
+        UtilitiesService.OnUnarySingleReceived += HandleUnarySingleReceived;
+
+        GetUnaryDelaysRequest newUnaryDelay = new GetUnaryDelaysRequest
+        { };
+
+        UtilitiesService.StartReceivingUnaryMessages(newUnaryDelay, sessionUnique);
+
+        UtilitiesService.OnStreamingSingleReceived += HandleStreamingSingleReceived;
+
+        GetStreamingDelaysRequest newStreamingDelay = new GetStreamingDelaysRequest
+        { };
+
+        UtilitiesService.StartReceivingStreamingMessages(newStreamingDelay, sessionUnique);
+
+
+        UtilitiesService.OnBatchReceived += HandleBatchRequestReceived;
+
+        GetStreamingBatchDelaysRequest newStreamingBatchDelay = new GetStreamingBatchDelaysRequest
+        { };
+
+        UtilitiesService.StartReceivingStreamingBatchMessages(newStreamingBatchDelay, sessionUnique);
+    }
+
+    public void Dispose()
+    {
+        throw new NotImplementedException();
     }
 
 }
