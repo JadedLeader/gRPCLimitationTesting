@@ -5,6 +5,8 @@ using Serilog;
 using System.Collections.Concurrent;
 using Grpc.Core.Interceptors;
 using gRPCStressTestingService.proto;
+using gRPCStressTestingService.Storage;
+using gRPCStressTestingService.Interfaces.Services;
 
 namespace gRPCStressTestingService.Services
 {
@@ -15,11 +17,18 @@ namespace gRPCStressTestingService.Services
         private readonly IDelayCalcRepo _delayCalcRepo;
 
         private readonly IClientInstanceRepo _clientInstanceRepo;
-        public DatabaseTransportationService(RequestResponseTimeStorage timeStorage, IDelayCalcRepo delayCalcRepo, IClientInstanceRepo clientInstanceRepo)
+
+        private readonly IUtilitiesService _utilitiesService;
+
+        private readonly DelayCalcStorage _delayCalcStorage;
+        public DatabaseTransportationService(RequestResponseTimeStorage timeStorage, IDelayCalcRepo delayCalcRepo, IClientInstanceRepo clientInstanceRepo, IUtilitiesService utilitiesService,
+            DelayCalcStorage delayCalcStorage)
         {
             _timeStorage = timeStorage;
             _delayCalcRepo = delayCalcRepo;
             _clientInstanceRepo = clientInstanceRepo;
+            _utilitiesService = utilitiesService;
+            _delayCalcStorage = delayCalcStorage;
         }
 
         public async Task AddingDelayToDb()
@@ -69,7 +78,11 @@ namespace gRPCStressTestingService.Services
             Log.Information($"Unary data detected");
 
             DelayCalc transportingToDb = await CreateDelayCalc(Guid.Parse(clientWithInfo.Key.MessageId), clientWithInfo.Value.TypeOfData, Guid.Parse(clientWithInfo.Key.ClientId), clientWithInfo.Value.TypeOfData,
-                Convert.ToInt32(clientWithInfo.Value.DataIterations), clientWithInfo.Value.DataContentSize, clientWithInfo.Value.Delay, null, DateTime.Now);
+                Convert.ToInt32(clientWithInfo.Value.DataIterations), clientWithInfo.Value.DataContentSize, clientWithInfo.Value.Delay, null, DateTime.UtcNow);
+
+            _delayCalcStorage.UnarySingleStorage.Add(transportingToDb);
+
+            Log.Information($"THIS IS THE CURRENT BAG LENGTH {_delayCalcStorage.UnarySingleStorage.Count}");
 
             Log.Information($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
 
@@ -77,7 +90,7 @@ namespace gRPCStressTestingService.Services
 
             transportingToDb.ClientInstance = gettingClientInstance;
 
-            await AddToDbAndSave(transportingToDb);
+            //await AddToDbAndSave(transportingToDb);
         }
 
         private async Task HandleBatchUnaryCase(KeyValuePair<ClientMessageId, UnaryInfo> clientWithInfo)
@@ -88,7 +101,11 @@ namespace gRPCStressTestingService.Services
             {
 
                 DelayCalc transportingToDb = await CreateDelayCalc(Guid.Parse(clientWithInfo.Value.BatchRequestId), clientWithInfo.Value.TypeOfData, Guid.Parse(clientWithInfo.Key.ClientId), "Batch",
-                    Convert.ToInt32(clientWithInfo.Value.DataIterations), clientWithInfo.Value.DataContentSize, clientWithInfo.Value.Delay, null, DateTime.Now);
+                    Convert.ToInt32(clientWithInfo.Value.DataIterations), clientWithInfo.Value.DataContentSize, clientWithInfo.Value.Delay, null, DateTime.UtcNow);
+
+                _delayCalcStorage.UnaryBatchStorage.Add(transportingToDb);
+
+                Log.Information($"THIS IS THE CURRENT BAG LENGTH {_delayCalcStorage.UnaryBatchStorage.Count}");
 
                 Log.Information($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
 
@@ -96,7 +113,7 @@ namespace gRPCStressTestingService.Services
 
                 transportingToDb.ClientInstance = gettingClientInstance;
 
-                await AddToDbAndSave(transportingToDb);
+                //await AddToDbAndSave(transportingToDb);
             }
         }
 
@@ -105,7 +122,11 @@ namespace gRPCStressTestingService.Services
             Log.Information($"Streaming data detected");
 
             DelayCalc transportingToDb = await CreateDelayCalc(Guid.Parse(clientWithInfo.Key.MessageId), clientWithInfo.Value.TypeOfData, Guid.Parse(clientWithInfo.Key.ClientId), clientWithInfo.Value.TypeOfData,
-                Convert.ToInt32(clientWithInfo.Value.DataIterations), clientWithInfo.Value.DataContentSize, clientWithInfo.Value.Delay, null, DateTime.Now);
+                Convert.ToInt32(clientWithInfo.Value.DataIterations), clientWithInfo.Value.DataContentSize, clientWithInfo.Value.Delay, null, DateTime.UtcNow);
+
+            _delayCalcStorage.StreamingSingleStorage.Add(transportingToDb);
+
+            Log.Information($"THIS IS THE CURRENT BAG LENGTH {_delayCalcStorage.StreamingSingleStorage.Count}");
 
             Log.Information($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
 
@@ -113,7 +134,7 @@ namespace gRPCStressTestingService.Services
 
             transportingToDb.ClientInstance = gettingClientInstance;
 
-            await AddToDbAndSave(transportingToDb);
+            //await AddToDbAndSave(transportingToDb);
         }
 
         private async Task HandleStreamingBatchCase(KeyValuePair<ClientMessageId, UnaryInfo> clientWithInfo)
@@ -121,13 +142,19 @@ namespace gRPCStressTestingService.Services
             Log.Information($"streaming batch detected");
 
             DelayCalc transportingToDb = await CreateDelayCalc(Guid.Parse(clientWithInfo.Key.MessageId), clientWithInfo.Value.TypeOfData, Guid.Parse(clientWithInfo.Key.ClientId), clientWithInfo.Value.TypeOfData,
-                Convert.ToInt32(clientWithInfo.Value.DataIterations), clientWithInfo.Value.DataContentSize, clientWithInfo.Value.Delay, null, DateTime.Now);
+                Convert.ToInt32(clientWithInfo.Value.DataIterations), clientWithInfo.Value.DataContentSize, clientWithInfo.Value.Delay, null, DateTime.UtcNow);
+
+            _delayCalcStorage.StreamingBatchStorage.Add(transportingToDb);
+
+            Log.Information($"THIS IS THE CURRENT BAG LENGTH {_delayCalcStorage.StreamingBatchStorage.Count}");
 
             var gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(transportingToDb.ClientUnique);
 
             transportingToDb.ClientInstance = gettingClientInstance;
 
-            await AddToDbAndSave(transportingToDb);
+
+
+            //await AddToDbAndSave(transportingToDb);
         }
 
         private async Task<ClientInstance> IdentifyingClientInstance(Guid? clientUnique, DelayCalc delay)

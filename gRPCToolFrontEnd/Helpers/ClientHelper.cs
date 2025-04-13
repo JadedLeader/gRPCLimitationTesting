@@ -42,6 +42,7 @@ namespace gRPCToolFrontEnd.Helpers
         {
             int i = 0;
 
+
             ConcurrentDictionary<Guid, GrpcChannel> channels = new ConcurrentDictionary<Guid, GrpcChannel>();
            
             while(amountOfChannels > i)

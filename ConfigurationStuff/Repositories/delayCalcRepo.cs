@@ -53,12 +53,13 @@ namespace DbManagerWorkerService.Repositories
         public async Task<Dictionary<Guid, List<DelayCalc>>> GetAllDelays()
         {
             var thing = _dataContext.DelayCalc
+                .AsNoTracking()
                         .Where(calc => calc.ClientUnique.HasValue)
                         .GroupBy(calc => calc.ClientUnique.Value)
                         .ToDictionary(
                             group => group.Key,
                             group => group.Distinct().ToList()
-                            );
+                        );
 
 
             return thing;
@@ -67,6 +68,7 @@ namespace DbManagerWorkerService.Repositories
         public async Task<Dictionary<Guid, List<DelayCalc>>> GetNewDelays(Guid sessionUnique)
         {
             var clientInstances = await _dataContext.ClientInstance
+                .AsNoTracking()
                 .Where(c => c.SessionUnique == sessionUnique)
                 .Include(c => c.DelayCalcs)
                 .ToListAsync();
@@ -102,6 +104,7 @@ namespace DbManagerWorkerService.Repositories
         {
            
             var streamingBatchDelays = await _dataContext.DelayCalc
+                .AsNoTracking()
                 .Where(c => c.RequestType == "StreamingBatch" && c.RecordCreation > _lastFetchedTime).ToListAsync();
 
             if(streamingBatchDelays.Any())
@@ -114,7 +117,7 @@ namespace DbManagerWorkerService.Repositories
 
         public async Task<List<DelayCalc>> GetStreamingRequests(Guid sessionUnique)
         {
-            var streamingDelays = await _dataContext.DelayCalc.Where(c => c.RequestType == "Streaming" && c.RecordCreation > _lastFetchedTime).ToListAsync();
+            var streamingDelays = await _dataContext.DelayCalc.AsNoTracking().Where(c => c.RequestType == "Streaming" && c.RecordCreation > _lastFetchedTime).ToListAsync();
 
             if(streamingDelays.Any())
             {
@@ -126,7 +129,7 @@ namespace DbManagerWorkerService.Repositories
 
         public async Task<List<DelayCalc>> GetBatchUnaryRequests(Guid sessionUnique)
         {
-            var batchUnaryDelays = await _dataContext.DelayCalc.Where(c => c.RequestType == "BatchUnary" && c.RecordCreation > _lastFetchedTime).ToListAsync();
+            var batchUnaryDelays = await _dataContext.DelayCalc.AsNoTracking().Where(c => c.RequestType == "BatchUnary" && c.RecordCreation > _lastFetchedTime).ToListAsync();
 
             if(batchUnaryDelays.Any())
             {
@@ -138,7 +141,7 @@ namespace DbManagerWorkerService.Repositories
 
         public async Task<List<DelayCalc>> GetUnaryRequests(Guid sessionUnique)
         {
-            var unaryDelays = await _dataContext.DelayCalc.Where(c => c.RequestType == "Unary" && c.RecordCreation > _lastFetchedTime).ToListAsync();   
+            var unaryDelays = await _dataContext.DelayCalc.AsNoTracking().Where(c => c.RequestType == "Unary" && c.RecordCreation > _lastFetchedTime).ToListAsync();   
 
             if(unaryDelays.Any())
             {

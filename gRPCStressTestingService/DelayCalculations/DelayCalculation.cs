@@ -18,7 +18,7 @@ namespace gRPCStressTestingService.DelayCalculations
         {
             Log.Information($"Calculating delay immediately after request.");
             var clientRequests = _timeStorage.ReturnConcurrentDictLock(_timeStorage._ClientRequestTiming);
-            var serverResponses = _timeStorage.ReturnConcurrentDictLock(_timeStorage._ServerResponseTiming);
+             var serverResponses = _timeStorage.ReturnConcurrentDictLock(_timeStorage._ServerResponseTiming);
 
             if (clientRequests.TryGetValue(requestKeys, out var clientTiming) &&
                 serverResponses.TryGetValue(responseKeys, out var serverTiming))

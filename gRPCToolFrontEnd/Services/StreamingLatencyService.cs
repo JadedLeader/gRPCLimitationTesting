@@ -137,7 +137,7 @@ namespace gRPCToolFrontEnd.Services
 
             string filePath = _clientHelper.FileSize(fileSize);
 
-            string dataContent = File.ReadAllText(filePath);
+            string dataContent = await File.ReadAllTextAsync(filePath);
 
             string dataContentSize = _clientHelper.DataContentCalc(fileSize);
 
@@ -149,6 +149,12 @@ namespace gRPCToolFrontEnd.Services
             {
                 await _clientHelper.PayloadUsage(fileSize);
 
+                var now = DateTime.UtcNow;
+
+                long ticks = now.Ticks;
+
+                string preciseTime = now.ToString("HH:mm:ss.ffffff");
+
                 StreamingManySingleLatencyRequest streamingRequest = new StreamingManySingleLatencyRequest()
                 {
                     ClientUnique = clientUnique,
@@ -157,9 +163,10 @@ namespace gRPCToolFrontEnd.Services
                     DataContentSize = dataContentSize,
                     DataSize = amountOfRequests.ToString(),
                     RequestId = Guid.NewGuid().ToString(),
-                    RequestTimestamp = DateTime.Now.ToString(),
+                    RequestTimestamp = preciseTime,
                     RequestType = "Streaming"
                 };
+
 
                 _sentRequestStorage.IncrementSingleStreamingRequest();
 
@@ -188,7 +195,7 @@ namespace gRPCToolFrontEnd.Services
 
             string filePath = _clientHelper.FileSize(fileSize);
 
-            string dataContent = File.ReadAllText(filePath);
+            string dataContent = await File.ReadAllTextAsync(filePath);
 
             string dataContentSize = _clientHelper.DataContentCalc(fileSize);
 
@@ -200,17 +207,23 @@ namespace gRPCToolFrontEnd.Services
             {
                 await _clientHelper.PayloadUsage(fileSize);
 
+                var now = DateTime.UtcNow;
+
+                long ticks = now.Ticks;
+
+                string preciseTime = now.ToString("HH:mm:ss.ffffff");
+
                 StreamingBatchDetailsRequest streamingBatchDetails = new StreamingBatchDetailsRequest
                 {
                     ClientUnique = clientUnique,
-                    BatchRequestId = batchRequestId,
+                    BatchRequestId = Guid.NewGuid().ToString(),
                     MessageId = Guid.NewGuid().ToString(),
                     RequestType = "StreamingBatch",
                     ConnectionAlive = true,
                     DataContent = dataContent,
                     DataContentSize = dataContentSize,
                     DataSize = requestsInBatch.ToString(),
-                    RequestTimestamp = DateTime.Now.ToString(),   
+                    RequestTimestamp = preciseTime,   
                 };
 
                 _sentRequestStorage.IncrementBatchStreamingRequest(1);
@@ -258,7 +271,7 @@ namespace gRPCToolFrontEnd.Services
 
             string filePath = _clientHelper.FileSize(fileSize);
 
-            string requestContent = File.ReadAllText(filePath);
+            string requestContent = await File.ReadAllTextAsync(filePath);
 
             string dataContent = _clientHelper.DataContentCalc(fileSize);
 
@@ -275,9 +288,9 @@ namespace gRPCToolFrontEnd.Services
                 ConnectionAlive = true,
                 DataContent = requestContent,
                 DataSize = "1",
-                RequestTimestamp = DateTime.Now.ToString(),
+                RequestTimestamp = DateTime.UtcNow.ToString(),
                 RequestType = "Streaming",
-                DataContentSize = dataContent
+                DataContentSize = dataContent, 
 
             };
 

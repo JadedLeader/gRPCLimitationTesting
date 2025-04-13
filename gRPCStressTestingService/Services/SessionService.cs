@@ -47,7 +47,7 @@ namespace gRPCStressTestingService.Services
             {
                 AccountUnique = getAccountViaUsername.AccountUnique,
                 SessionUnique = Guid.NewGuid(),
-                SessionCreated = DateTime.Now.ToString(),
+                SessionCreated = DateTime.UtcNow.ToString(),
                 ClientInstance = new List<ClientInstance>()
             };
 
@@ -62,8 +62,8 @@ namespace gRPCStressTestingService.Services
             {
                 serverResponse.SessionUnique = getAccountViaUsername.Session.SessionUnique.ToString();
 
-                getAccountViaUsername.Session.SessionCreated = DateTime.Now.ToString();
-                getAccountViaUsername.TimeOfLogin = DateTime.Now.ToString();
+                getAccountViaUsername.Session.SessionCreated = DateTime.UtcNow.ToString();
+                getAccountViaUsername.TimeOfLogin = DateTime.UtcNow.ToString();
 
                 await _accountRepo.UpdateDbAsync(getAccountViaUsername);
                 await _sessionRepo.UpdateDbAsync(getAccountViaUsername.Session);

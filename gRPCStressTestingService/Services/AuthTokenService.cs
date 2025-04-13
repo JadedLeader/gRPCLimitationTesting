@@ -54,7 +54,7 @@ namespace gRPCStressTestingService.Services
             GenerateAuthTokenResponse serverResponse = new GenerateAuthTokenResponse()
             {
                 Token = token,
-                TokenCreationTime = DateTime.Now.ToString()
+                TokenCreationTime = DateTime.UtcNow.ToString()
             };
 
             return serverResponse;
@@ -117,7 +117,7 @@ namespace gRPCStressTestingService.Services
 
                 DateTime timeValid = readingToken.ValidTo;
 
-                if(timeValid < DateTime.Now)
+                if(timeValid < DateTime.UtcNow)
                 {
                     getAccountWithToken.AuthToken.RefreshToken = longLifeToken;
                 }
@@ -170,7 +170,7 @@ namespace gRPCStressTestingService.Services
             issuer: _configuration["Tokens:Issuer"],
             audience: _configuration["Tokens:Audience"],
             claims: tokenClaims,
-            expires: DateTime.Now.AddMinutes(tokenDuration),
+            expires: DateTime.UtcNow.AddMinutes(tokenDuration),
             signingCredentials: credentials);
 
             string writingToken = new JwtSecurityTokenHandler().WriteToken(token);

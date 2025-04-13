@@ -216,7 +216,7 @@
         {
             Name = "Single Unary Delay(s)",
             Data = new double[] { }
-        };
+        }; 
 
     private ChartSeries _chart4 = new()
         {
@@ -415,7 +415,7 @@
 
     private async Task GeneratingChannels()
     {
-      
+
         Log.Information($"AMOUNT OF CHANNELS GENERATED FOR SINGLE CLIENTS {_AmountOfChannels}");
 
         Log.Information($"amount of channels created: {AccountDetailsStore.channels}");
@@ -452,7 +452,7 @@
 
     private async void HandleUnaryBatchReceived(GetUnaryBatchDelaysResponse unaryBatchDelaysResponse)
     {
-        await InvokeAsync(() =>
+        await InvokeAsync(async () =>
         {
             try
             {
@@ -468,6 +468,8 @@
 
                 _UnaryBatchLabels.Add(timeLabel);
 
+                _UnaryBatchLabels = new List<string>(_UnaryBatchLabels);
+
                 _UnaryBatchDelays.Add(delayMs);
 
                 if (_UnaryBatchLabels.Count > MaxDataPoints)
@@ -475,7 +477,13 @@
                 if (_UnaryBatchDelays.Count > MaxDataPoints)
                     _UnaryBatchDelays.RemoveAt(0);
 
-                _chart4.Data = _UnaryBatchDelays.ToArray();
+                var newSeries = new ChartSeries
+                {
+                        Name = "Unary Batch Delay(s)", 
+                        Data = _UnaryBatchDelays.ToArray()
+                }; 
+
+                _series4 = new List<ChartSeries> {newSeries};
 
                 StateHasChanged();
             }
@@ -488,31 +496,35 @@
 
     private async void HandleUnarySingleReceived(GetUnaryDelaysResponse unaryDelaysResponse)
     {
-        await InvokeAsync(() =>
+        await InvokeAsync(async () =>
         {
             try
             {
 
-                TimeSpan delayTimeSpan = TimeSpan.Parse(
-                    unaryDelaysResponse.GatheringUnaryDelays.Delay);
-
+                TimeSpan delayTimeSpan = TimeSpan.Parse(unaryDelaysResponse.GatheringUnaryDelays.Delay);
                 double delayMs = delayTimeSpan.TotalMilliseconds;
-
-                DateTime recordTime = DateTime.Parse(
-                    unaryDelaysResponse.GatheringUnaryDelays.ResponseTimestamp);
-
+                DateTime recordTime = DateTime.Parse(unaryDelaysResponse.GatheringUnaryDelays.ResponseTimestamp);
                 string timeLabel = recordTime.ToString("HH:mm:ss");
 
                 _UnarySingleLabels.Add(timeLabel);
 
+                _UnarySingleLabels = new List<string>(_UnarySingleLabels);
+
                 _UnarySingleDelays.Add(delayMs);
+
 
                 if (_UnarySingleLabels.Count > MaxDataPoints)
                     _UnarySingleLabels.RemoveAt(0);
                 if (_UnarySingleDelays.Count > MaxDataPoints)
                     _UnarySingleDelays.RemoveAt(0);
 
-                _chart3.Data = _UnarySingleDelays.ToArray();
+                var newSeries = new ChartSeries
+                {
+                     Name = "Single Unary Delay(s)",
+                     Data = _UnarySingleDelays.ToArray()
+                };
+
+                _series3 = new List<ChartSeries> { newSeries };
 
                 StateHasChanged();
             }
@@ -525,7 +537,7 @@
 
     private async void HandleStreamingSingleReceived(GetStreamingDelaysResponse streamingSingleDelaysResponse)
     {
-        await InvokeAsync(() =>
+        await InvokeAsync(async () =>
         {
             try
             {
@@ -542,6 +554,8 @@
 
                 _StreamingSingleLabels.Add(timeLabel);
 
+                _StreamingSingleLabels = new List<string>(_StreamingSingleLabels); 
+
                 _streamingSingleDelays.Add(delayMs);
 
                 if (_StreamingSingleLabels.Count > MaxDataPoints)
@@ -549,8 +563,14 @@
                 if (_streamingSingleDelays.Count > MaxDataPoints)
                     _streamingSingleDelays.RemoveAt(0);
 
-                _chart2.Data = _streamingSingleDelays.ToArray();
+                var newSeries = new ChartSeries
+                {
+                        Name = "Single Streaming Delay(s)", 
+                        Data = _streamingSingleDelays.ToArray()
+                }; 
 
+                _series2 = new List<ChartSeries> {newSeries};
+              
                 StateHasChanged();
             }
             catch (Exception ex)
@@ -563,7 +583,7 @@
     private async void HandleBatchRequestReceived(GetStreamingBatchDelaysResponse streamingBatchDelaysResponse)
     {
 
-        await InvokeAsync(() =>
+        await InvokeAsync(async () =>
         {
             try
             {
@@ -580,6 +600,8 @@
 
                 _labels.Add(timeLabel);
 
+                _labels = new List<string>(_labels);
+
                 _delays.Add(delayMs);
 
                 if (_labels.Count > MaxDataPoints)
@@ -587,9 +609,15 @@
                 if (_delays.Count > MaxDataPoints)
                     _delays.RemoveAt(0);
 
-                _chart1.Data = _delays.ToArray();
+                var newSeries = new ChartSeries
+                {
+                        Name = "Batch Streaming Delay(s)", 
+                        Data = _delays.ToArray()
+                };
 
-                StateHasChanged();
+                _series = new List<ChartSeries>{newSeries};
+
+                StateHasChanged(); 
             }
             catch (Exception ex)
             {

@@ -20,7 +20,7 @@
             var metadata = new Grpc.Core.Metadata();
 
             metadata.Add("role", "User");
-            metadata.Add("creation-time", DateTime.Now.ToString());
+            metadata.Add("creation-time", DateTime.UtcNow.ToString());
 
             return await _grpcAccountClient.CreateAccountAsync(createAccountRequest, metadata);
         }

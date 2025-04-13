@@ -1,4 +1,5 @@
-﻿using Grpc.Core;
+﻿using Google.Protobuf.Reflection;
+using Grpc.Core;
 using gRPCToolFrontEnd.DictionaryModel;
 using gRPCToolFrontEnd.LocalStorage;
 using Microsoft.AspNetCore.SignalR;
@@ -47,7 +48,7 @@ namespace gRPCToolFrontEnd.Services
         {
             _cancellationToken = new CancellationTokenSource();
 
-            Task.Run(() =>  ReceivingUnaryStream(unaryRequest, _cancellationToken.Token, sessionUnique));
+            Task.Run(() => ReceivingUnaryStream(unaryRequest, _cancellationToken.Token, sessionUnique));
 
         }
 
@@ -128,7 +129,9 @@ namespace gRPCToolFrontEnd.Services
             {
                 var response = call.ResponseStream.Current;
 
-                Log.Information($"Unary single request received, message ID {response.GatheringUnaryDelays.MessageId} with delay : {response.GatheringUnaryDelays.Delay}"); 
+                Log.Information($"Unary single request received, message ID {response.GatheringUnaryDelays.MessageId} with delay : {response.GatheringUnaryDelays.Delay}");
+
+                Log.Information("ANOTHER ITEM RECEIEVED FROM STREAM OF GRPC TYPES");
 
                 OnUnarySingleReceived?.Invoke(response);
             }

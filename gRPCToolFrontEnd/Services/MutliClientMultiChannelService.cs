@@ -29,24 +29,18 @@ namespace gRPCToolFrontEnd.Services
 
         public async Task StreamingClientToChannelAllocation(int ammountOfClientsPerChannel, int amountOfRequests, string fileSize, int amountOfChannels)
         {
-            
-
+           
             CreateClientInstanceResponse newlyCreatedClient = await _clientInstanceService.CreateClientInstanceAsync();
 
             var tasks = new List<Task>();
 
-            
             int i = 0;
 
             while (i < ammountOfClientsPerChannel)
             {
                 tasks.Add(Task.Run(async () =>
                 {
-
                     await _streamingLatencyService.CreateManySingleStreamingRequests(null, false, amountOfRequests, fileSize, amountOfChannels);
-
-                    _clientStorage.IncrementStreamingClients();
-
                 }));
 
                  i++;
@@ -58,7 +52,6 @@ namespace gRPCToolFrontEnd.Services
         public async Task StreamingBatchClientToChannelAllocation(int amountOfClientsPerChannel, int amountOfRequests, string fileSize, int amountOfChannels)
         {
             
-
             CreateClientInstanceResponse newlyCreatedClient = await _clientInstanceService.CreateClientInstanceAsync();
 
             var tasks = new List<Task>();
@@ -69,11 +62,7 @@ namespace gRPCToolFrontEnd.Services
             {
                 tasks.Add(Task.Run(async () =>
                 {
-
-
                     await _streamingLatencyService.CreateManyStreamingBatchRequest(false, amountOfRequests, fileSize, amountOfChannels);
-
-                    _clientStorage.IncrementStreamingClients();
                 }));
 
                 i++;
@@ -123,9 +112,6 @@ namespace gRPCToolFrontEnd.Services
             
         }
 
-        private ConcurrentDictionary<Guid, GrpcChannel> GetCurrentAvailableChannels()
-        {
-            return _accountDetailsStore.GetChannels();
-        }
+        
     }
 }

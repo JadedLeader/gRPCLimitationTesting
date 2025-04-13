@@ -131,7 +131,7 @@ namespace gRPCStressTestingService.Services
             RevokeSessionResponse serverResponse = new RevokeSessionResponse()
             {
                 SessionUnique = request.SessionUnique,
-                TimeOfSessionRevoke = DateTime.Now.ToString()
+                TimeOfSessionRevoke = DateTime.UtcNow.ToString()
             };
 
             //to revoke a session, it's simple, we're literally just going to want to edit both the sessions table and the account table
@@ -178,7 +178,7 @@ namespace gRPCStressTestingService.Services
             RevokeClientInstanceResponse serverResponse = new RevokeClientInstanceResponse()
             {
                 SessionUnique = request.SessionUnique,
-                TimeOfClientRevoke = DateTime.Now.ToString()
+                TimeOfClientRevoke = DateTime.UtcNow.ToString()
             };
 
             return serverResponse;

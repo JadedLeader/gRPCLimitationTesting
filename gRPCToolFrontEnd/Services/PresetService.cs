@@ -13,11 +13,15 @@ namespace gRPCToolFrontEnd.Services
         private readonly StreamingLatencyService _streamingLatencyService;
 
         private readonly MutliClientMultiChannelService _multiClientMultiChannelService;
-        public PresetService(UnaryRequestService unaryRequestService, StreamingLatencyService streamingLatencyService, MutliClientMultiChannelService multiClientMultiChannelService)
+
+        private readonly MutliChannelSingleClientService _multiChannelSingleClientService;
+        public PresetService(UnaryRequestService unaryRequestService, StreamingLatencyService streamingLatencyService, MutliClientMultiChannelService multiClientMultiChannelService, 
+            MutliChannelSingleClientService singleClientService)
         {
             _streamingLatencyService = streamingLatencyService;
             _unaryRequestService = unaryRequestService;
             _multiClientMultiChannelService = multiClientMultiChannelService;
+            _multiChannelSingleClientService = singleClientService;
         }
 
 
@@ -32,25 +36,15 @@ namespace gRPCToolFrontEnd.Services
         /// <exception cref="NotImplementedException"></exception>
         public async Task LowStress(bool lowStressRunning, int amountOfChannels)
         {
+                string fileSize = "small";
 
-            string fileSize = "small";
+                await _multiChannelSingleClientService.UnaryClientToSingleChannelAllocation(fileSize, amountOfChannels, 1);
 
-            while(lowStressRunning)
-            {
+                await _multiChannelSingleClientService.UnaryBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, 1);
 
-                 await _unaryRequestService.UnaryBatchIterativeAsync(true, 1, fileSize, amountOfChannels);
+                await _multiChannelSingleClientService.StreamingClientToSingleChannelAllocation(fileSize, amountOfChannels, 1);
 
-                 await _streamingLatencyService.CreateManySingleStreamingRequests(null, true, 1, fileSize, amountOfChannels);
-
-                 await _streamingLatencyService.CreateManyStreamingBatchRequest(true, 1, fileSize, amountOfChannels);
-                
-                 await _unaryRequestService.UnaryResponseIterativeAsync(true, fileSize, 1, amountOfChannels);
-
-                // await Task.WhenAll(t1,t2,t3,t4); 
-
-            }
-
-            Log.Information($"Low stress has stopped running");
+                await _multiChannelSingleClientService.StreamingBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, 1);
 
         }
 
@@ -67,10 +61,10 @@ namespace gRPCToolFrontEnd.Services
         {
             //we need a way to randomise 
 
-            while(mediumStressRunning)
-            {
+           // while(mediumStressRunning)
+           // {
 
-                string fileSize = "";
+                string fileSize = "medium";
 
                 Random random = new Random();
 
@@ -78,7 +72,7 @@ namespace gRPCToolFrontEnd.Services
 
                 Log.Information($"Number chose for medium stress : {number}");
 
-                if (number == 0)
+              /*  if (number == 0)
                 {
                     fileSize = "small";
                 }
@@ -89,7 +83,15 @@ namespace gRPCToolFrontEnd.Services
                 else
                 {
                     Log.Information($"Something went wrong with the random number generation for the medium stress");
-                }
+                } */
+
+             //   await _multiChannelSingleClientService.UnaryClientToSingleChannelAllocation(fileSize, amountOfChannels, 3);
+
+             //   await _multiChannelSingleClientService.UnaryBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, 3);
+
+              //  await _multiChannelSingleClientService.StreamingClientToSingleChannelAllocation(fileSize, amountOfChannels, 3);
+
+              //  await _multiChannelSingleClientService.StreamingBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, 3 );
 
 
                  var t1 = _unaryRequestService.UnaryBatchIterativeAsync(true, 3, fileSize, amountOfChannels);
@@ -100,9 +102,9 @@ namespace gRPCToolFrontEnd.Services
 
                  var t4 = _unaryRequestService.UnaryResponseIterativeAsync(true, fileSize, 3, amountOfChannels);
 
-                 await Task.WhenAll(t1, t2, t3, t4); 
+                 await Task.WhenAll(t1, t2, t3, t4);  
 
-            }
+            //}
 
             Log.Information($"Medium stress has stopped running");
                
@@ -120,8 +122,8 @@ namespace gRPCToolFrontEnd.Services
         /// <exception cref="NotImplementedException"></exception>
         public async Task HighStress(bool highStressRunning, int amountOfChannels)
         {
-            while (highStressRunning)
-            {
+           // while (highStressRunning)
+           // {
 
                 int amountOfRequests = 0;
 
@@ -156,7 +158,15 @@ namespace gRPCToolFrontEnd.Services
 
                 Log.Information($"Amount of requests : {amountOfRequests}");
 
-                 var t1 = _unaryRequestService.UnaryBatchIterativeAsync(true, amountOfRequests, fileSize, amountOfChannels);
+                await _multiChannelSingleClientService.UnaryClientToSingleChannelAllocation(fileSize, amountOfChannels, amountOfRequests);
+
+                await _multiChannelSingleClientService.UnaryBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, amountOfRequests);
+
+                await _multiChannelSingleClientService.StreamingClientToSingleChannelAllocation(fileSize, amountOfChannels, amountOfRequests);
+
+                await _multiChannelSingleClientService.StreamingBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, amountOfRequests);
+
+                /*var t1 = _unaryRequestService.UnaryBatchIterativeAsync(true, amountOfRequests, fileSize, amountOfChannels);
 
                  var t2 = _streamingLatencyService.CreateManySingleStreamingRequests(null, true, amountOfRequests, fileSize, amountOfChannels);
 
@@ -164,9 +174,9 @@ namespace gRPCToolFrontEnd.Services
 
                  var t4 = _unaryRequestService.UnaryResponseIterativeAsync(true, fileSize, amountOfRequests, amountOfChannels);
 
-                 await Task.WhenAll(t1, t2, t3, t4);  
+                 await Task.WhenAll(t1, t2, t3, t4);   */
 
-            }
+           // }
 
        
         }

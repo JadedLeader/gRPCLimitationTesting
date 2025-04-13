@@ -65,7 +65,7 @@ namespace gRPCStressTestingService.Services
                 Username = request.Username,
                 Password = passwordHash,
                 TimeOfLogin = "",
-                TimeOfAccountCreation = DateTime.Now.ToString(),
+                TimeOfAccountCreation = DateTime.UtcNow.ToString(),
                 Role = accountRole,
             };
 

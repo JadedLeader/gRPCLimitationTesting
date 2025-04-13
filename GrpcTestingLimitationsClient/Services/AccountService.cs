@@ -23,7 +23,7 @@ namespace GrpcTestingLimitationsClient.Services
 
             Metadata metadata = new Metadata();
 
-            string accountCreation = DateTime.Now.ToString();
+            string accountCreation = DateTime.UtcNow.ToString();
 
             metadata.Add("role", "User"); 
             metadata.Add("creation-time", accountCreation);

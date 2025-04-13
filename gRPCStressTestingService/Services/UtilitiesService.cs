@@ -2,10 +2,13 @@
 using ConfigurationStuff.Interfaces.Repos;
 using Grpc.Core;
 using gRPCStressTestingService.Interfaces.Services;
+using gRPCStressTestingService.Storage;
 using Microsoft.AspNetCore.OutputCaching;
+using Microsoft.Identity.Client;
 using Serilog;
 using SharedCommonalities.Storage;
 using System.Collections.Concurrent;
+using System.Collections.Specialized;
 using System.Diagnostics;
 
 namespace gRPCStressTestingService.Services
@@ -15,11 +18,18 @@ namespace gRPCStressTestingService.Services
 
         private readonly IDelayCalcRepo _delayCalcRepo;
         private readonly ThroughputStorage _throughputStorage;
+        private readonly DelayCalcStorage _delayCalcStorage;
 
-        public UtilitiesService(IDelayCalcRepo delayCalcRepo, ThroughputStorage throughputStorage)
+        private DateTime _lastFetchedTimeStreamingBatch = DateTime.MinValue;
+        private DateTime _lastFetchedTimeStreamingSingle = DateTime.MinValue;
+        private DateTime _lastFetchedTimeUnarySingle = DateTime.MinValue;
+        private DateTime _lastFetchedTimeUnaryBatch = DateTime.MinValue;
+
+        public UtilitiesService(IDelayCalcRepo delayCalcRepo, ThroughputStorage throughputStorage, DelayCalcStorage delayCalcStorage)
         {
             _delayCalcRepo = delayCalcRepo;
             _throughputStorage = throughputStorage;
+            _delayCalcStorage = delayCalcStorage;
         }
 
 
@@ -63,7 +73,6 @@ namespace gRPCStressTestingService.Services
                     }
                 }
 
-                await Task.Delay(500);
             }
 
         }
@@ -73,47 +82,40 @@ namespace gRPCStressTestingService.Services
 
             string? sessionUnique = context.RequestHeaders.GetValue("session-unique");
 
-            if (sessionUnique == null)
-            {
-                Log.Information($"the session unique was null when trying to get the streaming batch delays");
-            }
-
             while (!context.CancellationToken.IsCancellationRequested)
             {
+                var newItems = _delayCalcStorage.StreamingBatchStorage
+                    .Where(item => item.RecordCreation > _lastFetchedTimeStreamingBatch);
 
-                List<DelayCalc> getStreamingBatchRequests = await _delayCalcRepo.GetStreamingBatchRequests(Guid.Parse(sessionUnique));
-
-                if (getStreamingBatchRequests.Count == 0)
+                foreach (var newItem in newItems)
                 {
-                    Log.Information($"There is currently no streaming batch requests");
-                }
-
-                foreach (var delay in getStreamingBatchRequests)
-                {
-
-                    GatheringDelays gatheringStreamingBatchDelays = new GatheringDelays()
+                    GatheringDelays gatheringUnaryBatchDelays = new GatheringDelays
                     {
-                        Delay = delay.Delay.ToString(),
-                        MessageId = delay.messageId.ToString(),
-                        RequestType = delay.RequestType,
-                        DataContent = delay.DataContent,
-                        ResponseTimestamp = delay.RecordCreation.ToString(),
+                        Delay = newItem.Delay.ToString(),
+                        MessageId = newItem.messageId.ToString(),
+                        RequestType = newItem.RequestType,
+                        DataContent = newItem.DataContent,
+                        ResponseTimestamp = newItem.RecordCreation.ToString(),
                     };
 
-                    GetStreamingBatchDelaysResponse serverResponse = new GetStreamingBatchDelaysResponse()
+                    GetStreamingBatchDelaysResponse serverResponse = new GetStreamingBatchDelaysResponse
                     {
-                        GatheringStreamingBatchDelays = gatheringStreamingBatchDelays
+                        GatheringStreamingBatchDelays = gatheringUnaryBatchDelays,
                     };
 
                     await responseStream.WriteAsync(serverResponse);
-
-
                 }
 
-                await Task.Delay(500);
+                if (newItems.Count() > 0)
+                {
+                    _lastFetchedTimeStreamingBatch = newItems.Max(item => item.RecordCreation);
+                }
 
+                await Task.Delay(100);
             }
         }
+
+       
 
         public async Task GetStreamingDelays(GetStreamingDelaysRequest request, IServerStreamWriter<GetStreamingDelaysResponse> responseStream, ServerCallContext context)
         {
@@ -121,32 +123,34 @@ namespace gRPCStressTestingService.Services
 
             while (!context.CancellationToken.IsCancellationRequested)
             {
-                List<DelayCalc> getStreamingRequests = await _delayCalcRepo.GetStreamingRequests(Guid.Parse(sessionUnique));
+                var newItems = _delayCalcStorage.StreamingSingleStorage
+                    .Where(item => item.RecordCreation > _lastFetchedTimeStreamingSingle);
 
-                if(getStreamingRequests.Count == 0)
+                foreach (var newItem in newItems)
                 {
-                    Log.Warning($"The attempt to get the streaming requests from the database returned nothing");
-                }
-
-                foreach (DelayCalc delay in getStreamingRequests)
-                {
-
-                    GatheringDelays gatheringStreamingDelays = new GatheringDelays()
+                    GatheringDelays gatheringUnaryBatchDelays = new GatheringDelays
                     {
-                        MessageId = delay.messageId.ToString(),
-                        RequestType = delay.RequestType,
-                        DataContent = delay.DataContent,
-                        ResponseTimestamp = delay.RecordCreation.ToString(),
-                        Delay = delay.Delay.ToString(),
+                        Delay = newItem.Delay.ToString(),
+                        MessageId = newItem.messageId.ToString(),
+                        RequestType = newItem.RequestType,
+                        DataContent = newItem.DataContent,
+                        ResponseTimestamp = newItem.RecordCreation.ToString(),
                     };
 
-                    GetStreamingDelaysResponse serverResponse = new GetStreamingDelaysResponse()
+                    GetStreamingDelaysResponse serverResponse = new GetStreamingDelaysResponse
                     {
-                        GatheringStreamingDelays = gatheringStreamingDelays
+                        GatheringStreamingDelays = gatheringUnaryBatchDelays,
                     };
 
                     await responseStream.WriteAsync(serverResponse);
                 }
+
+                if (newItems.Count() > 0)
+                {
+                    _lastFetchedTimeStreamingSingle = newItems.Max(item => item.RecordCreation);
+                }
+
+                await Task.Delay(100);
             }
 
         }
@@ -156,34 +160,42 @@ namespace gRPCStressTestingService.Services
 
             string? sessionUnique = context.RequestHeaders.GetValue("session-unique");
 
-            while(!context.CancellationToken.IsCancellationRequested)
+
+            Log.Information($"unary delays called!!!!!!!!!!");
+
+            while (!context.CancellationToken.IsCancellationRequested)
             {
-
-                var getUnaryDelays = await _delayCalcRepo.GetUnaryRequests(Guid.Parse(sessionUnique));
-
-                if(getUnaryDelays.Count == 0)
+                var newItems = _delayCalcStorage.UnarySingleStorage
+                    .Where(item => item.RecordCreation > _lastFetchedTimeUnarySingle);
+     
+                foreach (var newItem in newItems)
                 {
-                    Log.Warning($"The attempt to get unary requests from the database returned nothing");
-                }
 
-                foreach(var unaryDelays in getUnaryDelays)
-                {
-                    GatheringDelays gatheringUnaryDelays = new GatheringDelays()
+                    GatheringDelays gatheringStreamingBatchDelays = new GatheringDelays
                     {
-                        MessageId = unaryDelays.messageId.ToString(),
-                        RequestType = unaryDelays.RequestType,
-                        DataContent = unaryDelays.DataContent,
-                        ResponseTimestamp = unaryDelays.RecordCreation.ToString(),
-                        Delay = unaryDelays.Delay.ToString(),
+                        Delay = newItem.Delay.ToString(),
+                        MessageId = newItem.messageId.ToString(),
+                        RequestType = newItem.RequestType,
+                        DataContent = newItem.DataContent,
+                        ResponseTimestamp = newItem.RecordCreation.ToString(),
                     };
 
-                    GetUnaryDelaysResponse serverResponse = new GetUnaryDelaysResponse()
+                    GetUnaryDelaysResponse serverResponse = new GetUnaryDelaysResponse
                     {
-                        GatheringUnaryDelays = gatheringUnaryDelays,
+                        GatheringUnaryDelays = gatheringStreamingBatchDelays,
                     };
+
+                    Log.Information($"YIPPIE SUCCESS HAS BEEN HAD {gatheringStreamingBatchDelays.MessageId}");
 
                     await responseStream.WriteAsync(serverResponse);
                 }
+
+                if(newItems.Count() > 0)
+                {
+                    _lastFetchedTimeUnarySingle = newItems.Max(item => item.RecordCreation);
+                }
+
+                await Task.Delay(100);
 
             }
             
@@ -196,33 +208,34 @@ namespace gRPCStressTestingService.Services
 
             while(!context.CancellationToken.IsCancellationRequested)
             {
+                var newItems = _delayCalcStorage.UnaryBatchStorage
+                    .Where(item => item.RecordCreation > _lastFetchedTimeUnaryBatch); 
 
-                List<DelayCalc> getBatchUnaryDelays = await _delayCalcRepo.GetBatchUnaryRequests(Guid.Parse(sessionUnique));
-
-                if (getBatchUnaryDelays.Count == 0)
+                foreach(var newItem in newItems)
                 {
-                    Log.Warning($"The attempt to get unary batch requests from the database returned nothing");
-                }
-
-                foreach (DelayCalc batchDelays in getBatchUnaryDelays)
-                {
-                    GatheringDelays gatheringBatchDelays = new GatheringDelays
+                    GatheringDelays gatheringUnaryBatchDelays = new GatheringDelays
                     {
-                        MessageId = batchDelays.messageId.ToString(),
-                        DataContent = batchDelays.DataContent,
-                        Delay = batchDelays.Delay.ToString(),
-                        RequestType = batchDelays.RequestType,
-                        ResponseTimestamp = batchDelays.RecordCreation.ToString(),
+                        Delay = newItem.Delay.ToString(),
+                        MessageId = newItem.messageId.ToString(),
+                        RequestType = newItem.RequestType,
+                        DataContent = newItem.DataContent,
+                        ResponseTimestamp = newItem.RecordCreation.ToString(),
                     };
 
                     GetUnaryBatchDelaysResponse serverResponse = new GetUnaryBatchDelaysResponse
                     {
-                        GatheringUnaryBatchDelays = gatheringBatchDelays,
-                    };
+                        GatheringUnaryBatchDelays = gatheringUnaryBatchDelays,
+                    }; 
 
                     await responseStream.WriteAsync(serverResponse);
                 }
 
+                if (newItems.Count() > 0)
+                {
+                    _lastFetchedTimeUnaryBatch = newItems.Max(item => item.RecordCreation);
+                }
+
+                await Task.Delay(100);
             }
 
         }

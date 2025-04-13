@@ -62,12 +62,12 @@ namespace gRPCStressTestingService.Services
             {
                 ClientUnique = newClientInstance.ClientUnique.ToString(),
                 SessionUnique = account.Session.SessionUnique.ToString(),
-                TimeOfClientCreation= DateTime.Now.ToString()
+                TimeOfClientCreation= DateTime.UtcNow.ToString()
             };
 
         }
         
-        //this is for what happens when there are no current client instances 
+       
         private async Task UpdatingClientInstance(string sessionUnique, ClientInstance clientInstance, Session session)
         {
 
