@@ -59,11 +59,7 @@ namespace gRPCToolFrontEnd.Services
         /// <exception cref="NotImplementedException"></exception>
         public async Task MediumStress(bool mediumStressRunning, int amountOfChannels)
         {
-            //we need a way to randomise 
-
-           // while(mediumStressRunning)
-           // {
-
+            
                 string fileSize = "medium";
 
                 Random random = new Random();
@@ -72,7 +68,7 @@ namespace gRPCToolFrontEnd.Services
 
                 Log.Information($"Number chose for medium stress : {number}");
 
-              /*  if (number == 0)
+               if (number == 0)
                 {
                     fileSize = "small";
                 }
@@ -83,28 +79,18 @@ namespace gRPCToolFrontEnd.Services
                 else
                 {
                     Log.Information($"Something went wrong with the random number generation for the medium stress");
-                } */
+                } 
 
-             //   await _multiChannelSingleClientService.UnaryClientToSingleChannelAllocation(fileSize, amountOfChannels, 3);
+               await _multiChannelSingleClientService.UnaryClientToSingleChannelAllocation(fileSize, amountOfChannels, 3);
 
-             //   await _multiChannelSingleClientService.UnaryBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, 3);
+               await _multiChannelSingleClientService.UnaryBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, 3);
 
-              //  await _multiChannelSingleClientService.StreamingClientToSingleChannelAllocation(fileSize, amountOfChannels, 3);
+               await _multiChannelSingleClientService.StreamingClientToSingleChannelAllocation(fileSize, amountOfChannels, 3);
 
-              //  await _multiChannelSingleClientService.StreamingBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, 3 );
+               await _multiChannelSingleClientService.StreamingBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, 3 );
 
 
-                 var t1 = _unaryRequestService.UnaryBatchIterativeAsync(true, 3, fileSize, amountOfChannels);
-
-                 var t2 = _streamingLatencyService.CreateManySingleStreamingRequests(null, true, 3, fileSize, amountOfChannels);
-
-                 var t3 = _streamingLatencyService.CreateManyStreamingBatchRequest(true, 3, fileSize, amountOfChannels);
-
-                 var t4 = _unaryRequestService.UnaryResponseIterativeAsync(true, fileSize, 3, amountOfChannels);
-
-                 await Task.WhenAll(t1, t2, t3, t4);  
-
-            //}
+                 
 
             Log.Information($"Medium stress has stopped running");
                
@@ -122,8 +108,7 @@ namespace gRPCToolFrontEnd.Services
         /// <exception cref="NotImplementedException"></exception>
         public async Task HighStress(bool highStressRunning, int amountOfChannels)
         {
-           // while (highStressRunning)
-           // {
+          
 
                 int amountOfRequests = 0;
 
@@ -166,18 +151,6 @@ namespace gRPCToolFrontEnd.Services
 
                 await _multiChannelSingleClientService.StreamingBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, amountOfRequests);
 
-                /*var t1 = _unaryRequestService.UnaryBatchIterativeAsync(true, amountOfRequests, fileSize, amountOfChannels);
-
-                 var t2 = _streamingLatencyService.CreateManySingleStreamingRequests(null, true, amountOfRequests, fileSize, amountOfChannels);
-
-                 var t3 = _streamingLatencyService.CreateManyStreamingBatchRequest(true, amountOfRequests, fileSize, amountOfChannels);
-
-                 var t4 = _unaryRequestService.UnaryResponseIterativeAsync(true, fileSize, amountOfRequests, amountOfChannels);
-
-                 await Task.WhenAll(t1, t2, t3, t4);   */
-
-           // }
-
        
         }
 
@@ -202,11 +175,11 @@ namespace gRPCToolFrontEnd.Services
         public async Task MutliClientMediumStress(bool mediumStressRunning, int amountOfChannels)
         {
 
-            while (mediumStressRunning)
-            {
-                string fileSize = "";
+           // while (mediumStressRunning)
+          //  {
+                string fileSize = "small";
 
-                Random random = new Random();
+               /* Random random = new Random();
 
                 int number = random.Next(2);
 
@@ -223,29 +196,27 @@ namespace gRPCToolFrontEnd.Services
                 else
                 {
                     Log.Information($"Something went wrong with the random number generation for the medium stress");
-                }
+                } */
 
+                await _multiClientMultiChannelService.StreamingClientToChannelAllocation(10, 1, fileSize, amountOfChannels);
 
+                await _multiClientMultiChannelService.StreamingBatchClientToChannelAllocation(10, 1, fileSize, amountOfChannels);
 
-                await _multiClientMultiChannelService.StreamingClientToChannelAllocation(7, 1, fileSize, amountOfChannels);
+                await _multiClientMultiChannelService.UnaryClientToChannelAllocation(10, fileSize, 1, amountOfChannels);
 
-                await _multiClientMultiChannelService.StreamingBatchClientToChannelAllocation(7, 1, fileSize, amountOfChannels);
-
-                await _multiClientMultiChannelService.UnaryClientToChannelAllocation(7, fileSize, 1, amountOfChannels);
-
-                await _multiClientMultiChannelService.UnaryBatchClientToChannelAllocation(7, fileSize, 1, amountOfChannels);
+                await _multiClientMultiChannelService.UnaryBatchClientToChannelAllocation(10, fileSize, 1, amountOfChannels);
 
                 Log.Information($"Medium stress has stopped running");
-            }
+          //  }
         }
 
         public async Task MultiClientHighStress(bool highStressRunning, int amountOfChannels)
         {
-            while (highStressRunning)
-            {
+           // while (highStressRunning)
+           // {
                 int amountOfRequests = 0;
 
-                string fileSize = "";
+                string fileSize = "small";
 
                 Random random = new Random();
 
@@ -276,15 +247,15 @@ namespace gRPCToolFrontEnd.Services
 
                 Log.Information($"Amount of requests : {amountOfRequests}");
 
-                await _multiClientMultiChannelService.StreamingClientToChannelAllocation(10, 1, fileSize, amountOfChannels);
+                await _multiClientMultiChannelService.StreamingClientToChannelAllocation(15, 1, fileSize, amountOfChannels);
 
-                await _multiClientMultiChannelService.StreamingBatchClientToChannelAllocation(10, 1, fileSize, amountOfChannels);
+                await _multiClientMultiChannelService.StreamingBatchClientToChannelAllocation(15, 1, fileSize, amountOfChannels);
 
-                await _multiClientMultiChannelService.UnaryClientToChannelAllocation(10, fileSize, 1, amountOfChannels);
+                await _multiClientMultiChannelService.UnaryClientToChannelAllocation(15, fileSize, 1, amountOfChannels);
 
-                await _multiClientMultiChannelService.UnaryBatchClientToChannelAllocation(10, fileSize, 1, amountOfChannels);
+                await _multiClientMultiChannelService.UnaryBatchClientToChannelAllocation(15, fileSize, 1, amountOfChannels);
 
-            }
+           // }
 
             
         }

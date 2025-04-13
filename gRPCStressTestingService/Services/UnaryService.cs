@@ -54,6 +54,7 @@ namespace gRPCStressTestingService.Services
             string? dataIterations = context.RequestHeaders.GetValue("data-iterations");
             string? dataContentSize = context.RequestHeaders.GetValue("data-content-size");
             
+            
             Log.Information($"data content size {dataContentSize}");
             Log.Information($"Unary request message ID : {request.RequestId}");
             Log.Information($"this is the unary client request client count : {Settings.GetNumberOfActiveClients()}");
@@ -225,7 +226,7 @@ namespace gRPCStressTestingService.Services
         }
 
         private UnaryInfo MapToRequest(DateTime? timeOfRequest, string? typeOfData, int lengthOfData, string? dataContent, string requestType, 
-            string? batchRequestId, string dataContentSize, object clientInstance, string dataIterations,  TimeSpan? delay = null )
+            string? batchRequestId, string dataContentSize, object clientInstance, string dataIterations,  TimeSpan? delay = null)
         {
            return _objectCreation.MappingToUnaryInfo(timeOfRequest, delay, typeOfData, lengthOfData, dataContent, requestType, batchRequestId, 
                dataContentSize, clientInstance, dataIterations);

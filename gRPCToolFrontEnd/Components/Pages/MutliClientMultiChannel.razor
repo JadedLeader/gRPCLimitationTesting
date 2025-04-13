@@ -1,5 +1,5 @@
 ﻿@page "/MultiClientMultiChannel"
-
+@using gRPCToolFrontEnd.LocalStorage.MultiCientStorage
 @using Grpc.Net.Client
 @using Serilog
 @using System.Collections.Concurrent
@@ -17,9 +17,9 @@
 @inject GlobalSettings GlobalSettings
 @inject UtilitiesService UtilitiesService
 @inject RequestDelayStorage RequestDelayStorage
-@inject LowStressRequestTimingStorage LowStressStorage
-@inject MediumStressRequestTimingStorage MediumStressStorage
-@inject HighStressRequestTimingStorage HighStressStorage
+@inject LowStressMultiClientRequestTimingStorage LowStressStorage
+@inject MediumStressMultiClientRequestTimingStorage MediumStressStorage
+@inject HighStressMutliClientRequestTimingStorage HighStressStorage
 
 <PageTitle>Multi-Client Multi-Channel</PageTitle>
 
@@ -275,6 +275,11 @@
         _chart2.Data = new double[] {};
         _chart3.Data = new double[] {};
         _chart4.Data = new double[] {};
+
+        _series.Clear();
+        _series2.Clear();
+        _series3.Clear();
+        _series4.Clear();
 
         await InvokeAsync(StateHasChanged);
     }

@@ -1,0 +1,344 @@
+﻿@page "/Statistical"
+@layout MainLayout
+@using gRPCToolFrontEnd.LocalStorage.MultiCientStorage
+@using Grpc.Net.Client
+@using Serilog
+@using System.Collections.Concurrent
+@using gRPCToolFrontEnd.Components.Layout
+@using gRPCToolFrontEnd.Helpers
+@using gRPCToolFrontEnd.LocalStorage
+@using gRPCToolFrontEnd.Services
+@using Microsoft.EntityFrameworkCore
+@inject LowStressMultiClientRequestTimingStorage LowStressMultiClientRequestStorage
+@inject MediumStressMultiClientRequestTimingStorage MediumStressMultiClientRequestStorage
+@inject HighStressMutliClientRequestTimingStorage HighStressMultiClientRequestStorage
+@inject LowStressRequestTimingStorage LowStressSingleClientRequestStorage
+@inject MediumStressRequestTimingStorage MediumStressSingleClientRequestStorage
+@inject HighStressRequestTimingStorage HighStressSingleClientRequestStorage
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudGrid Spacing="3">
+        <!-- COLUMN 1: Multi-Channel Single Client -->
+        <MudItem xs="12" md="4">
+            <!-- Parent card for the entire column -->
+            <MudPaper Class="metric-card pa-4" Outlined="false">
+                <MudText Typo="Typo.h5">Multi-Channel Single Client</MudText>
+                <MudDivider Class="my-2" />
+
+                <!-- LOW STRESS Card -->
+                <MudPaper Class="metric-card pa-2 mt-3" Outlined="false">
+                    <MudText Typo="Typo.h6" Class="mb-2">Low Stress</MudText>
+                    <MudGrid>
+                        <MudItem xs="6"><MudText>Unary Single:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(LowStressUnarySingleAverage)Ms</MudText></MudItem>
+
+                        <MudItem xs="6"><MudText>Unary Batch:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(LowStressUnaryBatchAverage)Ms</MudText></MudItem>
+
+                        <MudItem xs="6"><MudText>Streaming Single:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(LowStressStreamingSingleAverage)Ms</MudText></MudItem>
+
+                        <MudItem xs="6"><MudText>Streaming Batch:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(LowStressStreamingBatchAverage)Ms</MudText></MudItem>
+                    </MudGrid>
+                </MudPaper>
+
+                <!-- MEDIUM STRESS Card -->
+                <MudPaper Class="metric-card pa-2 mt-3" Outlined="false">
+                    <MudText Typo="Typo.h6" Class="mb-2">Medium Stress</MudText>
+                    <MudGrid>
+                        <MudItem xs="6"><MudText>Unary Single:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(MediumStressUnarySingleAverage)Ms</MudText></MudItem>
+
+                        <MudItem xs="6"><MudText>Unary Batch:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(MediumStressUnaryBatchAverage)Ms</MudText></MudItem>
+
+                        <MudItem xs="6"><MudText>Streaming Single:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(MediumStressStreamingSingleAverage)Ms</MudText></MudItem>
+
+                        <MudItem xs="6"><MudText>Streaming Batch:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(MediumStressStreamingBatchAverage)Ms</MudText></MudItem>
+                    </MudGrid>
+                </MudPaper>
+
+                <!-- HIGH STRESS Card -->
+                <MudPaper Class="metric-card pa-2 mt-3" Outlined="false">
+                    <MudText Typo="Typo.h6" Class="mb-2">High Stress</MudText>
+                    <MudGrid>
+                        <MudItem xs="6"><MudText>Unary Single:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(HighStressUnarySingleAverage)Ms</MudText></MudItem>
+
+                        <MudItem xs="6"><MudText>Unary Batch:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(HighStressUnaryBatchAverage)Ms</MudText></MudItem>
+
+                        <MudItem xs="6"><MudText>Streaming Single:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(HighStressStreamingSingleAverage)Ms</MudText></MudItem>
+
+                        <MudItem xs="6"><MudText>Streaming Batch:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(HighStressStreamingBatchAverage)Ms</MudText></MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </MudPaper>
+        </MudItem>
+
+        <!-- COLUMN 2: Multi-Channel Multi Client -->
+        <MudItem xs="12" md="4">
+            <MudPaper Class="metric-card pa-4" Outlined="false">
+                <MudText Typo="Typo.h5">Multi-Channel Multi Client</MudText>
+                <MudDivider Class="my-2" />
+
+                <!-- LOW STRESS Card -->
+                <MudPaper Class="metric-card pa-2 mt-3" Outlined="false">
+                    <MudText Typo="Typo.h6" Class="mb-2">Low Stress</MudText>
+                    <MudGrid>
+                        <MudItem xs="6"><MudText>Unary Single:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(LowStressUnarySingleAverageMulti)Ms</MudText></MudItem>
+
+                        <MudItem xs="6"><MudText>Unary Batch:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(LowStressUnaryBatchAverageMulti)Ms</MudText></MudItem>
+
+                        <MudItem xs="6"><MudText>Streaming Single:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(LowStressStreamingSingleAverageMulti)Ms</MudText></MudItem>
+
+                        <MudItem xs="6"><MudText>Streaming Batch:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(LowStressStreamingBatchAverageMulti)Ms</MudText></MudItem>
+                    </MudGrid>
+                </MudPaper>
+
+                <!-- MEDIUM STRESS Card -->
+                <MudPaper Class="metric-card pa-2 mt-3" Outlined="false">
+                    <MudText Typo="Typo.h6" Class="mb-2">Medium Stress</MudText>
+                    <MudGrid>
+                        <MudItem xs="6"><MudText>Unary Single:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(MediumStressUnarySingleAverageMulti)Ms</MudText></MudItem>
+
+                        <MudItem xs="6"><MudText>Unary Batch:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(MediumStressUnaryBatchAverageMulti)Ms</MudText></MudItem>
+
+                        <MudItem xs="6"><MudText>Streaming Single:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(MediumStressStreamingSingleAverageMulti)Ms</MudText></MudItem>
+
+                        <MudItem xs="6"><MudText>Streaming Batch:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(MediumStressStreamingBatchAverageMulti)Ms</MudText></MudItem>
+                    </MudGrid>
+                </MudPaper>
+
+                <!-- HIGH STRESS Card -->
+                <MudPaper Class="metric-card pa-2 mt-3" Outlined="false">
+                    <MudText Typo="Typo.h6" Class="mb-2">High Stress</MudText>
+                    <MudGrid>
+                        <MudItem xs="6"><MudText>Unary Single:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(HighStressUnarySingleAverageMulti)Ms</MudText></MudItem>
+
+                        <MudItem xs="6"><MudText>Unary Batch:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(HighStressUnaryBatchAverageMulti)Ms</MudText></MudItem>
+
+                        <MudItem xs="6"><MudText>Streaming Single:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(HighStressStreamingSingleAverageMulti)Ms</MudText></MudItem>
+
+                        <MudItem xs="6"><MudText>Streaming Batch:</MudText></MudItem>
+                        <MudItem xs="6"><MudText>@(HighStressStreamingBatchAverageMulti)Ms</MudText></MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+<style> 
+
+    .metric-card {
+        margin-bottom: 10px;
+        padding: 15px;
+        background-color: rgba(0, 0, 0, 0.6);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+        color: #ffffff;
+    }
+
+    
+    .mud-item {
+        margin-bottom: 10px;
+        padding: 15px;
+        background-color: rgba(0, 0, 0, 0.6);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+        color: #ffffff;
+    }
+
+    .MyMudPaper {
+        min-height: 100vh;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 12px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+        color: #ffffff;
+    }
+    
+</style>
+
+@code {
+
+    // Metrics for Multi-Channel Single Client (Low Stress)
+    private double LowStressUnarySingleAverage { get; set; } 
+    private double LowStressUnaryBatchAverage { get; set; } = 80;
+    private double LowStressStreamingSingleAverage { get; set; } = 90;
+    private double LowStressStreamingBatchAverage { get; set; } = 88;
+
+    // Metrics for Multi-Channel Single Client (Medium Stress)
+    private double MediumStressUnarySingleAverage { get; set; } = 75;
+    private double MediumStressUnaryBatchAverage { get; set; } = 70;
+    private double MediumStressStreamingSingleAverage { get; set; } = 78;
+    private double MediumStressStreamingBatchAverage { get; set; } = 76;
+
+    // Metrics for Multi-Channel Single Client (High Stress)
+    private double HighStressUnarySingleAverage { get; set; } = 65;
+    private double HighStressUnaryBatchAverage { get; set; } = 60;
+    private double HighStressStreamingSingleAverage { get; set; } = 68;
+    private double HighStressStreamingBatchAverage { get; set; } = 66;
+
+    // Metrics for Multi-Channel Multi Client (Low Stress)
+    private double LowStressUnarySingleAverageMulti { get; set; } 
+    private double LowStressUnaryBatchAverageMulti { get; set; } = 78;
+    private double LowStressStreamingSingleAverageMulti { get; set; } = 85;
+    private double LowStressStreamingBatchAverageMulti { get; set; } = 83;
+
+    // Metrics for Multi-Channel Multi Client (Medium Stress)
+    private double MediumStressUnarySingleAverageMulti { get; set; } = 70;
+    private double MediumStressUnaryBatchAverageMulti { get; set; } = 68;
+    private double MediumStressStreamingSingleAverageMulti { get; set; } = 72;
+    private double MediumStressStreamingBatchAverageMulti { get; set; } = 70;
+
+    // Metrics for Multi-Channel Multi Client (High Stress)
+    private double HighStressUnarySingleAverageMulti { get; set; } = 60;
+    private double HighStressUnaryBatchAverageMulti { get; set; } = 58;
+    private double HighStressStreamingSingleAverageMulti { get; set; } = 62;
+    private double HighStressStreamingBatchAverageMulti { get; set; } = 60;
+
+    private double StreamingSingleDifference => CalculateDifference(
+       LowStressStreamingSingleAverage, LowStressStreamingSingleAverageMulti);
+
+    private double StreamingBatchDifference => CalculateDifference(
+        LowStressStreamingBatchAverage, LowStressStreamingBatchAverageMulti);
+
+    // Example helper method for percentage difference.
+    private double CalculateDifference(double singleMetric, double multiMetric)
+    {
+        // This formula calculates difference as a percentage:
+        // ((multiMetric - singleMetric) / singleMetric) * 100
+        return singleMetric == 0 ? 0 : Math.Round(((multiMetric - singleMetric) / singleMetric) * 100, 2);
+    }
+
+    protected override Task OnInitializedAsync()
+    {
+        GetSingleClientLowStressAverages();
+
+        GetSingleClientMediumStressAverages(); 
+
+        GetSingleClientHighStressAverage();
+
+        GetMultiClientLowStressAverages(); 
+
+        GetMultiClientMediumStressAverage(); 
+
+        GetMultiClientHighStressAverage();
+
+        return base.OnInitializedAsync();
+    }
+
+    private void GetSingleClientLowStressAverages()
+    {
+        List<double> unarySingle = LowStressSingleClientRequestStorage.LowStressUnarySingle; 
+        List<double> unaryBatch = LowStressSingleClientRequestStorage.LowStressUnaryBatch; 
+        List<double> streamingSingle = LowStressSingleClientRequestStorage.LowStressStreamingSingle; 
+        List<double> streamingBatch = LowStressSingleClientRequestStorage.LowStressStreamingBatch;
+
+        LowStressUnarySingleAverage = unarySingle.Count > 0 ? Math.Round(unarySingle.Average(), 2) : 0;
+
+        LowStressUnaryBatchAverage = unaryBatch.Count > 0 ? Math.Round(unaryBatch.Average(), 2) : 0;
+
+        LowStressStreamingSingleAverage = streamingSingle.Count > 0 ? Math.Round(streamingSingle.Average(), 2) : 0;
+
+        LowStressStreamingBatchAverage = streamingBatch.Count > 0 ? Math.Round(streamingBatch.Average(), 2) : 0;
+
+    }
+
+    private void GetSingleClientMediumStressAverages()
+    {
+        List<double> unarySingle = MediumStressSingleClientRequestStorage.MediumStressUnarySingle;
+        List<double> unaryBatch = MediumStressSingleClientRequestStorage.MediumStressUnaryBatch;
+        List<double> streamingSingle = MediumStressSingleClientRequestStorage.MediumStressStreamingSingle;
+        List<double> streamingBatch = MediumStressSingleClientRequestStorage.MediumStressStreamingBatch;
+
+        MediumStressUnarySingleAverage = unarySingle.Count > 0 ? Math.Round(unarySingle.Average(), 2) : 0;
+
+        MediumStressUnaryBatchAverage = unaryBatch.Count > 0 ? Math.Round(unaryBatch.Average(), 2) : 0;
+
+        MediumStressStreamingSingleAverage = streamingSingle.Count > 0 ? Math.Round(streamingSingle.Average(), 2) : 0;
+
+        MediumStressStreamingBatchAverage = streamingBatch.Count > 0 ? Math.Round(streamingBatch.Average(), 2) : 0;
+
+
+    }
+
+    private void GetSingleClientHighStressAverage()
+    {
+
+        List<double> unarySingle = HighStressSingleClientRequestStorage.HighStressUnarySingle;
+        List<double> unaryBatch = HighStressSingleClientRequestStorage.HighStressUnaryBatch;
+        List<double> streamingSingle = HighStressSingleClientRequestStorage.HighStressStreamingSingle;
+        List<double> streamingBatch = HighStressSingleClientRequestStorage.HighStressStreamingBatch;
+
+        HighStressUnarySingleAverage = unarySingle.Count > 0 ? Math.Round(unarySingle.Average(), 2) : 0;
+
+        HighStressUnaryBatchAverage = unaryBatch.Count > 0 ? Math.Round(unaryBatch.Average() , 2) : 0;
+
+        HighStressStreamingSingleAverage = streamingSingle.Count > 0 ? Math.Round( streamingSingle.Average(), 2) : 0;
+
+        HighStressStreamingBatchAverage = streamingBatch.Count > 0 ? Math.Round(streamingBatch.Average(), 2) : 0;
+    }
+
+    private void GetMultiClientLowStressAverages()
+    {
+
+        List<double> unarySingle = LowStressMultiClientRequestStorage.LowStressUnarySingle;
+        List<double> unaryBatch = LowStressMultiClientRequestStorage.LowStressUnaryBatch;
+        List<double> streamingSingle = LowStressMultiClientRequestStorage.LowStressStreamingSingle;
+        List<double> streamingBatch = LowStressMultiClientRequestStorage.LowStressStreamingBatch;
+
+        LowStressUnarySingleAverageMulti = unarySingle.Count > 0 ? Math.Round(unarySingle.Average(), 2) : 0;
+
+        LowStressUnaryBatchAverageMulti = unaryBatch.Count > 0 ? Math.Round(unaryBatch.Average(), 2) : 0;
+
+        LowStressStreamingSingleAverageMulti = streamingSingle.Count > 0 ? Math.Round(streamingSingle.Average(), 2) : 0;
+
+        LowStressStreamingBatchAverageMulti = streamingBatch.Count > 0 ? Math.Round(streamingBatch.Average(), 2) : 0;
+    } 
+
+    private void GetMultiClientMediumStressAverage()
+    {
+        List<double> unarySingle = MediumStressMultiClientRequestStorage.MediumStressUnarySingle;
+        List<double> unaryBatch = MediumStressMultiClientRequestStorage.MediumStressUnaryBatch;
+        List<double> streamingSingle = MediumStressMultiClientRequestStorage.MediumStressStreamingSingle;
+        List<double> streamingBatch = MediumStressMultiClientRequestStorage.MediumStressStreamingBatch;
+
+        MediumStressUnarySingleAverageMulti = unarySingle.Count > 0 ? Math.Round(unarySingle.Average(), 2) : 0;
+        MediumStressUnaryBatchAverageMulti = unaryBatch.Count > 0 ? Math.Round(unaryBatch.Average(), 2) : 0;
+        MediumStressStreamingSingleAverageMulti = streamingSingle.Count > 0 ? Math.Round(streamingSingle.Average(), 2) : 0;
+        MediumStressStreamingBatchAverageMulti = streamingBatch.Count > 0 ? Math.Round(streamingBatch.Average(), 2) : 0;
+    }
+
+    private void GetMultiClientHighStressAverage()
+    {
+        List<double> unarySingle = HighStressMultiClientRequestStorage.HighStressUnarySingle;
+        List<double> unaryBatch = HighStressMultiClientRequestStorage.HighStressUnaryBatch;
+        List<double> streamingSingle = HighStressMultiClientRequestStorage.HighStressStreamingSingle;
+        List<double> streamingBatch = HighStressMultiClientRequestStorage.HighStressStreamingBatch;
+
+        HighStressUnarySingleAverageMulti = unarySingle.Count > 0 ? Math.Round(unarySingle.Average(), 2) : 0;
+        HighStressUnaryBatchAverageMulti = unaryBatch.Count > 0 ? Math.Round(unaryBatch.Average(), 2) : 0;
+        HighStressStreamingSingleAverageMulti = streamingSingle.Count > 0 ? Math.Round(streamingSingle.Average(), 2) : 0;
+        HighStressStreamingBatchAverageMulti = streamingBatch.Count > 0 ? Math.Round(streamingBatch.Average(), 2) : 0;
+    }
+}

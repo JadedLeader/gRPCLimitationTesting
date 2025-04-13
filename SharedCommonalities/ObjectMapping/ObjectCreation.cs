@@ -26,7 +26,8 @@ namespace SharedCommonalities.ObjectMapping
                 BatchRequestId = batchRequestId, 
                 DataContentSize = dataContentSize, 
                 ClientInstance = clientInstance, 
-                DataIterations = dataIterations
+                DataIterations = dataIterations, 
+            
     
             }; 
 

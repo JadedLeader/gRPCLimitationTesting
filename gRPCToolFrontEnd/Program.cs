@@ -9,6 +9,7 @@ using Serilog;
 using gRPCToolFrontEnd.Helpers;
 using gRPCToolFrontEnd.Interfaces;
 using ConfigurationStuff.ServicesConfig;
+using gRPCToolFrontEnd.LocalStorage.MultiCientStorage;
 
 
 namespace gRPCToolFrontEnd
@@ -111,6 +112,10 @@ namespace gRPCToolFrontEnd
             builder.Services.AddSingleton<LowStressRequestTimingStorage>();
             builder.Services.AddSingleton<MediumStressRequestTimingStorage>();
             builder.Services.AddSingleton<HighStressRequestTimingStorage>();
+
+            builder.Services.AddSingleton<LowStressMultiClientRequestTimingStorage>();
+            builder.Services.AddSingleton<MediumStressMultiClientRequestTimingStorage>();
+            builder.Services.AddSingleton<HighStressMutliClientRequestTimingStorage>();
 
             builder.Services.AddSingleton<PayloadUsageStore>();
             builder.Services.AddSingleton<AccountDetailsStore>();
