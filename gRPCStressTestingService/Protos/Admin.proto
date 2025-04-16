@@ -13,6 +13,7 @@ service Admin
 	rpc RevokeSession(RevokeSessionRequest) returns (RevokeSessionResponse);
 	rpc RevokeClientInstances(RevokeClientInstanceRequest) returns (RevokeClientInstanceResponse);
 	rpc ClearDelayCalc(WipeDelayCalcRequest) returns (WipeDelayCalcResponse);
+	rpc ClearServerSideDelayLists (ClearServerSideListRequest) returns (ClearServerSideListResponse);
 }
 
 message RetrievingClientMessagesViaIdRequest
@@ -108,5 +109,15 @@ message RevokeClientInstanceResponse
 { 
 	string SessionUnique = 1; 
 	string TimeOfClientRevoke = 2;
+}
+
+message ClearServerSideListRequest
+{ 
+
+}
+
+message ClearServerSideListResponse
+{ 
+	bool done = 1;
 }
 

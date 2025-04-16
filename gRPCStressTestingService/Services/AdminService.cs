@@ -7,6 +7,7 @@ using gRPCStressTestingService.protos;
 using Serilog;
 using Microsoft.AspNetCore.Mvc;
 using ConfigurationStuff.DbModels;
+using gRPCStressTestingService.Storage;
 
 namespace gRPCStressTestingService.Services
 {
@@ -19,8 +20,9 @@ namespace gRPCStressTestingService.Services
         private readonly ISessionRepo _sessionRepo;
         private readonly IClientInstanceRepo _clientInstanceRepo;
         private readonly IDelayCalcRepo _delayCalcRepo;
+        private readonly DelayCalcStorage _delayCalcStorage;
         public AdminService( ClientStorage clientStorage, IAccountRepo accountRepo, IAuthTokenRepo authTokenRepo, ISessionRepo sessionRepo, 
-            IClientInstanceRepo clientRepo, IDelayCalcRepo delayCalcRepo)
+            IClientInstanceRepo clientRepo, IDelayCalcRepo delayCalcRepo, DelayCalcStorage delayCalcStorage)
         {
             
             _clientStorage = clientStorage;
@@ -29,6 +31,7 @@ namespace gRPCStressTestingService.Services
             _sessionRepo = sessionRepo;
             _clientInstanceRepo = clientRepo;
             _delayCalcRepo = delayCalcRepo;
+            _delayCalcStorage = delayCalcStorage;
         }
 
         public async Task<RetrievingClientMessagesViaIdResponse> ClientMessages(RetrievingClientMessagesViaIdRequest request, ServerCallContext context)
@@ -195,6 +198,35 @@ namespace gRPCStressTestingService.Services
             };
 
             return serverResponse;
+        }
+
+        public async Task<ClearServerSideListResponse> ClearServerSideDelayLists(ClearServerSideListRequest request, ServerCallContext context)
+        {
+
+            Log.Information($"THE CLEAR SERVER SIDE DELAY LIST HAS BEEN HIT ");
+
+            _delayCalcStorage.UnarySingleStorage.Clear(); 
+            _delayCalcStorage.UnaryBatchStorage.Clear();
+            _delayCalcStorage.StreamingBatchStorage.Clear();
+            _delayCalcStorage.StreamingSingleStorage.Clear();
+
+            var checkingClearOnUnarySingle = _delayCalcStorage.UnarySingleStorage.Count;
+            var checkingClearOnUnaryBatch = _delayCalcStorage.UnaryBatchStorage.Count;
+            var checkingClearOnStreamingSingle = _delayCalcStorage.StreamingSingleStorage.Count;
+            var checkingClearOnStreamingBatch = _delayCalcStorage.StreamingBatchStorage.Count;
+
+            if(checkingClearOnUnarySingle != 0 && checkingClearOnUnaryBatch != 0 && checkingClearOnStreamingSingle != 0 && checkingClearOnStreamingBatch != 0)
+            {
+                Log.Error($"Delay storage server side was not cleared succesfully");
+            }
+
+            ClearServerSideListResponse serverResponse = new ClearServerSideListResponse
+            {
+                Done = true
+            };
+
+            return serverResponse;
+
         }
 
     }

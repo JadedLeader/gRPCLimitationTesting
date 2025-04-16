@@ -49,7 +49,7 @@
         </MudItem>
 
         <MudItem> 
-            <MudTextField @bind-Value="@_AmountOfChannels" T="int" Label="Number of channels" Style="margin-right: 20px; min-width: 200px;"></MudTextField>
+            <MudTextField @bind-Value="@_AmountOfChannels" T="int" Label="Number of channels" Style="margin-right: 20px; min-width: 200px;" Immediate="true" ></MudTextField>
         </MudItem>
 
         <MudItem> 
@@ -64,7 +64,7 @@
 <MudGrid Spacing="1" Class="pa-4">
 
     <MudItem xs="12" sm="6" md="6" >
-        <MudPaper Class="MyMudPaper" Style="height: 400px; width: 100%;">
+        <MudPaper Class="MyMudPaper my-paper-with-bottom-padding" Style="height: 400px; width: 100%;">
 
             <MudButton Color="Color.Error" @onclick="@AverageStreamingBatch">Average Streaming Batch</MudButton>
 
@@ -87,7 +87,7 @@
 
 
     <MudItem xs="12" sm="6" md="6">
-        <MudPaper Class="MyMudPaper" Style="height: 400px; width: 100%;">
+        <MudPaper Class="MyMudPaper my-paper-with-bottom-padding" Style="height: 400px; width: 100%;">
 
             <MudButton Color="Color.Error" @onclick="@AverageStreamingSingle">Average Streaming Single</MudButton>
 
@@ -105,7 +105,7 @@
 
  
     <MudItem xs="12" sm="6" md="6">
-        <MudPaper Class="MyMudPaper" Style="height: 400px; width: 100%;">
+        <MudPaper Class="MyMudPaper my-paper-with-bottom-padding" Style="height: 400px; width: 100%;">
 
             <MudButton Color="Color.Error" @onclick="@AverageUnarySingle">Average Unary Single</MudButton>
 
@@ -123,7 +123,7 @@
 
   
     <MudItem xs="12" sm="6" md="6">
-        <MudPaper Class="MyMudPaper" Style="height: 400px; width: 100%;">
+        <MudPaper Class="MyMudPaper my-paper-with-bottom-padding" Style="height: 400px; width: 100%;">
 
             <MudButton Color="Color.Error" @onclick="@AverageUnaryBatch">Average Unary Batch</MudButton>
             
@@ -148,6 +148,11 @@
         padding: 20px;
         border: 1px solid rgba(255, 255, 255, 0.1);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+    }
+
+    .my-paper-with-bottom-padding {
+        padding-bottom: 40px; 
+        overflow: visible; 
     }
 
 
@@ -197,6 +202,7 @@
             LineStrokeWidth = 2,
             YAxisFormat = "0 'milliseconds'",
             ShowToolTips = true,
+
         };
 
     private ChartSeries _chart1 = new()
@@ -332,6 +338,13 @@
         _series2.Clear();
         _series3.Clear();
         _series4.Clear();
+
+        _delays.Clear(); 
+        _streamingSingleDelays.Clear();
+        _UnarySingleDelays.Clear();
+        _UnaryBatchDelays.Clear();
+
+        await AdminService.ClearServerSideLists(GlobalSettings.CurrentLocalHost);
 
         await InvokeAsync(StateHasChanged);
     }
@@ -575,7 +588,7 @@
                 }; 
 
                 _series2 = new List<ChartSeries> {newSeries};
-              
+
                 StateHasChanged();
             }
             catch (Exception ex)
@@ -632,12 +645,13 @@
     }
 
    
+
     public void Dispose()
     {
-        UtilitiesService.OnBatchReceived -= HandleBatchRequestReceived;
-        UtilitiesService.OnStreamingSingleReceived -= HandleStreamingSingleReceived; 
-        UtilitiesService.OnUnarySingleReceived -= HandleUnarySingleReceived; 
-        UtilitiesService.OnUnaryBatchReceived -= HandleUnaryBatchReceived; 
+       // UtilitiesService.OnBatchReceived -= HandleBatchRequestReceived;
+        //UtilitiesService.OnStreamingSingleReceived -= HandleStreamingSingleReceived; 
+       // UtilitiesService.OnUnarySingleReceived -= HandleUnarySingleReceived; 
+       // UtilitiesService.OnUnaryBatchReceived -= HandleUnaryBatchReceived; 
 
 
         UtilitiesService.StopReceivingMessages();

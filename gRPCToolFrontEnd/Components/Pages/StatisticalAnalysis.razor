@@ -180,37 +180,35 @@
 
 @code {
 
-    // Metrics for Multi-Channel Single Client (Low Stress)
     private double LowStressUnarySingleAverage { get; set; } 
     private double LowStressUnaryBatchAverage { get; set; } = 80;
     private double LowStressStreamingSingleAverage { get; set; } = 90;
     private double LowStressStreamingBatchAverage { get; set; } = 88;
 
-    // Metrics for Multi-Channel Single Client (Medium Stress)
+    
     private double MediumStressUnarySingleAverage { get; set; } = 75;
     private double MediumStressUnaryBatchAverage { get; set; } = 70;
     private double MediumStressStreamingSingleAverage { get; set; } = 78;
     private double MediumStressStreamingBatchAverage { get; set; } = 76;
 
-    // Metrics for Multi-Channel Single Client (High Stress)
     private double HighStressUnarySingleAverage { get; set; } = 65;
     private double HighStressUnaryBatchAverage { get; set; } = 60;
     private double HighStressStreamingSingleAverage { get; set; } = 68;
     private double HighStressStreamingBatchAverage { get; set; } = 66;
 
-    // Metrics for Multi-Channel Multi Client (Low Stress)
+   
     private double LowStressUnarySingleAverageMulti { get; set; } 
     private double LowStressUnaryBatchAverageMulti { get; set; } = 78;
     private double LowStressStreamingSingleAverageMulti { get; set; } = 85;
     private double LowStressStreamingBatchAverageMulti { get; set; } = 83;
 
-    // Metrics for Multi-Channel Multi Client (Medium Stress)
+
     private double MediumStressUnarySingleAverageMulti { get; set; } = 70;
     private double MediumStressUnaryBatchAverageMulti { get; set; } = 68;
     private double MediumStressStreamingSingleAverageMulti { get; set; } = 72;
     private double MediumStressStreamingBatchAverageMulti { get; set; } = 70;
 
-    // Metrics for Multi-Channel Multi Client (High Stress)
+    
     private double HighStressUnarySingleAverageMulti { get; set; } = 60;
     private double HighStressUnaryBatchAverageMulti { get; set; } = 58;
     private double HighStressStreamingSingleAverageMulti { get; set; } = 62;
@@ -222,11 +220,8 @@
     private double StreamingBatchDifference => CalculateDifference(
         LowStressStreamingBatchAverage, LowStressStreamingBatchAverageMulti);
 
-    // Example helper method for percentage difference.
     private double CalculateDifference(double singleMetric, double multiMetric)
     {
-        // This formula calculates difference as a percentage:
-        // ((multiMetric - singleMetric) / singleMetric) * 100
         return singleMetric == 0 ? 0 : Math.Round(((multiMetric - singleMetric) / singleMetric) * 100, 2);
     }
 

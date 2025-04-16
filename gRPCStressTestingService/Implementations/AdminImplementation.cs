@@ -103,5 +103,17 @@ namespace gRPCStressTestingService.Implementations
             return wipeDelayCalc;
         }
 
+        public override async Task<ClearServerSideListResponse> ClearServerSideDelayLists(ClearServerSideListRequest request, ServerCallContext context)
+        {
+            ClearServerSideListResponse clearServerSideList = await _adminService.ClearServerSideDelayLists(request, context);
+
+            if(clearServerSideList.Done == false)
+            {
+                throw new RpcException(new Status(StatusCode.Internal, $"Could not clear server side list"));
+            }
+
+            return clearServerSideList;
+        }
+
     }
 }

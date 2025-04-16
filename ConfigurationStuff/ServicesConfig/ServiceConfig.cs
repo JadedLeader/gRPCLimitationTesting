@@ -46,18 +46,11 @@ namespace ConfigurationStuff.ServicesConfig
               {
                   options.UseSqlServer(connectionString);
                   options.UseSqlServer(connectionString);
-                 // options.EnableSensitiveDataLogging();
-                 // options.EnableDetailedErrors();
-                  /*options.LogTo(
-                      Console.WriteLine,
-                      new[] { Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.CommandExecuted },
-                      LogLevel.Information
-                      ); */
+     
               }); 
 
             services.AddScoped<IDataContexts>(sp => sp.GetRequiredService<DataContexts>());
 
-            // Add repository lifetimes
             services.AddScoped<IAccountRepo, AccountRepo>();
             services.AddScoped<IAuthTokenRepo, AuthTokenRepo>();
             services.AddScoped<IClientInstanceRepo, ClientInstanceRepo>();

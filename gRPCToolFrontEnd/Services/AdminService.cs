@@ -27,5 +27,19 @@ namespace gRPCToolFrontEnd.Services
             await newAdminClient.ClearDelayCalcAsync(wipleDelayCalc);
         }
 
+        public async Task ClearServerSideLists(string serverAddress)
+        {
+            var newChannel = GrpcChannel.ForAddress(serverAddress);
+
+            Admin.AdminClient newAdminCLient = new Admin.AdminClient(newChannel);
+
+            ClearServerSideListRequest clearServerSideList = new ClearServerSideListRequest()
+            {
+
+            }; 
+
+            await newAdminCLient.ClearServerSideDelayListsAsync(clearServerSideList);
+        }
+
     }
 }
