@@ -104,6 +104,7 @@ namespace gRPCToolFrontEnd
             builder.Services.AddScoped<MutliClientMultiChannelService>();
             builder.Services.AddScoped<UnaryRequestService>();
             builder.Services.AddScoped<AdminService>();
+            builder.Services.AddScoped<StatisticsService>();
 
             builder.Services.AddScoped<ThroughputService>();
 

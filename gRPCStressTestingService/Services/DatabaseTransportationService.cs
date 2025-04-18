@@ -90,7 +90,6 @@ namespace gRPCStressTestingService.Services
 
             transportingToDb.ClientInstance = gettingClientInstance;
 
-            //await AddToDbAndSave(transportingToDb);
         }
 
         private async Task HandleBatchUnaryCase(KeyValuePair<ClientMessageId, UnaryInfo> clientWithInfo)

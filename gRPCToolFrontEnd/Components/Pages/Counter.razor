@@ -19,10 +19,11 @@
 @inject MediumStressRequestTimingStorage MediumStressStorage
 @inject HighStressRequestTimingStorage HighStressStorage
 @inject GlobalSettings GlobalSettings
+@inject StatisticsService StatisticsService
 
 <PageTitle>Real-Time display</PageTitle>
 
-<MudItem >
+<MudItem>
     <MudGrid Class="d-flex justify-end align-center" Style="margin-bottom: 20px;">
 
         <MudItem>
@@ -31,16 +32,16 @@
             </MudTooltip>
         </MudItem>
 
-        <MudItem> 
+        <MudItem>
             <MudTooltip Text="This button allows for the clearance of request results, removing all plots on the below graphs">
                 <MudButton @onclick="@ClearRequestResults">Clear Request Results</MudButton>
             </MudTooltip>
         </MudItem>
 
-        <MudItem> 
+        <MudItem>
             <MudSelect T="string" Label="Stress levels" MultiSelection="false" Value="@_StressLevelValue" ValueChanged="@StressFlow" Style="margin-right: 20px; min-width: 200px;">
 
-                @foreach(var settings in StressLevels)
+                @foreach (var settings in StressLevels)
                 {
                     <MudSelectItem T="string" Value="@settings">@settings</MudSelectItem>
                 }
@@ -48,11 +49,11 @@
             </MudSelect>
         </MudItem>
 
-        <MudItem> 
-            <MudTextField @bind-Value="@_AmountOfChannels" T="int" Label="Number of channels" Style="margin-right: 20px; min-width: 200px;" Immediate="true" ></MudTextField>
+        <MudItem>
+            <MudTextField @bind-Value="@_AmountOfChannels" T="int" Label="Number of channels" Style="margin-right: 20px; min-width: 200px;" Immediate="true"></MudTextField>
         </MudItem>
 
-        <MudItem> 
+        <MudItem>
             <MudTooltip Text="This button allows for the generation of channels, used within the request process ">
                 <MudButton Style="margin-right: 20px; min-width: 200px;" @onclick="@GeneratingChannels">Generate channels</MudButton>
             </MudTooltip>
@@ -63,14 +64,11 @@
 
 <MudGrid Spacing="1" Class="pa-4">
 
-    <MudItem xs="12" sm="6" md="6" >
+    <MudItem xs="12" sm="6" md="6">
         <MudPaper Class="MyMudPaper my-paper-with-bottom-padding" Style="height: 400px; width: 100%;">
 
-            <MudButton Color="Color.Error" @onclick="@AverageStreamingBatch">Average Streaming Batch</MudButton>
+           
 
-           
-            <span>Streaming Batch Average: @_StreamingBatchAverage ms </span>
-           
 
             <MudText Align="Align.Center"> Streaming batch chart </MudText>
 
@@ -79,19 +77,17 @@
                       ChartSeries="@_series"
                       ChartOptions="@_options"
                       Style="height: 100%; width: 100%;" />
-            
+
         </MudPaper>
 
-       
+
     </MudItem>
 
 
     <MudItem xs="12" sm="6" md="6">
         <MudPaper Class="MyMudPaper my-paper-with-bottom-padding" Style="height: 400px; width: 100%;">
 
-            <MudButton Color="Color.Error" @onclick="@AverageStreamingSingle">Average Streaming Single</MudButton>
-
-           <span>Streaming Single Average: @_StreamingSingleAverage ms </span> 
+            
 
             <MudText Align="Align.Center"> Streaming unary chart </MudText>
 
@@ -103,14 +99,12 @@
         </MudPaper>
     </MudItem>
 
- 
+
     <MudItem xs="12" sm="6" md="6">
         <MudPaper Class="MyMudPaper my-paper-with-bottom-padding" Style="height: 400px; width: 100%;">
 
-            <MudButton Color="Color.Error" @onclick="@AverageUnarySingle">Average Unary Single</MudButton>
+           
 
-            <span>Unary Single Average: @_UnarySingleAverage ms </span>
-       
             <MudText Align="Align.Center"> Unary single chart </MudText>
 
             <MudChart ChartType="ChartType.Line"
@@ -121,14 +115,12 @@
         </MudPaper>
     </MudItem>
 
-  
+
     <MudItem xs="12" sm="6" md="6">
         <MudPaper Class="MyMudPaper my-paper-with-bottom-padding" Style="height: 400px; width: 100%;">
 
-            <MudButton Color="Color.Error" @onclick="@AverageUnaryBatch">Average Unary Batch</MudButton>
-            
-            <span>Unary Batch Average: @_UnaryBatchAverage ms </span>
-            
+     
+
             <MudText Align="Align.Center"> Unary batch chart </MudText>
 
             <MudChart ChartType="ChartType.Line"
@@ -140,7 +132,7 @@
     </MudItem>
 </MudGrid>
 
-<style> 
+<style>
 
     .MyMudPaper {
         background: rgba(0, 0, 0, 0.6);
@@ -151,11 +143,9 @@
     }
 
     .my-paper-with-bottom-padding {
-        padding-bottom: 40px; 
-        overflow: visible; 
+        padding-bottom: 40px;
+        overflow: visible;
     }
-
-
 
 </style>
 
@@ -169,8 +159,8 @@
 
     private List<string> StressLevels = new List<string>
     {
-        "Low stress", 
-        "Medium stress", 
+        "Low stress",
+        "Medium stress",
         "High stress"
     };
 
@@ -178,7 +168,7 @@
 
     private bool _LowStressActive = false;
 
-    private bool _MediumStressActive = false; 
+    private bool _MediumStressActive = false;
 
     private bool _HighStressActive = false;
 
@@ -188,9 +178,9 @@
 
     private double _UnarySingleAverage = 0;
 
-    private double _StreamingSingleAverage = 0; 
+    private double _StreamingSingleAverage = 0;
 
-    private double _StreamingBatchAverage = 0; 
+    private double _StreamingBatchAverage = 0;
 
 
     private ChartOptions _options = new ChartOptions
@@ -208,7 +198,7 @@
     private ChartSeries _chart1 = new()
         {
             Name = "Batch Streaming Delay(s)",
-            Data = new double[] { }, 
+            Data = new double[] { },
             Visible = true,
         };
 
@@ -222,7 +212,7 @@
         {
             Name = "Single Unary Delay(s)",
             Data = new double[] { }
-        }; 
+        };
 
     private ChartSeries _chart4 = new()
         {
@@ -262,10 +252,10 @@
 
         UtilitiesService.StartReceivingUnaryBatchMessages(newUnaryBatchDelays, sessionUnique);
 
-        UtilitiesService.OnUnarySingleReceived += HandleUnarySingleReceived; 
+        UtilitiesService.OnUnarySingleReceived += HandleUnarySingleReceived;
 
         GetUnaryDelaysRequest newUnaryDelay = new GetUnaryDelaysRequest
-        {};
+        { };
 
         UtilitiesService.StartReceivingUnaryMessages(newUnaryDelay, sessionUnique);
 
@@ -280,9 +270,9 @@
         UtilitiesService.OnBatchReceived += HandleBatchRequestReceived;
 
         GetStreamingBatchDelaysRequest newStreamingBatchDelay = new GetStreamingBatchDelaysRequest
-        {};
+        { };
 
-        UtilitiesService.StartReceivingStreamingBatchMessages(newStreamingBatchDelay, sessionUnique); 
+        UtilitiesService.StartReceivingStreamingBatchMessages(newStreamingBatchDelay, sessionUnique);
 
         await base.OnInitializedAsync();
     }
@@ -339,7 +329,7 @@
         _series3.Clear();
         _series4.Clear();
 
-        _delays.Clear(); 
+        _delays.Clear();
         _streamingSingleDelays.Clear();
         _UnarySingleDelays.Clear();
         _UnaryBatchDelays.Clear();
@@ -496,12 +486,12 @@
                     _UnaryBatchDelays.RemoveAt(0);
 
                 var newSeries = new ChartSeries
-                {
-                        Name = "Unary Batch Delay(s)", 
+                    {
+                        Name = "Unary Batch Delay(s)",
                         Data = _UnaryBatchDelays.ToArray()
-                }; 
+                    };
 
-                _series4 = new List<ChartSeries> {newSeries};
+                _series4 = new List<ChartSeries> { newSeries };
 
                 StateHasChanged();
             }
@@ -537,10 +527,10 @@
                     _UnarySingleDelays.RemoveAt(0);
 
                 var newSeries = new ChartSeries
-                {
-                     Name = "Single Unary Delay(s)",
-                     Data = _UnarySingleDelays.ToArray()
-                };
+                    {
+                        Name = "Single Unary Delay(s)",
+                        Data = _UnarySingleDelays.ToArray()
+                    };
 
                 _series3 = new List<ChartSeries> { newSeries };
 
@@ -572,7 +562,7 @@
 
                 _StreamingSingleLabels.Add(timeLabel);
 
-                _StreamingSingleLabels = new List<string>(_StreamingSingleLabels); 
+                _StreamingSingleLabels = new List<string>(_StreamingSingleLabels);
 
                 _streamingSingleDelays.Add(delayMs);
 
@@ -582,12 +572,12 @@
                     _streamingSingleDelays.RemoveAt(0);
 
                 var newSeries = new ChartSeries
-                {
-                        Name = "Single Streaming Delay(s)", 
+                    {
+                        Name = "Single Streaming Delay(s)",
                         Data = _streamingSingleDelays.ToArray()
-                }; 
+                    };
 
-                _series2 = new List<ChartSeries> {newSeries};
+                _series2 = new List<ChartSeries> { newSeries };
 
                 StateHasChanged();
             }
@@ -628,14 +618,14 @@
                     _delays.RemoveAt(0);
 
                 var newSeries = new ChartSeries
-                {
-                        Name = "Batch Streaming Delay(s)", 
+                    {
+                        Name = "Batch Streaming Delay(s)",
                         Data = _delays.ToArray()
-                };
+                    };
 
-                _series = new List<ChartSeries>{newSeries};
+                _series = new List<ChartSeries> { newSeries };
 
-                StateHasChanged(); 
+                StateHasChanged();
             }
             catch (Exception ex)
             {
@@ -644,14 +634,14 @@
         });
     }
 
-   
+
 
     public void Dispose()
     {
-       // UtilitiesService.OnBatchReceived -= HandleBatchRequestReceived;
-        //UtilitiesService.OnStreamingSingleReceived -= HandleStreamingSingleReceived; 
-       // UtilitiesService.OnUnarySingleReceived -= HandleUnarySingleReceived; 
-       // UtilitiesService.OnUnaryBatchReceived -= HandleUnaryBatchReceived; 
+        // UtilitiesService.OnBatchReceived -= HandleBatchRequestReceived;
+        //UtilitiesService.OnStreamingSingleReceived -= HandleStreamingSingleReceived;
+        // UtilitiesService.OnUnarySingleReceived -= HandleUnarySingleReceived;
+        // UtilitiesService.OnUnaryBatchReceived -= HandleUnaryBatchReceived;
 
 
         UtilitiesService.StopReceivingMessages();

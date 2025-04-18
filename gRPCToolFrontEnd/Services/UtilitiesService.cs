@@ -16,7 +16,6 @@ namespace gRPCToolFrontEnd.Services
 
         private readonly Utilities.UtilitiesClient _utilitiesClient;
         private CancellationTokenSource _cancellationToken;
-
      
         public event Action<GetStreamingBatchDelaysResponse> OnBatchReceived;
         public event Action<GetStreamingDelaysResponse> OnStreamingSingleReceived;

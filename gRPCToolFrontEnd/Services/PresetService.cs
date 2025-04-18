@@ -104,30 +104,30 @@ namespace gRPCToolFrontEnd.Services
         {
             string fileSize = "small";
 
-                await _multiClientMultiChannelService.UnaryBatchClientToChannelAllocation(5, fileSize, 1, amountOfChannels);
+            await _multiClientMultiChannelService.UnaryBatchClientToChannelAllocation(5, fileSize, 1, amountOfChannels);
 
-                await _multiClientMultiChannelService.StreamingClientToChannelAllocation(5, 1, fileSize, amountOfChannels);
+            await _multiClientMultiChannelService.StreamingClientToChannelAllocation(5, 1, fileSize, amountOfChannels);
 
-                await _multiClientMultiChannelService.StreamingBatchClientToChannelAllocation(5, 1, fileSize, amountOfChannels);
+            await _multiClientMultiChannelService.StreamingBatchClientToChannelAllocation(5, 1, fileSize, amountOfChannels);
 
-                await _multiClientMultiChannelService.UnaryClientToChannelAllocation(5, fileSize, 1, amountOfChannels);
+            await _multiClientMultiChannelService.UnaryClientToChannelAllocation(5, fileSize, 1, amountOfChannels);
 
             Log.Information($"Low stress mutli-client has stopped running");
         }
 
         public async Task MutliClientMediumStress(bool mediumStressRunning, int amountOfChannels)
         {
-                string fileSize = "small";
+            string fileSize = "small";
 
-                await _multiClientMultiChannelService.StreamingClientToChannelAllocation(10, 1, fileSize, amountOfChannels);
+            await _multiClientMultiChannelService.StreamingClientToChannelAllocation(10, 1, fileSize, amountOfChannels);
 
-                await _multiClientMultiChannelService.StreamingBatchClientToChannelAllocation(10, 1, fileSize, amountOfChannels);
+            await _multiClientMultiChannelService.StreamingBatchClientToChannelAllocation(10, 1, fileSize, amountOfChannels);
 
-                await _multiClientMultiChannelService.UnaryClientToChannelAllocation(10, fileSize, 1, amountOfChannels);
+            await _multiClientMultiChannelService.UnaryClientToChannelAllocation(10, fileSize, 1, amountOfChannels);
 
-                await _multiClientMultiChannelService.UnaryBatchClientToChannelAllocation(10, fileSize, 1, amountOfChannels);
+            await _multiClientMultiChannelService.UnaryBatchClientToChannelAllocation(10, fileSize, 1, amountOfChannels);
 
-                Log.Information($"Medium stress has stopped running");
+            Log.Information($"Medium stress has stopped running");
           
         }
 
