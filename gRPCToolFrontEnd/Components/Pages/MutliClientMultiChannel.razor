@@ -241,6 +241,9 @@
     {
         string sessionUnique = await ClientHelper.GetStringFromStringFromLocalStorage("session-unique");
 
+        _StressLevelValue = GlobalSettings.StressTestingPreset; 
+        _AmountOfChannels = GlobalSettings.MultiClientChannels;
+
         _series.Add(_chart1);
         _series2.Add(_chart2);
         _series3.Add(_chart3);
@@ -256,6 +259,8 @@
         ConcurrentDictionary<Guid, GrpcChannel> generatingChannels =  await ClientHelper.GeneratingMutlipleChannels(_AmountOfChannels, _AddressSpace); 
 
         AccountDetailsStore.channels = generatingChannels;
+
+        GlobalSettings.MultiClientChannels = generatingChannels.Count;
 
         Log.Information($"Channels created {_AmountOfChannels} ");
     }

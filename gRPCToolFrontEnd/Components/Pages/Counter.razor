@@ -240,6 +240,9 @@
     {
         string sessionUnique = await ClientHelper.GetStringFromStringFromLocalStorage("session-unique");
 
+        _StressLevelValue = GlobalSettings.StressTestingPreset;
+        _AmountOfChannels = GlobalSettings.SingleClientChannels;
+
         _series.Add(_chart1);
         _series2.Add(_chart2);
         _series3.Add(_chart3);
@@ -423,6 +426,8 @@
 
     private async Task GeneratingChannels()
     {
+
+        GlobalSettings.SingleClientChannels = _AmountOfChannels;
 
         Log.Information($"AMOUNT OF CHANNELS GENERATED FOR SINGLE CLIENTS {_AmountOfChannels}");
 
