@@ -19,10 +19,14 @@
   </ItemGroup>
 
   <ItemGroup>
+	  
     <Content Include="Components\Pages\ChannelGenerationPage.razor.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Components\Pages\Counter.razor.css" />
+	  <None Include="DataSizes\**\*">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
   </ItemGroup>
 
 

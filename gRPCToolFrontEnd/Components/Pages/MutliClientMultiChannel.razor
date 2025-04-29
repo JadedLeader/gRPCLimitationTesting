@@ -256,7 +256,7 @@
 
     public async Task GenerateChannels()
     {
-        ConcurrentDictionary<Guid, GrpcChannel> generatingChannels =  await ClientHelper.GeneratingMutlipleChannels(_AmountOfChannels, _AddressSpace); 
+        ConcurrentDictionary<Guid, GrpcChannel> generatingChannels = ClientHelper.GeneratingMutlipleChannels(_AmountOfChannels, _AddressSpace); 
 
         AccountDetailsStore.channels = generatingChannels;
 

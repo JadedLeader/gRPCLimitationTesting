@@ -219,7 +219,7 @@
             Log.Warning($"The number of channels generated cannot be zero");
         }
 
-        ConcurrentDictionary<Guid, GrpcChannel> channelDict = await ClientHelper.GeneratingMutlipleChannels(_NumOfChannels, _TargetAddress);
+        ConcurrentDictionary<Guid, GrpcChannel> channelDict = ClientHelper.GeneratingMutlipleChannels(_NumOfChannels, _TargetAddress);
 
         _ChannelGuids = channelDict;
 

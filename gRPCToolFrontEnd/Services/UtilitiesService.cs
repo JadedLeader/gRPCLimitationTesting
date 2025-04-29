@@ -1,19 +1,18 @@
-﻿using Google.Protobuf.Reflection;
-using Grpc.Core;
-using gRPCToolFrontEnd.DictionaryModel;
+﻿using Grpc.Core;
 using gRPCToolFrontEnd.LocalStorage;
-using Microsoft.AspNetCore.SignalR;
 using Serilog;
-using System.Collections.Concurrent;
-using System.Reactive.Subjects;
 
 namespace gRPCToolFrontEnd.Services
 {
     public class UtilitiesService : IDisposable
     {
 
-        private readonly RequestDelayStorage _requestDelayStorage;
+        /// <summary>
+        /// This service is responsible for receiving the messages sent from the backend streaming RPC's 
+        /// Once messages are received, it triggers the assosciated events run on their own thread to handle the updating of close to real-time graphs on the front end
+        /// </summary>
 
+        private readonly RequestDelayStorage _requestDelayStorage;
         private readonly Utilities.UtilitiesClient _utilitiesClient;
         private CancellationTokenSource _cancellationToken;
      
@@ -25,7 +24,6 @@ namespace gRPCToolFrontEnd.Services
         public UtilitiesService(Utilities.UtilitiesClient utilitiesClient)
         {
             _utilitiesClient = utilitiesClient;
-            
         }
 
        

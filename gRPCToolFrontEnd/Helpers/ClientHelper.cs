@@ -12,6 +12,7 @@ using Blazored.LocalStorage;
 using Microsoft.EntityFrameworkCore.Metadata;
 using gRPCToolFrontEnd.LocalStorage;
 using System.Collections.Concurrent;
+using System.Reflection;
 
 namespace gRPCToolFrontEnd.Helpers
 {
@@ -38,7 +39,7 @@ namespace gRPCToolFrontEnd.Helpers
         /// </summary>
         /// <param name="amountOfChannels"></param>
         /// <returns>A list of channels that were created</returns>
-        public async Task<ConcurrentDictionary<Guid, GrpcChannel>> GeneratingMutlipleChannels(int amountOfChannels, string forAddress)
+        public ConcurrentDictionary<Guid, GrpcChannel> GeneratingMutlipleChannels(int amountOfChannels, string forAddress)
         {
             int i = 0;
 
@@ -125,21 +126,21 @@ namespace gRPCToolFrontEnd.Helpers
         public string FileSize(string fileSize)
         {
 
+            
+            var appFolder  = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+
             string fileReturn = "";
 
             switch (fileSize)
             {
                 case "small":
-                    fileReturn = "C:\\Users\\joshy\\source\\repos\\gRPCLimitationTesting\\gRPCToolFrontEnd\\DataSizes\\text_1MB.txt";
-                    //fileReturn = "C:\\Users\\joshy.DESKTOP-V9V7OMU\\source\\repos\\another one\\gRPCToolFrontEnd\\DataSizes\\text_1MB.txt";
+                    fileReturn = Path.Combine(appFolder, "DataSizes", "text_1MB.txt");
                     break;
                 case "medium":
-                    fileReturn = "C:\\Users\\joshy\\source\\repos\\gRPCLimitationTesting\\gRPCToolFrontEnd\\DataSizes\\text_30MB.txt";
-                    //fileReturn = "C:\\Users\\joshy.DESKTOP-V9V7OMU\\source\\repos\\another one\\gRPCToolFrontEnd\\DataSizes\\text_30MB.txt";
+                    fileReturn = Path.Combine(appFolder, "DataSizes", "text_30MB.txt");
                     break;
                 case "large":
-                    fileReturn = "C:\\Users\\joshy\\source\\repos\\gRPCLimitationTesting\\gRPCToolFrontEnd\\DataSizes\\text_100MB.txt";
-                    //fileReturn = "C:\\Users\\joshy.DESKTOP-V9V7OMU\\source\\repos\\another one\\gRPCToolFrontEnd\\DataSizes\\text_100MB.txt";
+                    fileReturn = Path.Combine(appFolder, "DataSizes", "text_100MB.txt");
                     break;
             }
 

@@ -7,6 +7,11 @@ namespace gRPCToolFrontEnd.Services
     public class PresetService
     {
 
+        /// <summary>
+        /// This class handles the presets for both single client and multi-client implementations
+        /// Specifically handling the amount of channels and the amount of messages sent per client within single-client implementations 
+        /// In conjunction with handling the amount of clients connected within multi-client implementations 
+        /// </summary>
 
         private readonly UnaryRequestService _unaryRequestService;
 
@@ -62,14 +67,13 @@ namespace gRPCToolFrontEnd.Services
             
                string fileSize = "small";
 
+              await _multiChannelSingleClientService.UnaryClientToSingleChannelAllocation(fileSize, amountOfChannels, 3);
 
-              await _multiChannelSingleClientService.UnaryClientToSingleChannelAllocation(fileSize, amountOfChannels, 1);
+              await _multiChannelSingleClientService.UnaryBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, 3);
 
-              await _multiChannelSingleClientService.UnaryBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, 1);
+              await _multiChannelSingleClientService.StreamingClientToSingleChannelAllocation(fileSize, amountOfChannels, 3);
 
-              await _multiChannelSingleClientService.StreamingClientToSingleChannelAllocation(fileSize, amountOfChannels, 1);
-
-              await _multiChannelSingleClientService.StreamingBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, 1);
+              await _multiChannelSingleClientService.StreamingBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, 3);
 
               Log.Information($"Medium stress has stopped running");
                
@@ -91,15 +95,23 @@ namespace gRPCToolFrontEnd.Services
 
                 string fileSize = "small";
 
-                await _multiChannelSingleClientService.UnaryClientToSingleChannelAllocation(fileSize, amountOfChannels, 1);
+                await _multiChannelSingleClientService.UnaryClientToSingleChannelAllocation(fileSize, amountOfChannels, 5);
 
-                await _multiChannelSingleClientService.UnaryBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, 1);
+                await _multiChannelSingleClientService.UnaryBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, 5);
 
-                await _multiChannelSingleClientService.StreamingClientToSingleChannelAllocation(fileSize, amountOfChannels, 1);
+                await _multiChannelSingleClientService.StreamingClientToSingleChannelAllocation(fileSize, amountOfChannels, 5);
 
-                await _multiChannelSingleClientService.StreamingBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, 1);   
+                await _multiChannelSingleClientService.StreamingBatchClientToSingleChannelAllocation(fileSize, amountOfChannels, 5);   
         }
 
+        /// <summary>
+        /// Multi-client low stress preset
+        /// five clients to a channel, small file size (1mb), one message sent per client connected to a gRPC channel
+        /// Amount of channels declared within the front end page 
+        /// </summary>
+        /// <param name="lowStressRunning"></param>
+        /// <param name="amountOfChannels"></param>
+        /// <returns></returns>
         public async Task MutliClientLowStress(bool lowStressRunning, int amountOfChannels)
         {
             string fileSize = "small";
@@ -115,6 +127,14 @@ namespace gRPCToolFrontEnd.Services
             Log.Information($"Low stress mutli-client has stopped running");
         }
 
+        /// <summary>
+        /// Multi-client medium stress preset
+        /// ten clients to a channel, small file size (1mb), one message sent per client connected to a gRPC channel
+        /// Amount of channels declared within the front end page
+        /// </summary>
+        /// <param name="mediumStressRunning"></param>
+        /// <param name="amountOfChannels"></param>
+        /// <returns></returns>
         public async Task MutliClientMediumStress(bool mediumStressRunning, int amountOfChannels)
         {
             string fileSize = "small";
@@ -131,6 +151,14 @@ namespace gRPCToolFrontEnd.Services
           
         }
 
+        /// <summary>
+        /// Multi-client high stress preset
+        /// ten clients to a channel, small file size (1mb), one message sent per client connected to a gRPC channel
+        /// Amount of channels declared within the front end page
+        /// </summary>
+        /// <param name="highStressRunning"></param>
+        /// <param name="amountOfChannels"></param>
+        /// <returns></returns>
         public async Task MultiClientHighStress(bool highStressRunning, int amountOfChannels)
         {
         

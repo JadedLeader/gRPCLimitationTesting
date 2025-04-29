@@ -19,6 +19,10 @@ namespace gRPCToolFrontEnd.Services
     public class StreamingLatencyService
     {
 
+        /// <summary>
+        /// This class handles the creation of streaming clients, generation of gRPC channels and the sending of streaming requests to the server
+        /// </summary>
+
         private readonly AccountDetailsStore _accountDetailsStore;  
         private readonly ClientHelper _clientHelper;
         private readonly ClientInstanceService _clientInstanceService;
@@ -36,7 +40,12 @@ namespace gRPCToolFrontEnd.Services
             _globalSettings = globalSettings;
         }
 
-       
+       /// <summary>
+       /// 
+       /// </summary>
+       /// <param name="channelUnique"></param>
+       /// <param name="fileSize"></param>
+       /// <returns></returns>
         public async Task SendingSingleUnaryRequestStream(Guid channelUnique, string fileSize)
         {
             Log.Information($"Sending single request in the stream detected");
@@ -58,7 +67,15 @@ namespace gRPCToolFrontEnd.Services
             await GenerateStreamingRequest(newclient, newlyCreatedClient.ClientUnique, fileSize);
         }
 
-        
+        /// <summary>
+        /// In charge of the creation of many single payloads to be streamed to the server
+        /// </summary>
+        /// <param name="cancellationToken">Signifies the cancellation of the task if requested by the user </param>
+        /// <param name="isSingleClient">True; generates it's own gRPC channels locally for use : False; uses a localised shared pool of gRPC channels</param>
+        /// <param name="amountOfRequests">Amount of requests to be sent to the server</param>
+        /// <param name="fileSize">Declares the size of the payload to be set to the server</param>
+        /// <param name="amountOfChannels">Declares the amount of gRPC channels to be created</param>
+        /// <returns></returns>
         public async Task CreateManySingleStreamingRequests(CancellationToken? cancellationToken, bool isSingleClient, int amountOfRequests, string fileSize, int amountOfChannels)
         {
             Log.Information($"Creating many single streaming requests detected");
@@ -75,7 +92,7 @@ namespace gRPCToolFrontEnd.Services
             }
             else
             {
-                channels = await _clientHelper.GeneratingMutlipleChannels(amountOfChannels, _globalSettings.CurrentLocalHost);
+                channels = _clientHelper.GeneratingMutlipleChannels(amountOfChannels, _globalSettings.CurrentLocalHost);
             }
             
             if(channels.Count == 0)
@@ -95,6 +112,14 @@ namespace gRPCToolFrontEnd.Services
           
         }
 
+        /// <summary>
+        /// In charge of sending multiple streaming single requests in a batch to the server 
+        /// </summary>
+        /// <param name="isSingleClient">True; generates it's own gRPC channels locally for use : False; uses a localised shared pool of gRPC channels</param>
+        /// <param name="requestsInBatch">The amount of requests within the streaming batch payload </param>
+        /// <param name="fileSize">Declares the payload size</param>
+        /// <param name="amountOfChannels">Declares the amount of gRPC channels to be created</param>
+        /// <returns></returns>
         public async Task CreateManyStreamingBatchRequest(bool isSingleClient, int requestsInBatch, string fileSize, int amountOfChannels)
         {
 
@@ -106,7 +131,7 @@ namespace gRPCToolFrontEnd.Services
             }
             else
             {
-                channels = await _clientHelper.GeneratingMutlipleChannels(amountOfChannels, _globalSettings.CurrentLocalHost);
+                channels = _clientHelper.GeneratingMutlipleChannels(amountOfChannels, _globalSettings.CurrentLocalHost);
             }
             
             Log.Information($"Channel unique was null for the creating many streaming batch requests, defaulting to many gRPC channels");
@@ -130,6 +155,14 @@ namespace gRPCToolFrontEnd.Services
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="streamingClient"></param>
+        /// <param name="amountOfRequests"></param>
+        /// <param name="clientUnique"></param>
+        /// <param name="fileSize"></param>
+        /// <returns></returns>
 
         private async Task GeneratingManySingleStreamingRequests(StreamingLatency.StreamingLatencyClient streamingClient, int amountOfRequests, string clientUnique, string fileSize)
         {
@@ -182,6 +215,14 @@ namespace gRPCToolFrontEnd.Services
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="streamingClient"></param>
+        /// <param name="requestsInBatch"></param>
+        /// <param name="clientUnique"></param>
+        /// <param name="fileSize"></param>
+        /// <returns></returns>
         public async Task GeneratingSingularBatchStreamingRequest(StreamingLatency.StreamingLatencyClient streamingClient, int requestsInBatch, string clientUnique, 
             string fileSize)
         {

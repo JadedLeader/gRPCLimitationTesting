@@ -2,29 +2,25 @@
 using Grpc.Net.Client;
 using gRPCToolFrontEnd.Helpers;
 using gRPCToolFrontEnd.LocalStorage;
-using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.TagHelpers;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Serilog;
 using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
-using System.Threading.Channels;
 
 namespace gRPCToolFrontEnd.Services
 {
+
+    
     public class UnaryRequestService
     {
+
+        /// <summary>
+        /// This service handles the business logic of unary requests 
+        /// </summary>
+
         private readonly AccountDetailsStore _accountDetailsStore;
-
         private readonly ClientHelper _clientHelper;
-
         private readonly ClientInstanceService _clientInstanceService;
-
         private readonly ClientStorage _clientStorage;
-
         private readonly SentRequestStorage _sentRequestStorage;
-
         private readonly GlobalSettings _globalSettings;
 
         public UnaryRequestService(AccountDetailsStore accountDetailsStore, ClientHelper clientHelper, ClientInstanceService clientInstanceService, ClientStorage clientStorage,
@@ -37,7 +33,15 @@ namespace gRPCToolFrontEnd.Services
             _sentRequestStorage = sentRequestStorage;
             _globalSettings = globalSettings;
         }
-
+        /// <summary>
+        /// Handles the creation of multiple unary single requests 
+        /// Flows differently based on if isSingleClient is true or false
+        /// </summary>
+        /// <param name="isSingleClient">True; generates it's own gRPC channels locally for use : False; uses a localised shared pool of gRPC channels </param>
+        /// <param name="fileSize">Declares the size of the payload to be sent with the request</param>
+        /// <param name="amountOfIterations">Declares the amount of times each singular Unary request should be sent to the server</param>
+        /// <param name="amountOfChannels">Declares the amount of gRPC channels that are going to be created </param>
+        /// <returns>A list of DataResponse </returns>
         public async Task<List<DataResponse>> UnaryResponseIterativeAsync(bool isSingleClient, string fileSize, int amountOfIterations, int amountOfChannels)
         {
             List<DataResponse> responseList = new List<DataResponse>();
@@ -46,7 +50,16 @@ namespace gRPCToolFrontEnd.Services
 
             string filePath = _clientHelper.FileSize(fileSize);
 
+            if(filePath == null)
+            {
+
+                Log.Warning($"File path for unary response iterative was null");
+             
+            }
+
             string content = await File.ReadAllTextAsync(filePath);
+
+            Log.Information($"{content}");
 
             string dataContent = _clientHelper.DataContentCalc(fileSize);
 
@@ -64,7 +77,7 @@ namespace gRPCToolFrontEnd.Services
             }
             else
             {
-                channels = await _clientHelper.GeneratingMutlipleChannels(amountOfChannels, _globalSettings.CurrentLocalHost);
+                channels = _clientHelper.GeneratingMutlipleChannels(amountOfChannels, _globalSettings.CurrentLocalHost);
 
                 Log.Information($"THIS IS THE SIZE OF THE CHANNELS {channels.Count}");
             }
@@ -124,7 +137,15 @@ namespace gRPCToolFrontEnd.Services
 
         }
 
-
+        /// <summary>
+        /// Handles the creation and sending of multiple unary requests within a single request (block of unary requests) to the server
+        /// Functionality changes based on the state of the "isSingleClient" boolean
+        /// </summary>
+        /// <param name="isSingleClient">True; generates it's own gRPC channels locally for use : False; uses a localised shared pool of gRPC channels</param>
+        /// <param name="batchIterations">How many unary requests are within the Unary batch that's being sent  </param>
+        /// <param name="fileSize">Declaring the size of the payload being sent with the request</param>
+        /// <param name="amountOfChannels">Declares the amount of gRPC channels</param>
+        /// <returns>A list of BatchDataResponse</returns>
         public async Task<List<BatchDataResponse>> UnaryBatchIterativeAsync(bool isSingleClient, int batchIterations, string fileSize, int amountOfChannels)
         {
             List<BatchDataResponse> responseList = new List<BatchDataResponse>();
@@ -161,7 +182,7 @@ namespace gRPCToolFrontEnd.Services
             }
             else
             {
-                channels = await _clientHelper.GeneratingMutlipleChannels(amountOfChannels, _globalSettings.CurrentLocalHost);
+                channels = _clientHelper.GeneratingMutlipleChannels(amountOfChannels, _globalSettings.CurrentLocalHost);
             }
 
             Log.Information($"amount of iterations: {batchIterations}");
