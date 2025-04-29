@@ -176,19 +176,6 @@
         ConcurrentDictionary<Guid, GrpcChannel> channelsFromSingleton = AccountDetailsStore.GetChannels();
 
         _ChannelGuids = channelsFromSingleton;
-
-        //_ChannelSubject = new BehaviorSubject<Dictionary<Guid, GrpcChannel>>(_ChannelGuids);
-
-       /* _ChannelSubscription = _ChannelSubject.Subscribe(updateDictionary =>
-        {
-            Log.Information($"State has changed worked");
-            _ChannelGuids = updateDictionary;
-            InvokeAsync(StateHasChanged);
-
-        });
-
-        Log.Information(AccountDetailsStore.channels.Count().ToString());
-        Log.Information($"Current target address: {_TargetAddress}"); */
     }
 
     private async Task ItemSelected(string selectedItem)

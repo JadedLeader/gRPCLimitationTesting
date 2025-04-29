@@ -7,7 +7,7 @@
 @using gRPCToolFrontEnd.Helpers
 @using gRPCToolFrontEnd.DataTypes.ChartDataTypes
 @using gRPCToolFrontEnd.DataTypes
-@page "/counter"
+@page "/SingleClientDelayGraphing"
 @layout MainLayout
 @inject UtilitiesService UtilitiesService
 @inject ClientHelper ClientHelper
@@ -38,16 +38,25 @@
             </MudTooltip>
         </MudItem>
 
-        <MudItem>
-            <MudSelect T="string" Label="Stress levels" MultiSelection="false" Value="@_StressLevelValue" ValueChanged="@StressFlow" Style="margin-right: 20px; min-width: 200px;">
+        @if (GlobalSettings.SingleClientChannels > 0)
+        {
+            <MudItem>
+                <MudSelect T="string" Label="Stress levels" MultiSelection="false" Value="@_StressLevelValue" ValueChanged="@StressFlow" Style="margin-right: 20px; min-width: 200px;">
 
-                @foreach (var settings in StressLevels)
-                {
-                    <MudSelectItem T="string" Value="@settings">@settings</MudSelectItem>
-                }
+                    @foreach (var settings in StressLevels)
+                    {
+                        <MudSelectItem T="string" Value="@settings">@settings</MudSelectItem>
+                    }
 
-            </MudSelect>
-        </MudItem>
+                </MudSelect>
+            </MudItem>
+
+        }
+       
+        @if(GlobalSettings.SingleClientChannels == 0)
+        {
+            <MudAlert Severity="Severity.Error" ContentAlignment="HorizontalAlignment.Center"> No channels declared, please generate channels to start the stress testing</MudAlert>
+        }
 
         <MudItem>
             <MudTextField @bind-Value="@_AmountOfChannels" T="int" Label="Number of channels" Style="margin-right: 20px; min-width: 200px;" Immediate="true"></MudTextField>
@@ -66,9 +75,6 @@
 
     <MudItem xs="12" sm="6" md="6">
         <MudPaper Class="MyMudPaper my-paper-with-bottom-padding" Style="height: 400px; width: 100%;">
-
-           
-
 
             <MudText Align="Align.Center"> Streaming batch chart </MudText>
 
@@ -388,6 +394,7 @@
 
     private async Task StressFlow(string stressLevelValue)
     {
+
         _StressLevelValue = stressLevelValue;
 
         GlobalSettings.StressTestingPreset = _StressLevelValue;
