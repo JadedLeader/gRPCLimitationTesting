@@ -1,8 +1,4 @@
-﻿using Grpc.Net.Client;
-using gRPCToolFrontEnd.LocalStorage;
-using MudBlazor;
-using Serilog;
-using System.Collections.Concurrent;
+﻿using gRPCToolFrontEnd.LocalStorage;
 
 namespace gRPCToolFrontEnd.Services
 {
@@ -15,7 +11,6 @@ namespace gRPCToolFrontEnd.Services
         private readonly ClientInstanceService _clientInstanceService;
         private readonly ClientStorage _clientStorage;
         
-
         public MutliClientMultiChannelService(AccountDetailsStore accountDetailsStore, StreamingLatencyService streamingLatencyService, UnaryRequestService unaryRequestService,
             ClientInstanceService clientInstanceService, ClientStorage clientStorage)
         {
@@ -36,16 +31,16 @@ namespace gRPCToolFrontEnd.Services
 
             int i = 0;
 
-            while (i < ammountOfClientsPerChannel)
-            {
+           while (i < ammountOfClientsPerChannel)
+           {
                 tasks.Add(Task.Run(async () =>
                 {
                     await _streamingLatencyService.CreateManySingleStreamingRequests(null, false, amountOfRequests, fileSize, amountOfChannels);
                 }));
 
-                 i++;
+                i++;
                     
-            }
+           }
             
         }
 
@@ -75,7 +70,7 @@ namespace gRPCToolFrontEnd.Services
         {
          
             var tasks = new List<Task>();
-
+            
             int i = 0;
 
             while(i < amountOfUnaryClientsPerChannel)
@@ -86,7 +81,7 @@ namespace gRPCToolFrontEnd.Services
                         await _unaryRequestService.UnaryResponseIterativeAsync(false,  fileSize, amountOfRequests, amountOfChannels);
                  }));
 
-                 i++;
+                i++;
                 
             }
         }
@@ -95,7 +90,6 @@ namespace gRPCToolFrontEnd.Services
         {
          
             var tasks = new List<Task>();
-
             
             int i = 0;
 

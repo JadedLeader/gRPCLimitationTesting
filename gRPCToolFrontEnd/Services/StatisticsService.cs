@@ -3,11 +3,7 @@
     public class StatisticsService
     {
 
-        public StatisticsService()
-        {
-            
-        }
-
+        
         public async Task<double> CalculateMinValue(IEnumerable<double> doubleDataStructure)
         {
             double quickestDelayValue = Math.Round(doubleDataStructure.Min(), 2);

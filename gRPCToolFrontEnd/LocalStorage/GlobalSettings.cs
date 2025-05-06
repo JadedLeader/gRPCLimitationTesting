@@ -10,6 +10,8 @@
         public int SingleClientChannels { get; set; }
 
         public int MultiClientChannels { get; set; }
+        
+        public bool IsSingleClientTesting { get; set; }
 
     }
 }

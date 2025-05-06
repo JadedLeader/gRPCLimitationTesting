@@ -1,18 +1,13 @@
-﻿using Azure.Core;
-using ConfigurationStuff.DbModels;
+﻿using ConfigurationStuff.DbModels;
 using ConfigurationStuff.Interfaces.Repos;
 using DbManagerWorkerService.Repositories;
 using Grpc.Core;
 using gRPCStressTestingService.DelayCalculations;
 using gRPCStressTestingService.Interfaces.Services;
-using Microsoft.AspNetCore.Http.Timeouts;
-using Microsoft.AspNetCore.OutputCaching;
-using Microsoft.VisualBasic;
 using Serilog;
 using SharedCommonalities.Storage;
 using SharedCommonalities.TimeStorage;
 using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 namespace gRPCStressTestingService.Services
 {
     public class StreamingLatencyService : IStreamingLatencyService

@@ -1,11 +1,6 @@
 ﻿@page "/login"
 @using Serilog
-@using Grpc.Net.Client
-@using gRPCToolFrontEnd.Components.Layout
-@using System.Text.RegularExpressions
-@using System.ComponentModel.DataAnnotations
 @using gRPCToolFrontEnd.Services
-@using gRPCToolFrontEnd.LocalStorage
 @inject AccountsService AccountService
 @inject SessionService SessionService
 @inject AuthTokenService AuthTokenService
@@ -16,7 +11,7 @@
     <link href="/Style/LoginPage.css" rel="stylesheet"/>
 </HeadContent>
 
-<body class="MyCustomBody"</body>
+
 
     <MudGrid Justify="Justify.Center" Spacing="4" >
         <MudItem xs="12" sm="7">

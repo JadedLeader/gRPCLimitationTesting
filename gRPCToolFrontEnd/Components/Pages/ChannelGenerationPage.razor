@@ -1,12 +1,10 @@
 ﻿@using System.Collections.Concurrent
 @using gRPCToolFrontEnd.Components.Layout
-@using gRPCToolFrontEnd.DictionaryModel
 @using gRPCToolFrontEnd.Helpers
 @using gRPCToolFrontEnd.LocalStorage
 @using Serilog
 @using Grpc.Net.Client
 @using System.Reactive.Subjects
-@using gRPCToolFrontEnd.DataTypes
 @page "/"
 @layout MainLayout
 @inject ClientHelper ClientHelper
@@ -201,6 +199,7 @@
 
     private async Task GenerateChannels()
     {
+
         if(_NumOfChannels == 0)
         {
             Log.Warning($"The number of channels generated cannot be zero");

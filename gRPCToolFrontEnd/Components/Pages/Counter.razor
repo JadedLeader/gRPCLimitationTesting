@@ -1,12 +1,11 @@
-﻿@using Grpc.Net.Client
-@using System.Collections.Concurrent
+﻿@using System.Collections.Concurrent
+@using Grpc.Net.Client
 @using gRPCToolFrontEnd.Components.Layout
 @using gRPCToolFrontEnd.LocalStorage
 @using gRPCToolFrontEnd.Services
 @using Serilog
 @using gRPCToolFrontEnd.Helpers
-@using gRPCToolFrontEnd.DataTypes.ChartDataTypes
-@using gRPCToolFrontEnd.DataTypes
+@using gRPCToolFrontEnd.LocalStorage.MultiCientStorage
 @page "/SingleClientDelayGraphing"
 @layout MainLayout
 @inject UtilitiesService UtilitiesService
@@ -19,13 +18,20 @@
 @inject MediumStressRequestTimingStorage MediumStressStorage
 @inject HighStressRequestTimingStorage HighStressStorage
 @inject GlobalSettings GlobalSettings
+@inject LowStressMultiClientRequestTimingStorage MultiClientLowStressStorage
+@inject MediumStressMultiClientRequestTimingStorage MultiClientMediumStressStorage
+@inject HighStressMutliClientRequestTimingStorage MultiClientHighStressStorage
 @inject StatisticsService StatisticsService
 
 <PageTitle>Real-Time display</PageTitle>
 
 <MudItem>
     <MudGrid Class="d-flex justify-end align-center" Style="margin-bottom: 20px;">
-
+        
+        <MudItem>
+            <MudSwitch T="bool" Value="_switchModes" ValueChanged="@TestingStateChanged" Color="Color.Primary">Mode: @(_switchModes ? "Single-Client" : "Multi-client")</MudSwitch>
+        </MudItem>
+        
         <MudItem>
             <MudTooltip Text="This button allows for the saving of graph results, based on the currently selected stress preset">
                 <MudButton @onclick="@SaveResults">Save Graphed Results</MudButton>
@@ -38,7 +44,7 @@
             </MudTooltip>
         </MudItem>
 
-        @if (GlobalSettings.SingleClientChannels > 0)
+        @if (GlobalSettings.SingleClientChannels > 0 || GlobalSettings.MultiClientChannels > 0)
         {
             <MudItem>
                 <MudSelect T="string" Label="Stress levels" MultiSelection="false" Value="@_StressLevelValue" ValueChanged="@StressFlow" Style="margin-right: 20px; min-width: 200px;">
@@ -52,10 +58,12 @@
             </MudItem>
 
         }
-       
-        @if(GlobalSettings.SingleClientChannels == 0)
+
+        @if (GlobalSettings.SingleClientChannels == 0 && GlobalSettings.MultiClientChannels == 0)
         {
-            <MudAlert Severity="Severity.Error" ContentAlignment="HorizontalAlignment.Center"> No channels declared, please generate channels to start the stress testing</MudAlert>
+            <MudItem>
+                <MudAlert Severity="Severity.Error" ContentAlignment="HorizontalAlignment.Center"> No channels declared, please generate channels to start the stress testing</MudAlert>
+            </MudItem>
         }
 
         <MudItem>
@@ -159,6 +167,7 @@
 
 @code {
 
+    private bool _switchModes = false;
     private int _AmountOfChannels = 0;
 
     private string _AddressSpace = "https://localhost:5000";
@@ -248,6 +257,9 @@
 
         _StressLevelValue = GlobalSettings.StressTestingPreset;
         _AmountOfChannels = GlobalSettings.SingleClientChannels;
+        
+        //MAKING IT SO THAT THE PAGE LOADS FROM THE GLOBALS FOR THE SWAPPY THING
+        _switchModes = GlobalSettings.IsSingleClientTesting;
 
         _series.Add(_chart1);
         _series2.Add(_chart2);
@@ -286,11 +298,80 @@
         await base.OnInitializedAsync();
     }
 
+    private Task TestingStateChanged(bool value)
+    {
+
+        _switchModes = value;
+
+        if (value == true ? GlobalSettings.IsSingleClientTesting = true : GlobalSettings.IsSingleClientTesting = false) ;
+
+        Log.Information(GlobalSettings.IsSingleClientTesting ? $"Single client testing is active" : $"Multi-client testing is active");
+
+        return Task.CompletedTask;
+    }
+
     private async Task SaveResults()
+    {
+        
+        bool testingState = GlobalSettings.IsSingleClientTesting;
+        
+        Log.Information($"Save results hit");
+
+        if (testingState)
+        {
+            Log.Information($"Save results for single client hit");
+            await SaveSingleClientResults();
+        }
+        else if (!testingState)
+        {
+            Log.Information($"Save results multi-client hit");
+            await SaveMultiClientResults();
+        }
+    }
+    
+    private async Task SaveMultiClientResults()
     {
         if (GlobalSettings.StressTestingPreset == "Low stress")
         {
-            Log.Information($"Saving low stress results");
+            Log.Information($"Saving Multi-client low stress results");
+
+            MultiClientLowStressStorage.CopyRequestToStorage(MultiClientLowStressStorage.LowStressUnaryBatch, _UnaryBatchDelays);
+            MultiClientLowStressStorage.CopyRequestToStorage(MultiClientLowStressStorage.LowStressUnarySingle, _UnarySingleDelays);
+            MultiClientLowStressStorage.CopyRequestToStorage(MultiClientLowStressStorage.LowStressStreamingSingle, _streamingSingleDelays);
+            MultiClientLowStressStorage.CopyRequestToStorage(MultiClientLowStressStorage.LowStressStreamingBatch, _delays);
+
+        }
+        else if (GlobalSettings.StressTestingPreset == "Medium stress")
+        {
+            Log.Information($"Saving Multi-client medium stress results");
+
+            MultiClientMediumStressStorage.CopyRequestToStorage(MultiClientMediumStressStorage.MediumStressUnaryBatch, _UnaryBatchDelays);
+            MultiClientMediumStressStorage.CopyRequestToStorage(MultiClientMediumStressStorage.MediumStressUnarySingle, _UnarySingleDelays);
+            MultiClientMediumStressStorage.CopyRequestToStorage(MultiClientMediumStressStorage.MediumStressStreamingSingle, _streamingSingleDelays);
+            MultiClientMediumStressStorage.CopyRequestToStorage(MultiClientMediumStressStorage.MediumStressStreamingBatch, _delays);
+        }
+        else if (GlobalSettings.StressTestingPreset == "High stress")
+        {
+            Log.Information($"Saving Multi-client high stress results");
+
+            MultiClientHighStressStorage.CopyRequestToStorage(MultiClientHighStressStorage.HighStressUnaryBatch, _UnaryBatchDelays);
+            MultiClientHighStressStorage.CopyRequestToStorage(MultiClientHighStressStorage.HighStressUnarySingle, _UnarySingleDelays);
+            MultiClientHighStressStorage.CopyRequestToStorage(MultiClientHighStressStorage.HighStressStreamingSingle, _streamingSingleDelays);
+            MultiClientHighStressStorage.CopyRequestToStorage(MultiClientHighStressStorage.HighStressStreamingBatch, _delays);
+        }
+        else
+        {
+            Log.Warning($"No stress level preset is currently set in the global settings");
+        }
+    }
+
+    private async Task SaveSingleClientResults()
+    {
+       
+        
+        if (GlobalSettings.StressTestingPreset == "Low stress")
+        {
+            Log.Information($"Saving Single client low stress results");
 
             LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressUnaryBatch, _UnaryBatchDelays);
             LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressUnarySingle, _UnarySingleDelays);
@@ -299,7 +380,7 @@
         }
         else if (GlobalSettings.StressTestingPreset == "Medium stress")
         {
-            Log.Information($"Saving medium stress results");
+            Log.Information($"Saving Single client medium stress results");
 
             MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressUnaryBatch, _UnaryBatchDelays);
             MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressUnarySingle, _UnarySingleDelays);
@@ -308,7 +389,7 @@
         }
         else if (GlobalSettings.StressTestingPreset == "High stress")
         {
-            Log.Information($"Saving high stress results");
+            Log.Information($"Saving Single client high stress results");
 
             HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressUnaryBatch, _UnaryBatchDelays);
             HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressUnarySingle, _UnarySingleDelays);
@@ -433,41 +514,87 @@
 
     private async Task GeneratingChannels()
     {
+        bool isSingleClientTestingActive = GlobalSettings.IsSingleClientTesting;
 
-        GlobalSettings.SingleClientChannels = _AmountOfChannels;
+        if (isSingleClientTestingActive)
+        {
+            GlobalSettings.SingleClientChannels = _AmountOfChannels;
 
-        Log.Information($"AMOUNT OF CHANNELS GENERATED FOR SINGLE CLIENTS {_AmountOfChannels}");
+            Log.Information($"AMOUNT OF CHANNELS GENERATED FOR SINGLE CLIENTS {_AmountOfChannels}");
 
-        Log.Information($"amount of channels created: {AccountDetailsStore.channels}");
+            Log.Information($"amount of channels created for single client: {AccountDetailsStore.channels}");
+        }
+        else if (!isSingleClientTestingActive)
+        {
+            ConcurrentDictionary<Guid, GrpcChannel> generatingChannels = ClientHelper.GeneratingMutlipleChannels(_AmountOfChannels, _AddressSpace); 
+
+            AccountDetailsStore.channels = generatingChannels;
+
+            GlobalSettings.MultiClientChannels = generatingChannels.Count;
+
+            Log.Information($"Channels created for multi-client: {_AmountOfChannels} ");
+        }
     }
 
-
-    private async Task StressFlowSelection()
+    private async Task StressFlowSelectionLowStress(bool isSingleClientTestingActive )
     {
-
-        if (_StressLevelValue == "Low stress" && _LowStressActive)
+        
+        if (_StressLevelValue == "Low stress" && _LowStressActive && isSingleClientTestingActive)
         {
-            Log.Information($"Low stress has been activated");
+            Log.Information($"Low stress has been activated for single client");
 
             await PresetService.LowStress(_LowStressActive, _AmountOfChannels);
         }
-        else if (_StressLevelValue == "Medium stress" && _MediumStressActive)
+        else if (_StressLevelValue == "Low stress" && _LowStressActive && !isSingleClientTestingActive)
         {
-            Log.Information($"Medium stress has been activated");
+            Log.Information($"Low stress has been activated for multi-client");
+
+            await PresetService.MutliClientLowStress(_LowStressActive, _AmountOfChannels);
+        }
+    }
+
+    private async Task StressFlowSelectionMediumStress(bool isSingleClientTestingActive)
+    {
+        if (_StressLevelValue == "Medium stress" && _MediumStressActive && isSingleClientTestingActive)
+        {
+            Log.Information($"Medium stress has been activated for single client");
 
             await PresetService.MediumStress(_MediumStressActive, _AmountOfChannels);
         }
-        else if (_StressLevelValue == "High stress" && _HighStressActive)
+        else if (_StressLevelValue == "Medium stress" && _MediumStressActive && !isSingleClientTestingActive)
         {
-            Log.Information($"High stress has been activated");
+            Log.Information($"Medium stress has been activated for multi-client");
+
+            await PresetService.MutliClientMediumStress(_MediumStressActive, _AmountOfChannels);
+        }
+        
+    }
+
+    private async Task StressFlowSelectionHighStress(bool isSingleClientTestingActive)
+    {
+        if (_StressLevelValue == "High stress" && _HighStressActive && isSingleClientTestingActive)
+        {
+            Log.Information($"High stress has been activated for single client");
 
             await PresetService.HighStress(_HighStressActive, _AmountOfChannels);
         }
-        else
+        else if (_StressLevelValue == "High stress" && _HighStressActive && !isSingleClientTestingActive)
         {
-            Log.Warning($"something went wrong within the stress flow selection process");
-        }
+            Log.Information($"High stress has been activated for multi-client");
 
+            await PresetService.MultiClientHighStress(_HighStressActive, _AmountOfChannels);
+        }
+    }
+    
+    private async Task StressFlowSelection()
+    {
+        bool isSingleClientTestingActive = GlobalSettings.IsSingleClientTesting;
+
+        await StressFlowSelectionLowStress(isSingleClientTestingActive);
+
+        await StressFlowSelectionMediumStress(isSingleClientTestingActive);
+
+        await StressFlowSelectionHighStress(isSingleClientTestingActive);
     }
 
     private async void HandleUnaryBatchReceived(GetUnaryBatchDelaysResponse unaryBatchDelaysResponse)

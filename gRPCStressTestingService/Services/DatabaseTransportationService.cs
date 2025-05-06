@@ -3,8 +3,6 @@ using ConfigurationStuff.Interfaces.Repos;
 using SharedCommonalities.TimeStorage;
 using Serilog;
 using System.Collections.Concurrent;
-using Grpc.Core.Interceptors;
-using gRPCStressTestingService.proto;
 using gRPCStressTestingService.Storage;
 using gRPCStressTestingService.Interfaces.Services;
 
@@ -82,8 +80,6 @@ namespace gRPCStressTestingService.Services
 
             _delayCalcStorage.UnarySingleStorage.Add(transportingToDb);
 
-            Log.Information($"THIS IS THE CURRENT BAG LENGTH {_delayCalcStorage.UnarySingleStorage.Count}");
-
             Log.Information($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
 
             var gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(transportingToDb.ClientUnique);
@@ -104,8 +100,6 @@ namespace gRPCStressTestingService.Services
 
                 _delayCalcStorage.UnaryBatchStorage.Add(transportingToDb);
 
-                Log.Information($"THIS IS THE CURRENT BAG LENGTH {_delayCalcStorage.UnaryBatchStorage.Count}");
-
                 Log.Information($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
 
                 var gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(transportingToDb.ClientUnique);
@@ -125,8 +119,6 @@ namespace gRPCStressTestingService.Services
 
             _delayCalcStorage.StreamingSingleStorage.Add(transportingToDb);
 
-            Log.Information($"THIS IS THE CURRENT BAG LENGTH {_delayCalcStorage.StreamingSingleStorage.Count}");
-
             Log.Information($"This is what the message and client id are before adding to the database, client ID : {transportingToDb.ClientUnique} : message ID: {transportingToDb.messageId}");
 
             var gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(transportingToDb.ClientUnique);
@@ -145,8 +137,6 @@ namespace gRPCStressTestingService.Services
 
             _delayCalcStorage.StreamingBatchStorage.Add(transportingToDb);
 
-            Log.Information($"THIS IS THE CURRENT BAG LENGTH {_delayCalcStorage.StreamingBatchStorage.Count}");
-
             var gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(transportingToDb.ClientUnique);
 
             transportingToDb.ClientInstance = gettingClientInstance;
@@ -160,7 +150,7 @@ namespace gRPCStressTestingService.Services
         {
             ClientInstance client = await _clientInstanceRepo.GetClientInstanceViaClientUnique(clientUnique.Value);
 
-            if(client == null)
+            if(client.ClientUnique == null)
             {
                 Log.Warning($"No client instance with the client unique : {clientUnique} could be found");
             }

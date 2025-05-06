@@ -91,7 +91,7 @@ namespace gRPCToolFrontEnd.Helpers
         /// <param name="channel"></param>
         /// <param name="amountOfClients"></param>
         /// <returns>a list of unary clients</returns>
-        public async Task<List<Unary.UnaryClient>> CreatingClients(GrpcChannel channel, int amountOfClients)
+        public List<Unary.UnaryClient> CreatingClients(GrpcChannel channel, int amountOfClients)
         {
             Console.WriteLine($"generating clients... ");
 
@@ -186,7 +186,7 @@ namespace gRPCToolFrontEnd.Helpers
         }
 
 
-        public async Task PayloadUsage(string fileSize)
+        public void PayloadUsage(string fileSize)
         {
             if (fileSize == "small")
             {

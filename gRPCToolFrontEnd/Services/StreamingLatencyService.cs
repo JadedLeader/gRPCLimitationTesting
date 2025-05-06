@@ -180,7 +180,7 @@ namespace gRPCToolFrontEnd.Services
 
             while(i < amountOfRequests)
             {
-                await _clientHelper.PayloadUsage(fileSize);
+                _clientHelper.PayloadUsage(fileSize);
 
                 var now = DateTime.UtcNow;
 
@@ -245,8 +245,8 @@ namespace gRPCToolFrontEnd.Services
             string batchRequestId = Guid.NewGuid().ToString();
 
             while(i < requestsInBatch)
-            {
-                await _clientHelper.PayloadUsage(fileSize);
+            { 
+                _clientHelper.PayloadUsage(fileSize);
 
                 var now = DateTime.UtcNow;
 
@@ -319,8 +319,8 @@ namespace gRPCToolFrontEnd.Services
             Metadata metaData = new Metadata();
 
             var call = streamingClient.StreamingSingleRequest();
-
-            await _clientHelper.PayloadUsage(fileSize);
+            
+            _clientHelper.PayloadUsage(fileSize);
 
             var singleRequest = new StreamingSingleLatencyRequest
             {

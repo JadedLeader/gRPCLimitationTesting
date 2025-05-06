@@ -1,15 +1,20 @@
 ﻿@page "/Comparison"
 @using gRPCToolFrontEnd.Components.Layout
 @using gRPCToolFrontEnd.LocalStorage
+@using gRPCToolFrontEnd.LocalStorage.MultiCientStorage
 @using Serilog
 @layout MainLayout
 @inject LowStressRequestTimingStorage LowStressStorage
 @inject MediumStressRequestTimingStorage MediumStressStorage
 @inject HighStressRequestTimingStorage HighStressStorage
+@inject LowStressMultiClientRequestTimingStorage LowStressStorageMultiClient
+@inject MediumStressMultiClientRequestTimingStorage MediumStressStorageMultiClient
+@inject HighStressMutliClientRequestTimingStorage HighStressStorageMultiClient
+@inject GlobalSettings GlobalSettings
 
 <MudGrid Spacing="1" Class="pa-4">
 
-    <!-- Top Row: Two Smaller Graphs -->
+   <!-- Top Row: Two Smaller Graphs -->
     <MudItem xs="12" sm="6" md="6">
         <MudPaper Class="MyMudPaper" Style="height: 400px; width: 100%;">
             
@@ -54,10 +59,7 @@
 </style>
 
 @code {
-
     
-       
-
     private List<ChartSeries> LowStressSeries = new List<ChartSeries>()
     {
         new ChartSeries()
@@ -136,16 +138,33 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await PopulateLowStressSeries();
 
-        await PopulateMediumStressSeries(); 
+        Log.Information(GlobalSettings.IsSingleClientTesting ? $"Single client comparison active" : $"Multi-client comparison active");
 
-        await PopulateHighStressSeries();
+        if (GlobalSettings.IsSingleClientTesting)
+        {
+            await PopulateLowStressSeriesSingleClient();
 
+            await PopulateMediumStressSeriesSingleClient(); 
+
+            await PopulateHighStressSeriesSingleClient();
+        }
+        else if (!GlobalSettings.IsSingleClientTesting)
+        {
+            
+            Log.Information($"Multi client results loading");
+            await PopulateLowStressSeriesMultiClient();
+
+            await PopulateMediumStressSeriesMultiClient();
+
+            await PopulateHighStressSeriesMultiClient();
+
+        }
+        
         await base.OnInitializedAsync();
     }
 
-    private async Task PopulateLowStressSeries()
+    private async Task PopulateLowStressSeriesSingleClient()
     {
         ChartSeries streamingSingle = await GetSeriesViaSeriesName(LowStressSeries, "Streaming Single");
         ChartSeries streamingBatch = await GetSeriesViaSeriesName(LowStressSeries, "Streaming Batch");
@@ -158,7 +177,7 @@
         unaryBatch.Data = LowStressStorage.LowStressUnaryBatch.ToArray();
     }
 
-    private async Task PopulateMediumStressSeries()
+    private async Task PopulateMediumStressSeriesSingleClient()
     {
         ChartSeries streamingSingle = await GetSeriesViaSeriesName(MediumStressSeries, "Streaming Single");
         ChartSeries streamingBatch = await GetSeriesViaSeriesName(MediumStressSeries, "Streaming Batch");
@@ -171,7 +190,7 @@
         unaryBatch.Data = MediumStressStorage.MediumStressUnaryBatch.ToArray();
     }
 
-    private async Task PopulateHighStressSeries()
+    private async Task PopulateHighStressSeriesSingleClient()
     {
         ChartSeries streamingSingle = await GetSeriesViaSeriesName(HighStressSeries, "Streaming Single");
         ChartSeries streamingBatch = await GetSeriesViaSeriesName(HighStressSeries, "Streaming Batch");
@@ -182,6 +201,45 @@
         streamingBatch.Data = HighStressStorage.HighStressStreamingBatch.ToArray();
         unarySingle.Data = HighStressStorage.HighStressUnarySingle.ToArray();
         unaryBatch.Data = HighStressStorage.HighStressUnaryBatch.ToArray();
+    }
+    
+    private async Task PopulateLowStressSeriesMultiClient()
+    {
+        ChartSeries streamingSingle = await GetSeriesViaSeriesName(LowStressSeries, "Streaming Single");
+        ChartSeries streamingBatch = await GetSeriesViaSeriesName(LowStressSeries, "Streaming Batch");
+        ChartSeries unarySingle = await GetSeriesViaSeriesName(LowStressSeries, "Unary Single");
+        ChartSeries unaryBatch = await GetSeriesViaSeriesName(LowStressSeries, "Unary Batch");
+
+        streamingSingle.Data = LowStressStorageMultiClient.LowStressStreamingSingle.ToArray();
+        streamingBatch.Data = LowStressStorageMultiClient.LowStressStreamingBatch.ToArray();
+        unarySingle.Data = LowStressStorageMultiClient.LowStressUnarySingle.ToArray();
+        unaryBatch.Data = LowStressStorageMultiClient.LowStressUnaryBatch.ToArray();
+    }
+
+    private async Task PopulateMediumStressSeriesMultiClient()
+    {
+        ChartSeries streamingSingle = await GetSeriesViaSeriesName(MediumStressSeries, "Streaming Single");
+        ChartSeries streamingBatch = await GetSeriesViaSeriesName(MediumStressSeries, "Streaming Batch");
+        ChartSeries unarySingle = await GetSeriesViaSeriesName(MediumStressSeries, "Unary Single");
+        ChartSeries unaryBatch = await GetSeriesViaSeriesName(MediumStressSeries, "Unary Batch");
+
+        streamingSingle.Data = MediumStressStorageMultiClient.MediumStressStreamingSingle.ToArray();
+        streamingBatch.Data = MediumStressStorageMultiClient.MediumStressStreamingBatch.ToArray();
+        unarySingle.Data = MediumStressStorageMultiClient.MediumStressUnarySingle.ToArray();
+        unaryBatch.Data = MediumStressStorageMultiClient.MediumStressUnaryBatch.ToArray();
+    }
+
+    private async Task PopulateHighStressSeriesMultiClient()
+    {
+        ChartSeries streamingSingle = await GetSeriesViaSeriesName(HighStressSeries, "Streaming Single");
+        ChartSeries streamingBatch = await GetSeriesViaSeriesName(HighStressSeries, "Streaming Batch");
+        ChartSeries unarySingle = await GetSeriesViaSeriesName(HighStressSeries, "Unary Single");
+        ChartSeries unaryBatch = await GetSeriesViaSeriesName(HighStressSeries, "Unary Batch");
+
+        streamingSingle.Data = HighStressStorageMultiClient.HighStressStreamingSingle.ToArray();
+        streamingBatch.Data = HighStressStorageMultiClient.HighStressStreamingBatch.ToArray();
+        unarySingle.Data = HighStressStorageMultiClient.HighStressUnarySingle.ToArray();
+        unaryBatch.Data = HighStressStorageMultiClient.HighStressUnaryBatch.ToArray();
     }
 
     private async Task<ChartSeries> GetSeriesViaSeriesName(List<ChartSeries> chartSeries, string seriesName)

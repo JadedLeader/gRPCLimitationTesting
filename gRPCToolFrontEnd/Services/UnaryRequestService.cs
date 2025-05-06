@@ -59,8 +59,6 @@ namespace gRPCToolFrontEnd.Services
 
             string content = await File.ReadAllTextAsync(filePath);
 
-            Log.Information($"{content}");
-
             string dataContent = _clientHelper.DataContentCalc(fileSize);
 
             Metadata metaData = new Metadata
@@ -89,8 +87,8 @@ namespace gRPCToolFrontEnd.Services
                     int i = 0;
 
                     while(i < amountOfIterations)
-                    {
-                        await _clientHelper.PayloadUsage(fileSize);
+                    { 
+                        _clientHelper.PayloadUsage(fileSize);
 
                         var now = DateTime.UtcNow;
                         long ticks = now.Ticks;
@@ -340,8 +338,8 @@ namespace gRPCToolFrontEnd.Services
                     BatchRequestId = batchRequestId,
                     DataContentSize = dataContent
                 };
-
-                await _clientHelper.PayloadUsage(fileSize);
+                
+                _clientHelper.PayloadUsage(fileSize);
                 _sentRequestStorage.IncrementBatchUnaryRequest(1);
 
                 Log.Information($"New batch data request has been added to the batch, request is owned by client ID {singleRequest.ClientUnique} with over-arching ID : {singleRequest.BatchRequestId} handles {singleRequest.RequestId}");
