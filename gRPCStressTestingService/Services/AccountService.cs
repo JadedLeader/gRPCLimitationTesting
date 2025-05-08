@@ -1,5 +1,4 @@
-﻿using DbManagerWorkerService.Interfaces.DataContext;
-using DevOne.Security.Cryptography.BCrypt;
+﻿using DevOne.Security.Cryptography.BCrypt;
 using Grpc.Core;
 using gRPCStressTestingService.proto;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;

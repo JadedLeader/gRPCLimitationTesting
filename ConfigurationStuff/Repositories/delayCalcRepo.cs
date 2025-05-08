@@ -1,5 +1,5 @@
-﻿using ConfigurationStuff.Abstracts;
-using DbManagerWorkerService.Interfaces.DataContext;
+﻿using ConfigurationStuff;
+using ConfigurationStuff.Abstracts;
 using Microsoft.EntityFrameworkCore;
 using ConfigurationStuff.DbModels;
 using ConfigurationStuff.Interfaces.Repos;

@@ -1,15 +1,14 @@
 using Blazored.LocalStorage;
-using Grpc.Net.Client;
 using gRPCToolFrontEnd.Components;
 using gRPCToolFrontEnd.LocalStorage;
 using gRPCToolFrontEnd.Services;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using MudBlazor.Services;
 using Serilog;
 using gRPCToolFrontEnd.Helpers;
 using gRPCToolFrontEnd.Interfaces;
 using ConfigurationStuff.ServicesConfig;
 using gRPCToolFrontEnd.LocalStorage.MultiCientStorage;
+using gRPCToolFrontEnd;
 
 
 namespace gRPCToolFrontEnd
@@ -94,7 +93,12 @@ namespace gRPCToolFrontEnd
             builder.Services.AddGrpcClient<Throughput.ThroughputClient>(o =>
             {
                 o.Address = new Uri("https://localhost:5000");
-            }); 
+            });
+
+            builder.Services.AddGrpcClient<StressTestingPersistence.StressTestingPersistenceClient>(o =>
+            {
+                o.Address = new Uri("https://localhost:5000");
+            });
 
             ServiceConfig.AddSharedServices(builder.Services, builder.Configuration);
 
@@ -105,6 +109,7 @@ namespace gRPCToolFrontEnd
             builder.Services.AddScoped<UnaryRequestService>();
             builder.Services.AddScoped<AdminService>();
             builder.Services.AddScoped<StatisticsService>();
+            builder.Services.AddScoped<StressTestingPersistenceService>();
 
             builder.Services.AddScoped<ThroughputService>();
 

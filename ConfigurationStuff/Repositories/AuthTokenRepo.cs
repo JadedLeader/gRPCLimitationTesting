@@ -1,12 +1,11 @@
-﻿
-using DbManagerWorkerService.Interfaces.DataContext;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ConfigurationStuff;
 using ConfigurationStuff.DbModels;
 using ConfigurationStuff.Interfaces.Repos;
 using ConfigurationStuff.Abstracts;

@@ -1,5 +1,4 @@
-﻿
-using DbManagerWorkerService.Interfaces.DataContext;
+﻿using ConfigurationStuff;
 using DbManagerWorkerService.Repos;
 
 using Microsoft.EntityFrameworkCore;

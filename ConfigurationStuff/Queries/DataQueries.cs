@@ -1,6 +1,5 @@
 ﻿using ConfigurationStuff.DbModels;
 using ConfigurationStuff.Interfaces.Queries;
-using DbManagerWorkerService.Interfaces.DataContext;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System;

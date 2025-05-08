@@ -37,6 +37,7 @@
 	<Protobuf Include="Protos\Utilities.proto" GrpcServices="Server" />
 	<Protobuf Include="Protos\StreamingLatency.proto" GrpcServices="Server" />
 	  <Protobuf Include="Protos\Throughput.proto" GrpcServices="Server" />
+    <Protobuf Include="Protos\StressTestingPersistence.proto" GrpcServices="Server" />
 	  
   </ItemGroup>
 

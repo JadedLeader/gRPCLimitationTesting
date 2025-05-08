@@ -64,6 +64,7 @@
 		<Protobuf Include="Protos\UnaryLatency.proto" GrpcServices="Client " />
 		<Protobuf Include="Protos\Utilities.proto" GrpcServices="Client" />
 		<Protobuf Include="Protos\Throughput.proto" GrpcServices="Client" />
+        <Protobuf Include="Protos\StressTestingPersistence.proto" GrpcServices="Client" />
 	</ItemGroup>
 
 	<ItemGroup>

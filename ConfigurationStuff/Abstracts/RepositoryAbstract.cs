@@ -1,6 +1,5 @@
 ﻿using ConfigurationStuff.DbContexts;
 using ConfigurationStuff.DbModels;
-using DbManagerWorkerService.Interfaces.DataContext;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

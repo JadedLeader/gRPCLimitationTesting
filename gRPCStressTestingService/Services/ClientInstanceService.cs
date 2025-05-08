@@ -8,7 +8,6 @@ using gRPCStressTestingService.Interfaces.Services;
 using Azure.Core.Pipeline;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using DbManagerWorkerService.Interfaces.DataContext;
 using ConfigurationStuff.DbContexts;
 
 namespace gRPCStressTestingService.Services

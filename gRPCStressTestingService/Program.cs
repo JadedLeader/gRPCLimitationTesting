@@ -82,6 +82,8 @@ namespace gRPCStressTestingService
             builder.Services.AddScoped<IClientInstanceService, ClientInstanceService>();
 
             builder.Services.AddScoped<IUtilitiesService, UtilitiesService>();
+            
+            builder.Services.AddScoped<IStressTestingPersistenceService, StressTestingPersistenceService>();  
         
 
             builder.Services.AddScoped<IAdminService, AdminService>();
@@ -108,6 +110,7 @@ namespace gRPCStressTestingService
             app.MapGrpcService<UtilitiesImplementation>();
             app.MapGrpcService<StreamingImplementation>();
             app.MapGrpcService<ThroughputImplementation>();
+            app.MapGrpcService<StressTestingPersistenceImplementation>();
 
             // Configure the HTTP request pipeline.
             app.MapGrpcService<GreeterService>();

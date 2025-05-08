@@ -3,7 +3,6 @@ using ConfigurationStuff.Interfaces.Queries;
 using ConfigurationStuff.Interfaces.Repos;
 using ConfigurationStuff.Queries;
 using ConfigurationStuff.Repositories;
-using DbManagerWorkerService.Interfaces.DataContext;
 using DbManagerWorkerService.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -57,6 +56,8 @@ namespace ConfigurationStuff.ServicesConfig
             services.AddScoped<ISessionRepo, SessionRepo>();
             services.AddScoped<IDelayCalcRepo, delayCalcRepo>();
             services.AddScoped<IDataQueries, DataQueries>();
+            services.AddScoped<ISessionRunsRepo, SessionRunsRepo>(); 
+            services.AddScoped<ILatencyMeasurementsRepo, LatencyMeasurementsRepo>();
 
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Debug()

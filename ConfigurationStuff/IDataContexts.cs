@@ -1,8 +1,7 @@
 ﻿using ConfigurationStuff.DbModels;
 using Microsoft.EntityFrameworkCore;
 
-
-namespace DbManagerWorkerService.Interfaces.DataContext
+namespace ConfigurationStuff
 {
     public interface IDataContexts
     {
@@ -12,6 +11,10 @@ namespace DbManagerWorkerService.Interfaces.DataContext
         public DbSet<ClientInstance> ClientInstance { get; set; }
         public DbSet<Session> Session { get; set; }
         public DbSet<DelayCalc> DelayCalc { get; set; }
+        
+        public DbSet<SessionRuns> SessionRuns { get; set; }
+        
+        public DbSet<LatencyMeasurements> LatencyMeasurements { get; set; }
 
      
     }

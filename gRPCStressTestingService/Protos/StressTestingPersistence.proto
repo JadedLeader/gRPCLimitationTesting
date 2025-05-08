@@ -1,0 +1,45 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "gRPCStressTestingService.protos";
+
+service StressTestingPersistence
+{
+  rpc SaveSession(stream SaveSessionPointRequest) returns (SaveSessionPointResponse);
+}
+
+message SaveSessionPointRequest
+{
+  string sessionUnique = 1;
+  string presetName= 2;
+  TestType testType = 3;
+  double latencyValue = 4;
+  StressLevel stressLevel = 5;
+  ClientType clientType = 6;
+}
+
+message SaveSessionPointResponse
+{
+  bool success = 1;
+  string message =2;
+}
+
+enum TestType
+{
+  UnarySingle = 0;
+  UnaryBatch = 1;
+  StreamingSingle = 2;
+  StreamingBatch = 3;
+}
+
+enum StressLevel
+{
+  Low = 0;
+  Medium = 1;
+  High = 2;
+}
+
+enum ClientType
+{
+  SingleClient = 0;
+  MultiClient = 1;
+}
