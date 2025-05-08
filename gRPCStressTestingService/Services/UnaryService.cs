@@ -134,79 +134,71 @@ namespace gRPCStressTestingService.Services
         /// <returns></returns>
         public async Task<BatchDataResponse> BatchUnaryResponse(BatchDataRequest request, ServerCallContext context)
         {
-            string preciseTime = GetPreciseTimeNow();
-
-            string? batchTimestampFromMetaData = context.RequestHeaders.GetValue("batch-request-timestamp");
-            string? typeOfDataFromMetaData = context.RequestHeaders.GetValue("request-type");
-            int batchFromMetaData = Convert.ToInt32(context.RequestHeaders.GetValue("batch-request-count"));
-            int numOfActiveClients = Convert.ToInt32(context.RequestHeaders.GetValue("active-clients"));
-            string? requestIterations = context.RequestHeaders.GetValue("batch-iteration");
-
-            List<ClientDetails> clientDetailsList = IteratingBatchToClientDetails(request.BatchDataRequest_);
-
-            ClientDetails firstRequestElement = clientDetailsList[0];
-
-            Guid clientUnique = firstRequestElement.ClientUnique;
-
-            Guid batchRequestId = firstRequestElement.messageId;
-
-            string requestContent = firstRequestElement.DataContent;
-
-            string dataContentSize = firstRequestElement.DataContentSize;
-
-            ClientInstance getClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(clientUnique);
-
-            Log.Information($"Client ID: {clientUnique}");
-            Log.Information($"The batch request ID : {batchRequestId}");
-            Log.Information($"this is the batch client request client count -> {Settings.GetNumberOfActiveClients()}");
-
-            BatchDataResponse batchDataResponse = new BatchDataResponse()
+            
+            var responseTime = DateTime.UtcNow.ToString("HH:mm:ss.ffffff");
+            
+            var typeOfData          = context.RequestHeaders.GetValue("request-type");
+            var batchCount          = Convert.ToInt32(context.RequestHeaders.GetValue("batch-request-count"));
+            var numOfActiveClients  = Convert.ToInt32(context.RequestHeaders.GetValue("active-clients"));
+            var requestIterations   = context.RequestHeaders.GetValue("batch-iteration");
+            
+            var requestInfos = request.BatchDataRequest_.Select(detail =>
             {
-                ClientUnique = clientUnique.ToString(),
-                BatchRequestId = batchRequestId.ToString(),
-                NumberOfRequestsInBatch = batchFromMetaData,
-                ResponseTimestamp = preciseTime,
-                RequestType = typeOfDataFromMetaData
+                
+                var sentTime = DateTime.Parse(detail.RequestTimestamp);
+                return MapToRequest(
+                    sentTime,
+                    detail.RequestType,
+                    batchCount,
+                    detail.DataContent,
+                    detail.RequestType,
+                    detail.BatchRequestId,
+                    detail.DataContentSize,
+                    requestIterations,
+                    null
+                );
+            })
+            
+            .ToList();
+            
+            var firstDetail    = request.BatchDataRequest_[0];
+            var batchRequestId = firstDetail.BatchRequestId;
+            var clientUnique   = firstDetail.ClientUnique;
+
+            var batchResponse = new BatchDataResponse
+            {
+                ClientUnique           = clientUnique.ToString(),
+                BatchRequestId         = batchRequestId,
+                NumberOfRequestsInBatch= batchCount,
+                ResponseTimestamp      = responseTime,
+                RequestType            = typeOfData
             };
+            
+            var responseInfo = MapToResponse(
+                DateTime.Parse(responseTime),
+                typeOfData,
+                batchCount,
+                firstDetail.DataContent,
+                typeOfData,
+                batchRequestId,
+                firstDetail.DataContentSize,
+                requestIterations,
+                null
+            );
 
-            if (!_storage.Clients.ContainsKey(clientUnique))
-            {
-                ClientActivity newClientActivity = new ClientActivity();
+            var key = CreateClientMessageId(clientUnique.ToString(), batchRequestId);
+            
+            foreach (var reqInfo in requestInfos)
+                _timeStorage.AddToConcurrentDictLock(_timeStorage._ClientRequestTiming,  key, reqInfo);
 
-                newClientActivity.AddBatchToClientActivities(clientDetailsList);
-
-                _storage.AddToDictionary(_storage.Clients, clientUnique, newClientActivity);
-            }
-            else
-            {
-                KeyValuePair<Guid, ClientActivity> retrieveExisting = _storage.Clients.FirstOrDefault(entry => entry.Key == clientUnique);
-
-                retrieveExisting.Value.AddBatchToClientActivities(clientDetailsList);
-            }
-
-            UnaryInfo responseUnaryInfo = MapToResponse(Convert.ToDateTime(batchDataResponse.ResponseTimestamp), typeOfDataFromMetaData, batchFromMetaData, requestContent, 
-                typeOfDataFromMetaData, batchRequestId.ToString(), dataContentSize, getClientInstance, requestIterations,  null);
-
-            UnaryInfo requestUnaryInfo = MapToRequest(Convert.ToDateTime(batchTimestampFromMetaData), typeOfDataFromMetaData, batchFromMetaData, requestContent, 
-                typeOfDataFromMetaData, batchRequestId.ToString(), dataContentSize, getClientInstance, requestIterations,  null);
-
-            Log.Information($"This is the data content size : {responseUnaryInfo.DataContentSize}");
-            Log.Information($"THIS IS THE DATA CONTENT : {responseUnaryInfo.LengthOfData}");
-
-            ClientMessageId requestAndResponseKeys = CreateClientMessageId(clientUnique.ToString(), batchRequestId.ToString());
-
-            _timeStorage.AddToConcurrentDictLock(_timeStorage._ClientRequestTiming, requestAndResponseKeys, requestUnaryInfo);
-
-            _timeStorage.AddToConcurrentDictLock(_timeStorage._ServerResponseTiming, requestAndResponseKeys, responseUnaryInfo);
-
-            Log.Information($"This is the request send time for the unary batch request : {requestUnaryInfo.TimeOfRequest} -> {batchTimestampFromMetaData}");
-            Log.Information($"This is the server response time for the unary batch request : {responseUnaryInfo.TimeOfRequest} -> {preciseTime}");
-
-            await _delayCalculations.CalculatingDelay(requestAndResponseKeys, requestAndResponseKeys);
+            _timeStorage.AddToConcurrentDictLock(_timeStorage._ServerResponseTiming, key, responseInfo);
+            
+            foreach (var reqInfo in requestInfos)
+                await _delayCalculations.CalculatingDelay(key, key);
 
             await _dbTransportationService.AddingDelayToDb();
 
-            return batchDataResponse;
+            return batchResponse;
         }
 
 

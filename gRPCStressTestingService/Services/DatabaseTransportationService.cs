@@ -84,7 +84,7 @@ namespace gRPCStressTestingService.Services
 
             var gettingClientInstance = await _clientInstanceRepo.GetClientInstanceViaClientUnique(transportingToDb.ClientUnique);
 
-            transportingToDb.ClientInstance = gettingClientInstance;
+           transportingToDb.ClientInstance = gettingClientInstance;
 
         }
 

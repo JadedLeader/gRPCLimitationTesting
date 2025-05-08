@@ -315,17 +315,17 @@ namespace gRPCToolFrontEnd.Services
             string dataContent = _clientHelper.DataContentCalc(fileSize);
 
             string batchRequestId = Guid.NewGuid().ToString();
-
-            var now = DateTime.UtcNow;
-            long ticks = now.Ticks;
-            string preciseTime = now.ToString("HH:mm:ss.ffffff");
-
+            
             CreateClientInstanceResponse newlyCreatedClientInstance = await _clientInstanceService.CreateClientInstanceAsync();
 
             int i = 0;
 
             while (i < requestIterations)
             {
+                var now = DateTime.UtcNow;
+                long ticks = now.Ticks;
+                string preciseTime = now.ToString("HH:mm:ss.ffffff");
+                
                 BatchDataRequestDetails singleRequest = new BatchDataRequestDetails
                 {
                     ClientUnique = newlyCreatedClientInstance.ClientUnique,
