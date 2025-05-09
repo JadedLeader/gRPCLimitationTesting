@@ -4,7 +4,7 @@ namespace ConfigurationStuff.Interfaces.Repos;
 
 public interface ILatencyMeasurementsRepo
 {
-    public Task AddToLatencyMeasurementsTable(LatencyMeasurements latencyMeasurement);
+    public Task<LatencyMeasurements> AddToDbAsync(LatencyMeasurements entity);
 
-    public void RemoveLatencyFromMeasurementsTable(LatencyMeasurements latencyMeasurement);
+    public Task SaveAsync();
 }

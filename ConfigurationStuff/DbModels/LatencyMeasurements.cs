@@ -16,7 +16,7 @@ public class LatencyMeasurements
     public string TestType { get; set;  }
     
     [Required]
-    double Latency { get; set; }
+    public double Latency { get; set; }
     
     public SessionRuns? SessionRuns { get; set; }
 }

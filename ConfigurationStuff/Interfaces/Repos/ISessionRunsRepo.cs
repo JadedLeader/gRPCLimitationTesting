@@ -4,5 +4,7 @@ namespace ConfigurationStuff.Interfaces.Repos;
 
 public interface ISessionRunsRepo
 {
-    public Task AddSessionsToSessionsRunsTable(SessionRuns sessionRuns);
+    public Task<SessionRuns> AddToDbAsync(SessionRuns entity);
+
+    public Task SaveAsync();
 }

@@ -29,6 +29,11 @@
 <MudItem>
     <MudGrid Class="d-flex justify-end align-center" Style="margin-bottom: 20px;">
         
+        
+        <MudItem>
+            <MudTextField T="string" @bind-Value="_presetName" Immediate="true" Label="Input preset name: "></MudTextField>
+        </MudItem>
+        
         <MudItem>
             <MudSwitch T="bool" Value="_switchModes" ValueChanged="@TestingStateChanged" Color="Color.Primary">Mode: @(_switchModes ? "Single-Client" : "Multi-client")</MudSwitch>
         </MudItem>
@@ -335,21 +340,23 @@
     private async Task SaveMultiClientResults()
     {
         
+        Log.Information($"THIS IS THE PRESET NAME {_presetName}");
+        
         if (GlobalSettings.StressTestingPreset == "Low stress")
         {
             Log.Information($"Saving Multi-client low stress results");
 
             MultiClientLowStressStorage.CopyRequestToStorage(MultiClientLowStressStorage.LowStressUnaryBatch, _UnaryBatchDelays);
-            await StressTestingPersistenceService.DelayPersistenceUnaryBatch(_presetName, _UnaryBatchDelays, StressLevel.Low, ClientType.MultiClient);
+           // await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _UnaryBatchDelays, TestType.UnaryBatch, StressLevel.Low, ClientType.MultiClient);
             
             MultiClientLowStressStorage.CopyRequestToStorage(MultiClientLowStressStorage.LowStressUnarySingle, _UnarySingleDelays);
-            await StressTestingPersistenceService.DelayPersistenceUnarySingle(_presetName, _UnarySingleDelays, StressLevel.Low, ClientType.MultiClient);
+           // await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _UnarySingleDelays, TestType.UnarySingle, StressLevel.Low, ClientType.MultiClient);
             
             MultiClientLowStressStorage.CopyRequestToStorage(MultiClientLowStressStorage.LowStressStreamingSingle, _streamingSingleDelays);
-            await StressTestingPersistenceService.DelayPersistenceStreamingSingle(_presetName, _streamingSingleDelays, StressLevel.Low, ClientType.MultiClient);
+           // await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _streamingSingleDelays, TestType.StreamingSingle, StressLevel.Low, ClientType.MultiClient);
             
             MultiClientLowStressStorage.CopyRequestToStorage(MultiClientLowStressStorage.LowStressStreamingBatch, _delays);
-            await StressTestingPersistenceService.DelayPersistenceStreamingBatch(_presetName, _delays, StressLevel.Low, ClientType.MultiClient);
+          //  await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _delays, TestType.StreamingBatch, StressLevel.Low, ClientType.MultiClient);
 
         }
         else if (GlobalSettings.StressTestingPreset == "Medium stress")
@@ -357,32 +364,32 @@
             Log.Information($"Saving Multi-client medium stress results");
 
             MultiClientMediumStressStorage.CopyRequestToStorage(MultiClientMediumStressStorage.MediumStressUnaryBatch, _UnaryBatchDelays);
-            await StressTestingPersistenceService.DelayPersistenceUnaryBatch(_presetName, _UnaryBatchDelays, StressLevel.Medium, ClientType.MultiClient);
+          //  await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _UnaryBatchDelays, TestType.UnaryBatch, StressLevel.Medium, ClientType.MultiClient);
             
             MultiClientMediumStressStorage.CopyRequestToStorage(MultiClientMediumStressStorage.MediumStressUnarySingle, _UnarySingleDelays);
-            await StressTestingPersistenceService.DelayPersistenceUnarySingle(_presetName, _UnarySingleDelays, StressLevel.Medium, ClientType.MultiClient);
+          //  await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _UnarySingleDelays, TestType.UnarySingle, StressLevel.Medium, ClientType.MultiClient);
             
             MultiClientMediumStressStorage.CopyRequestToStorage(MultiClientMediumStressStorage.MediumStressStreamingSingle, _streamingSingleDelays);
-            await StressTestingPersistenceService.DelayPersistenceStreamingSingle(_presetName, _streamingSingleDelays, StressLevel.Medium, ClientType.MultiClient);
+           // await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _streamingSingleDelays, TestType.StreamingSingle, StressLevel.Medium, ClientType.MultiClient);
             
             MultiClientMediumStressStorage.CopyRequestToStorage(MultiClientMediumStressStorage.MediumStressStreamingBatch, _delays);
-            await StressTestingPersistenceService.DelayPersistenceStreamingBatch(_presetName, _delays, StressLevel.Medium, ClientType.MultiClient);
+           // await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _delays, TestType.StreamingBatch, StressLevel.Medium, ClientType.MultiClient);
         }
         else if (GlobalSettings.StressTestingPreset == "High stress")
         {
             Log.Information($"Saving Multi-client high stress results");
 
             MultiClientHighStressStorage.CopyRequestToStorage(MultiClientHighStressStorage.HighStressUnaryBatch, _UnaryBatchDelays);
-            await StressTestingPersistenceService.DelayPersistenceUnaryBatch(_presetName, _UnaryBatchDelays, StressLevel.High, ClientType.MultiClient);
+           // await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _UnaryBatchDelays, TestType.UnaryBatch, StressLevel.High, ClientType.MultiClient);
             
             MultiClientHighStressStorage.CopyRequestToStorage(MultiClientHighStressStorage.HighStressUnarySingle, _UnarySingleDelays);
-            await StressTestingPersistenceService.DelayPersistenceUnarySingle(_presetName, _UnarySingleDelays, StressLevel.High, ClientType.MultiClient);
+          //  await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _UnarySingleDelays, TestType.UnarySingle, StressLevel.High, ClientType.MultiClient);
             
             MultiClientHighStressStorage.CopyRequestToStorage(MultiClientHighStressStorage.HighStressStreamingSingle, _streamingSingleDelays);
-            await StressTestingPersistenceService.DelayPersistenceStreamingSingle(_presetName, _streamingSingleDelays, StressLevel.High, ClientType.MultiClient);
+          //  await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _streamingSingleDelays, TestType.StreamingSingle, StressLevel.High, ClientType.MultiClient);
             
             MultiClientHighStressStorage.CopyRequestToStorage(MultiClientHighStressStorage.HighStressStreamingBatch, _delays);
-            await StressTestingPersistenceService.DelayPersistenceStreamingBatch(_presetName, _delays, StressLevel.High, ClientType.MultiClient);
+           // await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _delays, TestType.StreamingBatch, StressLevel.High, ClientType.MultiClient);
         }
         else
         {
@@ -392,23 +399,23 @@
 
     private async Task SaveSingleClientResults()
     {
-       
+        Log.Information($"THIS IS THE PRESET NAME {_presetName}");
         
         if (GlobalSettings.StressTestingPreset == "Low stress")
         {
             Log.Information($"Saving Single client low stress results");
 
             LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressUnaryBatch, _UnaryBatchDelays);
-            await StressTestingPersistenceService.DelayPersistenceUnaryBatch(_presetName, _UnaryBatchDelays, StressLevel.Low, ClientType.SingleClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.UnaryBatch, _UnaryBatchDelays, _presetName, StressLevel.Low, ClientType.SingleClient);
             
             LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressUnarySingle, _UnarySingleDelays);
-            await StressTestingPersistenceService.DelayPersistenceUnarySingle(_presetName, _UnarySingleDelays, StressLevel.Low, ClientType.SingleClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.UnarySingle, _UnarySingleDelays, _presetName, StressLevel.Low, ClientType.SingleClient);
             
             LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressStreamingSingle, _streamingSingleDelays);
-            await StressTestingPersistenceService.DelayPersistenceStreamingSingle(_presetName, _streamingSingleDelays, StressLevel.Low, ClientType.SingleClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.StreamingSingle, _streamingSingleDelays, _presetName, StressLevel.Low, ClientType.SingleClient);
             
             LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressStreamingBatch, _delays);
-            await StressTestingPersistenceService.DelayPersistenceStreamingBatch(_presetName, _delays, StressLevel.Low, ClientType.SingleClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.StreamingBatch, _delays, _presetName, StressLevel.Low, ClientType.SingleClient);
             
         }
         else if (GlobalSettings.StressTestingPreset == "Medium stress")
@@ -416,37 +423,41 @@
             Log.Information($"Saving Single client medium stress results");
 
             MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressUnaryBatch, _UnaryBatchDelays);
-            await StressTestingPersistenceService.DelayPersistenceUnaryBatch(_presetName, _UnaryBatchDelays, StressLevel.Medium, ClientType.SingleClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.UnaryBatch, _UnaryBatchDelays, _presetName, StressLevel.Medium, ClientType.SingleClient);
             
             MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressUnarySingle, _UnarySingleDelays);
-            await StressTestingPersistenceService.DelayPersistenceUnarySingle(_presetName, _UnarySingleDelays, StressLevel.Medium, ClientType.SingleClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.UnarySingle, _UnarySingleDelays, _presetName, StressLevel.Medium, ClientType.SingleClient);
             
             MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressStreamingSingle, _streamingSingleDelays);
-            await StressTestingPersistenceService.DelayPersistenceStreamingSingle(_presetName, _streamingSingleDelays, StressLevel.Medium, ClientType.SingleClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.StreamingSingle, _streamingSingleDelays, _presetName, StressLevel.Medium, ClientType.SingleClient);
             
             MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressStreamingBatch, _delays);
-            await StressTestingPersistenceService.DelayPersistenceStreamingBatch(_presetName, _delays, StressLevel.Medium, ClientType.SingleClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.StreamingBatch, _delays, _presetName, StressLevel.Medium, ClientType.SingleClient);
+
+            
         }
         else if (GlobalSettings.StressTestingPreset == "High stress")
         {
             Log.Information($"Saving Single client high stress results");
 
             HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressUnaryBatch, _UnaryBatchDelays);
-            await StressTestingPersistenceService.DelayPersistenceUnaryBatch(_presetName, _UnaryBatchDelays, StressLevel.High, ClientType.SingleClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.UnaryBatch, _UnaryBatchDelays, _presetName, StressLevel.High, ClientType.SingleClient);
             
             HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressUnarySingle, _UnarySingleDelays);
-            await StressTestingPersistenceService.DelayPersistenceUnarySingle(_presetName, _UnarySingleDelays, StressLevel.High, ClientType.SingleClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.UnarySingle, _UnarySingleDelays, _presetName, StressLevel.High, ClientType.SingleClient);
             
             HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressStreamingSingle, _streamingSingleDelays);
-            await StressTestingPersistenceService.DelayPersistenceStreamingSingle(_presetName, _streamingSingleDelays, StressLevel.High, ClientType.SingleClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.StreamingSingle, _streamingSingleDelays, _presetName, StressLevel.High, ClientType.SingleClient);
             
             HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressStreamingBatch, _delays);
-            await StressTestingPersistenceService.DelayPersistenceStreamingBatch(_presetName, _delays, StressLevel.High, ClientType.SingleClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.StreamingBatch, _delays, _presetName, StressLevel.High, ClientType.SingleClient);
         }
         else
         {
             Log.Warning($"No stress level preset is currently set in the global settings");
         }
+        
+        await StressTestingPersistenceService.DelayPersistenceTransporation();
     }
 
     private async Task ClearRequestResults()

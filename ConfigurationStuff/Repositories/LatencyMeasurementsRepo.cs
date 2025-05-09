@@ -1,26 +1,35 @@
-﻿using ConfigurationStuff.DbModels;
+﻿using ConfigurationStuff.Abstracts;
+using ConfigurationStuff.DbContexts;
+using ConfigurationStuff.DbModels;
 using ConfigurationStuff.Interfaces.Repos;
 
 namespace ConfigurationStuff.Repositories;
 
-public class LatencyMeasurementsRepo : ILatencyMeasurementsRepo
+public class LatencyMeasurementsRepo :  RepositoryAbstract<LatencyMeasurements>,ILatencyMeasurementsRepo
 {
 
     private readonly IDataContexts _dataContexts;
     
-    public LatencyMeasurementsRepo(IDataContexts dataContexts)
+    public LatencyMeasurementsRepo(IDataContexts dataContext) : base(dataContext as DataContexts)
     {
-        _dataContexts = dataContexts;   
+        _dataContexts = dataContext;   
     }
 
-    public async Task AddToLatencyMeasurementsTable(LatencyMeasurements latencyMeasurement)
+
+    public override Task<LatencyMeasurements> AddToDbAsync(LatencyMeasurements entity)
     {
-        await _dataContexts.LatencyMeasurements.AddAsync(latencyMeasurement);
+        return base.AddToDbAsync(entity);
     }
 
-    public void  RemoveLatencyFromMeasurementsTable(LatencyMeasurements latencyMeasurement)
+    public override Task<LatencyMeasurements> GetRecordViaId(Guid? recordId)
     {
-        _dataContexts.LatencyMeasurements.Remove(latencyMeasurement);
+        throw new NotImplementedException();
     }
+
+    public override Task SaveAsync()
+    {
+        return base.SaveAsync();
+    }
+    
     
 }

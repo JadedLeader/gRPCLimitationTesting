@@ -1,6 +1,8 @@
-﻿using ConfigurationStuff.Interfaces.Repos;
+﻿using ConfigurationStuff.DbModels;
+using ConfigurationStuff.Interfaces.Repos;
 using Grpc.Core;
 using gRPCStressTestingService.Interfaces.Services;
+using Serilog;
 
 namespace gRPCStressTestingService.Services;
 
@@ -16,36 +18,73 @@ public class StressTestingPersistenceService : IStressTestingPersistenceService
         _latencyMeasurementsRepo = latencyMeasurementsRepo;
     }
 
+    /// <summary>
+    /// In charge of saving the entirety of the gRPC testing session and moving the records into the respective database tables
+    /// </summary>
+    /// <param name="requestStream"></param>
+    /// <param name="context"></param>
+    /// <returns></returns>
     public async Task<SaveSessionPointResponse> SaveSession(IAsyncStreamReader<SaveSessionPointRequest> requestStream, ServerCallContext context)
     {
-        //so this needs to be in charge of saving to the database 
+        SaveSessionPointResponse serverResponse = new SaveSessionPointResponse();
 
-        throw new NotImplementedException();
+        SessionRuns sessionRun = null;
         
         while (!context.CancellationToken.IsCancellationRequested)
         {
             await foreach (var response in requestStream.ReadAllAsync())
             {
-                if (response.TestType == TestType.UnarySingle)
-                {
-                    
-                }
-                else if (response.TestType == TestType.UnaryBatch)
-                {
-                    
-                }
-                else if (response.TestType == TestType.StreamingSingle)
-                {
-                    
-                }
-                else if (response.TestType == TestType.StreamingBatch)
-                {
-                    
-                }
-            }
-        }
 
+                if (sessionRun == null)
+                {
+                    sessionRun = await AddToSessionsRuns(response);
+                }
+
+                LatencyMeasurements addToLatencyMeasurements = await AddToLatencyMeasurements(response, sessionRun);
+                
+            }
+            
+        }
         
+        return serverResponse;
+        
+    }
+
+    private async Task<SessionRuns> AddToSessionsRuns(SaveSessionPointRequest saveSessionPoint)
+    {
+        
+        SessionRuns sessionRun = new SessionRuns()
+        {
+            SessionsRunId = Guid.NewGuid(),
+            SessionUnique = Guid.Parse(saveSessionPoint.SessionUnique),
+            PresetName = saveSessionPoint.PresetName,
+            CreatedAt = DateTime.UtcNow
+        };
+        
+        await _sessionRunsRepo.AddToDbAsync(sessionRun);
+        
+        await _sessionRunsRepo.SaveAsync();
+        
+        return sessionRun;
+    }
+
+    private async Task<LatencyMeasurements> AddToLatencyMeasurements(SaveSessionPointRequest saveSessionPoint, SessionRuns sessionRun)
+    {
+        
+        LatencyMeasurements newLatencyMeasurement = new LatencyMeasurements()
+        {
+            MeasurementUnique = Guid.NewGuid(),
+            SessionUnique = Guid.Parse(saveSessionPoint.SessionUnique),
+            TestType = saveSessionPoint.TestType.ToString(),
+            Latency = saveSessionPoint.LatencyValue,
+            SessionRuns = sessionRun
+        };
+
+        await _latencyMeasurementsRepo.AddToDbAsync(newLatencyMeasurement);
+        await _latencyMeasurementsRepo.SaveAsync();
+
+        return newLatencyMeasurement;
+
     }
     
     

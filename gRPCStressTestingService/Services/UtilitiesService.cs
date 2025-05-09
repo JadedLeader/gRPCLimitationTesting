@@ -31,12 +31,10 @@ namespace gRPCStressTestingService.Services
             _throughputStorage = throughputStorage;
             _delayCalcStorage = delayCalcStorage;
         }
-
-
+        
         public async Task GetClientsWithMessages(GetClientsWithMessagesRequest request, IServerStreamWriter<GetClientsWithMessagesResponse> responseStream, ServerCallContext context)
         {
-
-           
+            
             while(!context.CancellationToken.IsCancellationRequested)
             {
                 string? sessionUnique = context.RequestHeaders.GetValue("session-unique");
