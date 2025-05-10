@@ -26,4 +26,9 @@ public class StressTestingPersistenceImplementation : StressTestingPersistence.S
 
        return savingSessionPoint;
     }
+
+    public override async Task StreamSessionRuns(StreamSessionRunRequest request, IServerStreamWriter<StreamSessionRunResponse> responseStream, ServerCallContext context)
+    {
+        await _stressTestingPersistenceService.StreamSessionRuns(request, responseStream, context);
+    }
 }

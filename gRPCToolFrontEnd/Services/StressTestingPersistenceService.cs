@@ -15,6 +15,8 @@ public class StressTestingPersistenceService
 
     public List<SaveSessionPointRequest> CollatedDelays = new();
     
+    public event Action<StreamSessionRunResponse> OnSessionRunResponse;
+    
     public StressTestingPersistenceService(ClientHelper clientHelper, GlobalSettings globalSettings)
     {
         _clientHelper = clientHelper;
@@ -62,6 +64,44 @@ public class StressTestingPersistenceService
             }; 
             
             CollatedDelays.Add(newSavePoint);
+        }
+    }
+
+    public void StartReceivingSessionRuns()
+    {
+        Task.Run(() => ReceivingSessionRunPresetNames());
+    }
+
+    private async Task ReceivingSessionRunPresetNames()
+    {
+        var newChannel = GrpcChannel.ForAddress(_globalSettings.CurrentLocalHost,  new GrpcChannelOptions
+        {
+            MaxSendMessageSize = 100 * 1024 * 1024, 
+            MaxReceiveMessageSize = 100 * 1024 * 1024,
+        });
+        
+        CancellationToken newCalCancellationToken = new CancellationToken();
+
+        StressTestingPersistence.StressTestingPersistenceClient newClient =
+            new StressTestingPersistence.StressTestingPersistenceClient(newChannel);
+        
+        string sessionUnique = await _clientHelper.GetStringFromStringFromLocalStorage("session-unique");
+
+        StreamSessionRunRequest newRunRequest = new StreamSessionRunRequest()
+        {
+            SessionUnique = sessionUnique,
+        };
+        
+        var call = newClient.StreamSessionRuns(newRunRequest); 
+        
+        
+        while(await call.ResponseStream.MoveNext())
+        {
+            var response = call.ResponseStream.Current;
+
+            Log.Information($"Received session run {response.PresetName} from the backend");
+            
+            OnSessionRunResponse?.Invoke(response);
         }
     }
 

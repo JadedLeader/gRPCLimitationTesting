@@ -12,7 +12,6 @@
 @inject ClientHelper ClientHelper
 @inject PresetService PresetService
 @inject AccountDetailsStore AccountDetailsStore
-@inject RequestDelayStorage RequestDelayStorage
 @inject AdminService AdminService
 @inject LowStressRequestTimingStorage LowStressStorage
 @inject MediumStressRequestTimingStorage MediumStressStorage
@@ -21,7 +20,6 @@
 @inject LowStressMultiClientRequestTimingStorage MultiClientLowStressStorage
 @inject MediumStressMultiClientRequestTimingStorage MultiClientMediumStressStorage
 @inject HighStressMutliClientRequestTimingStorage MultiClientHighStressStorage
-@inject StatisticsService StatisticsService
 @inject StressTestingPersistenceService StressTestingPersistenceService
 
 <PageTitle>Real-Time display</PageTitle>
@@ -29,6 +27,17 @@
 <MudItem>
     <MudGrid Class="d-flex justify-end align-center" Style="margin-bottom: 20px;">
         
+        <MudItem>
+            <MudSelect T="string" Label="Saved Runs" MultiSelection="false"  Style="margin-right: 20px; min-width: 200px;" 
+                       Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Refresh" OnAdornmentClick="@RefreshSavedPresets" >
+
+                @foreach (var savedPresets in _savedPresetNames)
+                {
+                    <MudSelectItem T="string" Value="@savedPresets">@savedPresets</MudSelectItem>
+                }
+
+            </MudSelect>
+        </MudItem>
         
         <MudItem>
             <MudTextField T="string" @bind-Value="_presetName" Immediate="true" Label="Input preset name: "></MudTextField>
@@ -185,6 +194,8 @@
         "High stress"
     };
 
+    private List<string> _savedPresetNames = new();
+
     private string _presetName;
 
     private string _StressLevelValue;
@@ -196,16 +207,7 @@
     private bool _HighStressActive = false;
 
     private const int MaxDataPoints = 10_000;
-
-    private double _UnaryBatchAverage = 0;
-
-    private double _UnarySingleAverage = 0;
-
-    private double _StreamingSingleAverage = 0;
-
-    private double _StreamingBatchAverage = 0;
-
-
+    
     private ChartOptions _options = new ChartOptions
         {
             YAxisLines = true,
@@ -302,6 +304,10 @@
         { };
 
         UtilitiesService.StartReceivingStreamingBatchMessages(newStreamingBatchDelay, sessionUnique);
+
+        StressTestingPersistenceService.OnSessionRunResponse += HandleSessionRunReceived;
+        
+        StressTestingPersistenceService.StartReceivingSessionRuns();
 
         await base.OnInitializedAsync();
     }
@@ -485,50 +491,6 @@
         await AdminService.ClearServerSideLists(GlobalSettings.CurrentLocalHost);
 
         await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task AverageUnaryBatch()
-    {
-        List<double> getUnaryBatchResults = await RequestDelayStorage.ReturnDelaysList(_UnaryBatchDelays);
-
-        double getAverage = getUnaryBatchResults.Average();
-
-        double rounded = Math.Round(getAverage, 2);
-
-        _UnaryBatchAverage = rounded;
-    }
-
-    private async Task AverageUnarySingle()
-    {
-        List<double> getUnarySingle = await RequestDelayStorage.ReturnDelaysList(_UnarySingleDelays);
-
-        double getUnarySingleAvg = getUnarySingle.Average();
-
-        double roundedAvg = Math.Round(getUnarySingleAvg, 2);
-
-        _UnarySingleAverage = roundedAvg;
-    }
-
-    private async Task AverageStreamingSingle()
-    {
-        List<double> getStreamingSingleResults = await RequestDelayStorage.ReturnDelaysList(_streamingSingleDelays);
-
-        double getStreamingSingleAverage = getStreamingSingleResults.Average();
-
-        double roundedStreamingSingleAvg = Math.Round(getStreamingSingleAverage, 2);
-
-        _StreamingSingleAverage = roundedStreamingSingleAvg;
-    }
-
-    private async Task AverageStreamingBatch()
-    {
-        List<double> getStreamingBatchResults = await RequestDelayStorage.ReturnDelaysList(_delays);
-
-        double getStreamingBatchAvg = getStreamingBatchResults.Average();
-
-        double roundedStreamingBatchAvg = Math.Round(getStreamingBatchAvg, 2);
-
-        _StreamingBatchAverage = roundedStreamingBatchAvg;
     }
 
     private async Task StressFlow(string stressLevelValue)
@@ -829,6 +791,31 @@
                 Log.Error(ex, "Failed to parse delay or timestamp.");
             }
         });
+    }
+
+    private async void HandleSessionRunReceived(StreamSessionRunResponse streamSessionRunResponse)
+    {
+
+        await InvokeAsync(async () =>
+        {
+            _savedPresetNames.Add(streamSessionRunResponse.PresetName);
+
+            StateHasChanged();
+            
+        });
+
+    }
+
+    private void RefreshSavedPresets()
+    {
+        
+        Log.Information($"Refreshing saved presets");
+        
+        StressTestingPersistenceService.OnSessionRunResponse -= HandleSessionRunReceived;
+
+        StressTestingPersistenceService.OnSessionRunResponse += HandleSessionRunReceived; 
+        
+        StressTestingPersistenceService.StartReceivingSessionRuns();
     }
 
 

@@ -1,4 +1,5 @@
 ﻿using ConfigurationStuff.DbModels;
+using ConfigurationStuff.DTO;
 using ConfigurationStuff.Interfaces.Repos;
 using Grpc.Core;
 using gRPCStressTestingService.Interfaces.Services;
@@ -48,6 +49,30 @@ public class StressTestingPersistenceService : IStressTestingPersistenceService
         
         return serverResponse;
         
+    }
+
+    public async Task StreamSessionRuns(StreamSessionRunRequest request, IServerStreamWriter<StreamSessionRunResponse> responseStream, ServerCallContext context)
+    {
+
+       List<SessionRunInformation> sessionRuns = await _sessionRunsRepo.GetSessionRunsViaSesionUnique(Guid.Parse(request.SessionUnique));
+       
+       StreamSessionRunResponse serverResponse = new StreamSessionRunResponse();
+
+       if (sessionRuns.Count == 0)
+       {
+           serverResponse.Success = false;
+       }
+
+       foreach (var sessionRun in sessionRuns)
+       {
+           serverResponse.PresetName = sessionRun.PresetName;
+           serverResponse.SessionRunId = sessionRun.SessionsRunId.ToString();
+           serverResponse.Success = true;
+           serverResponse.Message = "";
+           
+           await responseStream.WriteAsync(serverResponse);
+       }
+       
     }
 
     private async Task<SessionRuns> AddToSessionsRuns(SaveSessionPointRequest saveSessionPoint)

@@ -5,6 +5,8 @@ option csharp_namespace = "gRPCToolFrontEnd";
 service StressTestingPersistence
 { 
    rpc SaveSession(stream SaveSessionPointRequest) returns (SaveSessionPointResponse);
+   rpc StreamSessionRuns(StreamSessionRunRequest) returns (stream StreamSessionRunResponse);
+   rpc StreamLatencyMeasurements(StreamLatencyMeasurementsRequest) returns (stream StreamLatencyMeasurementsResponse);
 }
 
 message SaveSessionPointRequest
@@ -21,6 +23,32 @@ message SaveSessionPointResponse
 {
   bool success = 1;
   string message =2;
+}
+
+
+message StreamSessionRunRequest
+{
+  string sessionUnique = 1;
+}
+
+message StreamSessionRunResponse
+{
+  string presetName = 1;
+  string sessionRunId = 2;
+  bool success = 3;
+  string message = 4;
+}
+
+message StreamLatencyMeasurementsRequest
+{
+  string sessionUnique = 1;
+  string sessionRunUnique = 2;
+}
+
+message StreamLatencyMeasurementsResponse
+{
+  bool success = 1;
+  string message = 2;
 }
 
 enum TestType
