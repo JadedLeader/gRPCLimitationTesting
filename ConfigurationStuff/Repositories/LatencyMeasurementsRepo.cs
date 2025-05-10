@@ -1,7 +1,9 @@
 ﻿using ConfigurationStuff.Abstracts;
 using ConfigurationStuff.DbContexts;
 using ConfigurationStuff.DbModels;
+using ConfigurationStuff.DTO;
 using ConfigurationStuff.Interfaces.Repos;
+using Microsoft.EntityFrameworkCore;
 
 namespace ConfigurationStuff.Repositories;
 
@@ -29,6 +31,25 @@ public class LatencyMeasurementsRepo :  RepositoryAbstract<LatencyMeasurements>,
     public override Task SaveAsync()
     {
         return base.SaveAsync();
+    }
+
+    public async Task<List<LatencyMeasurementInformation>> GetLatencyMeasurementsViaSessionRunId(string sessionRunId)
+    {
+        List<LatencyMeasurementInformation> latencies = await _dataContexts.LatencyMeasurements
+            .Where(x => x.SessionRuns.SessionsRunId == Guid.Parse(sessionRunId))
+            .Select(x => new LatencyMeasurementInformation()
+            {
+                TestType = x.TestType,
+                Latency = x.Latency,
+            })
+            .ToListAsync();
+
+        if (latencies.Count == 0)
+        {
+            return new List<LatencyMeasurementInformation>();
+        }
+        
+        return latencies;
     }
     
     

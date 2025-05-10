@@ -16,6 +16,11 @@ public class StressTestingPersistenceService
     public List<SaveSessionPointRequest> CollatedDelays = new();
     
     public event Action<StreamSessionRunResponse> OnSessionRunResponse;
+
+    public event Action<StreamLatencyMeasurementsResponse> OnUnaryBatchReceived;
+    public event Action<StreamLatencyMeasurementsResponse> OnUnarySingleReceived; 
+    public event Action<StreamLatencyMeasurementsResponse> OnStreamingSingleReceived;
+    public event Action<StreamLatencyMeasurementsResponse> OnStreamingBatchReceived;
     
     public StressTestingPersistenceService(ClientHelper clientHelper, GlobalSettings globalSettings)
     {
@@ -72,6 +77,11 @@ public class StressTestingPersistenceService
         Task.Run(() => ReceivingSessionRunPresetNames());
     }
 
+    public void StartReceivingLatencyMeasurements(string sessionRunUnique)
+    {
+        Task.Run(() => ReceivingTestTypesAndLatency(sessionRunUnique));
+    }
+
     private async Task ReceivingSessionRunPresetNames()
     {
         var newChannel = GrpcChannel.ForAddress(_globalSettings.CurrentLocalHost,  new GrpcChannelOptions
@@ -79,8 +89,6 @@ public class StressTestingPersistenceService
             MaxSendMessageSize = 100 * 1024 * 1024, 
             MaxReceiveMessageSize = 100 * 1024 * 1024,
         });
-        
-        CancellationToken newCalCancellationToken = new CancellationToken();
 
         StressTestingPersistence.StressTestingPersistenceClient newClient =
             new StressTestingPersistence.StressTestingPersistenceClient(newChannel);
@@ -105,5 +113,48 @@ public class StressTestingPersistenceService
         }
     }
 
+    private async Task ReceivingTestTypesAndLatency(string sessionRunUnique)
+    {
+        var newChannel = GrpcChannel.ForAddress(_globalSettings.CurrentLocalHost,  new GrpcChannelOptions
+        {
+            MaxSendMessageSize = 100 * 1024 * 1024, 
+            MaxReceiveMessageSize = 100 * 1024 * 1024,
+        });
+
+        StressTestingPersistence.StressTestingPersistenceClient newClient =
+            new StressTestingPersistence.StressTestingPersistenceClient(newChannel);
+        
+        string sessionUnique = await _clientHelper.GetStringFromStringFromLocalStorage("session-unique");
+
+        StreamLatencyMeasurementsRequest latencyMeasurementsRequest = new StreamLatencyMeasurementsRequest()
+        {
+            SessionUnique = sessionUnique,
+            SessionRunUnique = sessionRunUnique,
+        };
+
+        var call = newClient.StreamLatencyMeasurements(latencyMeasurementsRequest);
+
+        while (await call.ResponseStream.MoveNext())
+        {
+            var response = call.ResponseStream.Current;
+
+            if (response.TestType == TestType.UnarySingle.ToString())
+            {
+                OnUnarySingleReceived?.Invoke(response);
+            }
+            else if (response.TestType == TestType.UnaryBatch.ToString())
+            {
+                OnUnaryBatchReceived?.Invoke(response);
+            }
+            else if (response.TestType == TestType.StreamingSingle.ToString())
+            {
+                OnStreamingSingleReceived?.Invoke(response);
+            }
+            else if (response.TestType == TestType.StreamingBatch.ToString())
+            {
+                OnStreamingBatchReceived?.Invoke(response);
+            }
+        }
+    }
     
 }

@@ -47,8 +47,10 @@ message StreamLatencyMeasurementsRequest
 
 message StreamLatencyMeasurementsResponse
 {
-  bool success = 1;
-  string message = 2;
+  string TestType = 1;
+  double Latency = 2;
+  bool success = 3;
+  string message = 4;
 }
 
 enum TestType

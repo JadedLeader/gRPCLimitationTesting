@@ -12,6 +12,8 @@
         public int MultiClientChannels { get; set; }
         
         public bool IsSingleClientTesting { get; set; }
+        
+        public string SessionRunUnique { get; set; }
 
     }
 }

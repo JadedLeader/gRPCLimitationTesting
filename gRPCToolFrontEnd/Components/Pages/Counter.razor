@@ -19,7 +19,7 @@
 @inject GlobalSettings GlobalSettings
 @inject LowStressMultiClientRequestTimingStorage MultiClientLowStressStorage
 @inject MediumStressMultiClientRequestTimingStorage MultiClientMediumStressStorage
-@inject HighStressMutliClientRequestTimingStorage MultiClientHighStressStorage
+@inject HighStressMutliClientRequestTimingStorage MultiClientHighStressStorage 
 @inject StressTestingPersistenceService StressTestingPersistenceService
 
 <PageTitle>Real-Time display</PageTitle>
@@ -28,12 +28,12 @@
     <MudGrid Class="d-flex justify-end align-center" Style="margin-bottom: 20px;">
         
         <MudItem>
-            <MudSelect T="string" Label="Saved Runs" MultiSelection="false"  Style="margin-right: 20px; min-width: 200px;" 
-                       Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Refresh" OnAdornmentClick="@RefreshSavedPresets" >
+            <MudSelect T="string" Label="Saved Runs" MultiSelection="false" Value="@_savedPreset" ValueChanged="@LoadingSavedPresetLatency"  Style="margin-right: 20px; min-width: 200px;" 
+                       Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Refresh" OnAdornmentClick="@RefreshSavedPresets">
 
                 @foreach (var savedPresets in _savedPresetNames)
                 {
-                    <MudSelectItem T="string" Value="@savedPresets">@savedPresets</MudSelectItem>
+                    <MudSelectItem T="string" Value="@savedPresets.Value" >@savedPresets.Key</MudSelectItem>
                 }
 
             </MudSelect>
@@ -194,7 +194,9 @@
         "High stress"
     };
 
-    private List<string> _savedPresetNames = new();
+    private Dictionary<string, string> _savedPresetNames = new();
+
+    private string _savedPreset;
 
     private string _presetName;
 
@@ -268,7 +270,6 @@
         _StressLevelValue = GlobalSettings.StressTestingPreset;
         _AmountOfChannels = GlobalSettings.SingleClientChannels;
         
-        //MAKING IT SO THAT THE PAGE LOADS FROM THE GLOBALS FOR THE SWAPPY THING
         _switchModes = GlobalSettings.IsSingleClientTesting;
 
         _series.Add(_chart1);
@@ -308,6 +309,8 @@
         StressTestingPersistenceService.OnSessionRunResponse += HandleSessionRunReceived;
         
         StressTestingPersistenceService.StartReceivingSessionRuns();
+        
+        //create the message handlers for receiving the varying latency measurements based off their test types below
 
         await base.OnInitializedAsync();
     }
@@ -491,6 +494,14 @@
         await AdminService.ClearServerSideLists(GlobalSettings.CurrentLocalHost);
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadingSavedPresetLatency(string currentSavedPreset)
+    {
+        _savedPreset = currentSavedPreset; 
+        
+        Log.Information($"Saved preset currently in use: {_savedPreset}");
+        
     }
 
     private async Task StressFlow(string stressLevelValue)
@@ -798,8 +809,8 @@
 
         await InvokeAsync(async () =>
         {
-            _savedPresetNames.Add(streamSessionRunResponse.PresetName);
-
+            _savedPresetNames.Add(streamSessionRunResponse.PresetName, streamSessionRunResponse.SessionRunId);
+            
             StateHasChanged();
             
         });
@@ -808,6 +819,7 @@
 
     private void RefreshSavedPresets()
     {
+        _savedPresetNames.Clear();
         
         Log.Information($"Refreshing saved presets");
         
