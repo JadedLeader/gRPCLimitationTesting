@@ -77,8 +77,11 @@ public class StressTestingPersistenceService : IStressTestingPersistenceService
 
     public async Task StreamLatencyMeasurements(StreamLatencyMeasurementsRequest request, IServerStreamWriter<StreamLatencyMeasurementsResponse> responseStream, ServerCallContext context)
     {
-        List<LatencyMeasurementInformation> latencyMeasurements = new List<LatencyMeasurementInformation>();
-
+        List<LatencyMeasurementInformation> latencyMeasurements =
+            await _latencyMeasurementsRepo.GetLatencyMeasurementsViaSessionRunId(request.SessionRunUnique);
+        
+        
+        
         StreamLatencyMeasurementsResponse serverResponse = new StreamLatencyMeasurementsResponse();
 
         if (latencyMeasurements.Count == 0)
@@ -86,9 +89,13 @@ public class StressTestingPersistenceService : IStressTestingPersistenceService
             serverResponse.Success = false;
             serverResponse.Message = "No latency measurements found";
         }
-
+        
+        
         foreach (var latency in latencyMeasurements)
         {
+            
+            Log.Information($"Sending type {latency.TestType} with latency: {latency.Latency} to the front end ");
+            
            serverResponse.TestType = latency.TestType;
            serverResponse.Latency = latency.Latency;
            serverResponse.Success = true;

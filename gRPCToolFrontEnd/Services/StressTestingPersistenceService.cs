@@ -14,13 +14,15 @@ public class StressTestingPersistenceService
     private readonly GlobalSettings _globalSettings;
 
     public List<SaveSessionPointRequest> CollatedDelays = new();
+
+    public List<double> UnarySingle = new();
+    public List<double> UnaryBatch = new();
+    public List<double> StreamingSingle = new();
+    public List<double> StreamingBatch = new();
     
     public event Action<StreamSessionRunResponse> OnSessionRunResponse;
 
-    public event Action<StreamLatencyMeasurementsResponse> OnUnaryBatchReceived;
-    public event Action<StreamLatencyMeasurementsResponse> OnUnarySingleReceived; 
-    public event Action<StreamLatencyMeasurementsResponse> OnStreamingSingleReceived;
-    public event Action<StreamLatencyMeasurementsResponse> OnStreamingBatchReceived;
+    public event Action<StreamLatencyMeasurementsResponse> OnLatencyMeasurementsReceived;
     
     public StressTestingPersistenceService(ClientHelper clientHelper, GlobalSettings globalSettings)
     {
@@ -102,7 +104,6 @@ public class StressTestingPersistenceService
         
         var call = newClient.StreamSessionRuns(newRunRequest); 
         
-        
         while(await call.ResponseStream.MoveNext())
         {
             var response = call.ResponseStream.Current;
@@ -138,22 +139,7 @@ public class StressTestingPersistenceService
         {
             var response = call.ResponseStream.Current;
 
-            if (response.TestType == TestType.UnarySingle.ToString())
-            {
-                OnUnarySingleReceived?.Invoke(response);
-            }
-            else if (response.TestType == TestType.UnaryBatch.ToString())
-            {
-                OnUnaryBatchReceived?.Invoke(response);
-            }
-            else if (response.TestType == TestType.StreamingSingle.ToString())
-            {
-                OnStreamingSingleReceived?.Invoke(response);
-            }
-            else if (response.TestType == TestType.StreamingBatch.ToString())
-            {
-                OnStreamingBatchReceived?.Invoke(response);
-            }
+            OnLatencyMeasurementsReceived?.Invoke(response);
         }
     }
     

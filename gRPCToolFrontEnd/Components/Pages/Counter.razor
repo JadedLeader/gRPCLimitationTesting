@@ -307,11 +307,14 @@
         UtilitiesService.StartReceivingStreamingBatchMessages(newStreamingBatchDelay, sessionUnique);
 
         StressTestingPersistenceService.OnSessionRunResponse += HandleSessionRunReceived;
+
+        if (GlobalSettings.CurrentSavedPresetName != string.Empty)
+        {
+            await LoadingSavedPresetLatency(GlobalSettings.CurrentSavedPresetName);
+        }
         
         StressTestingPersistenceService.StartReceivingSessionRuns();
         
-        //create the message handlers for receiving the varying latency measurements based off their test types below
-
         await base.OnInitializedAsync();
     }
 
@@ -498,9 +501,23 @@
 
     private async Task LoadingSavedPresetLatency(string currentSavedPreset)
     {
-        _savedPreset = currentSavedPreset; 
+        _savedPreset = currentSavedPreset;
+
+        GlobalSettings.CurrentSavedPresetName = _savedPreset;
         
-        Log.Information($"Saved preset currently in use: {_savedPreset}");
+        Log.Information($"CURRENT SESSION RUN UNIQUE {_savedPreset}");
+
+        if (_delays.Count > 0 || _streamingSingleDelays.Count > 0 || _UnarySingleDelays.Count > 0 || _UnaryBatchDelays.Count > 0)
+        {
+            await ClearRequestResults();
+        }
+
+        StressTestingPersistenceService.OnLatencyMeasurementsReceived -= HandleLatencyMeasurementsReceived;
+
+        StressTestingPersistenceService.OnLatencyMeasurementsReceived += HandleLatencyMeasurementsReceived;
+        
+        StressTestingPersistenceService.StartReceivingLatencyMeasurements(_savedPreset);
+        
         
     }
 
@@ -809,7 +826,7 @@
 
         await InvokeAsync(async () =>
         {
-            _savedPresetNames.Add(streamSessionRunResponse.PresetName, streamSessionRunResponse.SessionRunId);
+            _savedPresetNames.TryAdd(streamSessionRunResponse.PresetName, streamSessionRunResponse.SessionRunId);
             
             StateHasChanged();
             
@@ -829,9 +846,88 @@
         
         StressTestingPersistenceService.StartReceivingSessionRuns();
     }
+    
 
+    private async void HandleLatencyMeasurementsReceived(StreamLatencyMeasurementsResponse latencyMeasurements)
+    {
+        await InvokeAsync(async () =>
+        {
+            var testType = latencyMeasurements.TestType;
+            var latencyMs = latencyMeasurements.Latency;
 
+            if (testType == nameof(TestType.StreamingBatch))
+            {
+                Log.Information($"front end received result");
 
+                _delays.Add(latencyMs);
+                if (_delays.Count > MaxDataPoints) _delays.RemoveAt(0);
+
+                _series = new List<ChartSeries>
+                {
+                    new ChartSeries
+                    {
+                        Name = "Batch Streaming Delay(s)",
+                        Data = _delays.ToArray()
+                    }
+                };
+            }
+            else if (testType == nameof(TestType.StreamingSingle))
+            {
+
+                Log.Information($"front end received result");
+                _streamingSingleDelays.Add(latencyMs);
+                if (_streamingSingleDelays.Count > MaxDataPoints) _streamingSingleDelays.RemoveAt(0);
+
+                _series2 = new List<ChartSeries>
+                {
+                    new ChartSeries
+                    {
+                        Name = "Single Streaming Delay(s)",
+                        Data = _streamingSingleDelays.ToArray()
+                    }
+                };
+
+            }
+            else if (testType == nameof(TestType.UnarySingle))
+            {
+
+                Log.Information($"front end received result");
+                _UnarySingleDelays.Add(latencyMs);
+                if (_UnarySingleDelays.Count > MaxDataPoints) _UnarySingleDelays.RemoveAt(0);
+
+                _series3 = new List<ChartSeries>
+                {
+                    new ChartSeries
+                    {
+                        Name = "Single Unary Delay(s)",
+                        Data = _UnarySingleDelays.ToArray()
+                    }
+                };
+
+            }
+            else if (testType == nameof(TestType.UnaryBatch))
+            {
+                Log.Information($"front end received result");
+
+                _UnaryBatchDelays.Add(latencyMs);
+                if (_UnaryBatchDelays.Count > MaxDataPoints) _UnaryBatchDelays.RemoveAt(0);
+
+                _series4 = new List<ChartSeries>
+                {
+                    new ChartSeries
+                    {
+                        Name = "Unary Batch Delay(s)",
+                        Data = _UnaryBatchDelays.ToArray()
+                    }
+                };
+
+            }
+
+            StateHasChanged();
+        });
+
+    }
+    
     public void Dispose()
     {
         // UtilitiesService.OnBatchReceived -= HandleBatchRequestReceived;

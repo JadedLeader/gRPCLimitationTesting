@@ -14,6 +14,8 @@
         public bool IsSingleClientTesting { get; set; }
         
         public string SessionRunUnique { get; set; }
+        
+        public string CurrentSavedPresetName { get; set; }
 
     }
 }
