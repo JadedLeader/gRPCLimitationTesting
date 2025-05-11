@@ -35,7 +35,9 @@ public class SessionRunsRepo : RepositoryAbstract<SessionRuns>,  ISessionRunsRep
             .Select(x => new SessionRunInformation
             {
                 PresetName = x.PresetName,
-                SessionsRunId = x.SessionsRunId
+                SessionsRunId = x.SessionsRunId,
+                OverarchingPresetName = x.OverarchingPresetName,
+                
             })
             .ToListAsync();
 
@@ -46,8 +48,23 @@ public class SessionRunsRepo : RepositoryAbstract<SessionRuns>,  ISessionRunsRep
 
         return sessionRuns;
 
-    } 
+    }
 
+    public async Task<List<string>> GetSessionRunIds(string overarchingPresetName)
+    {
+        var sessionRunIdsForOverarching = _dataContexts.SessionRuns
+            .Where(x => x.OverarchingPresetName == overarchingPresetName)
+            .Select(x => x.SessionsRunId.ToString())
+            .ToList();
+
+        if (sessionRunIdsForOverarching.Count == 0)
+        {
+            return new List<string>();  
+        }
+        
+        return sessionRunIdsForOverarching;
+    }
+    
     public override Task SaveAsync()
     {
         return base.SaveAsync();

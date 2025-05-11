@@ -14,4 +14,7 @@ public interface IStressTestingPersistenceService
     public Task StreamLatencyMeasurements(StreamLatencyMeasurementsRequest request,
         IServerStreamWriter<StreamLatencyMeasurementsResponse> responseStream, ServerCallContext context);
 
+    public Task StreamMultipleLatencies(StreamSessionRunIdsRequest request,
+        IServerStreamWriter<StreamSessionRunIdsResponse> responseStream, ServerCallContext context);
+
 }

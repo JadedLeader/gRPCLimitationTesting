@@ -5,4 +5,6 @@ public class SessionRunInformation
     public string PresetName { get; set; }
     
     public Guid SessionsRunId { get; set; } 
+    
+    public string OverarchingPresetName { get; set; }
 }

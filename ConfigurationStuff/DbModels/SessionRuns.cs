@@ -12,6 +12,9 @@ public class SessionRuns
     
     [Required]
     public string PresetName { get; set;  }
+    
+    [Required]
+    public string OverarchingPresetName { get; set; }
 
     [Required] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

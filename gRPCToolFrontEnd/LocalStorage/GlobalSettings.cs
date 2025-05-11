@@ -16,6 +16,8 @@
         public string SessionRunUnique { get; set; }
         
         public string CurrentSavedPresetName { get; set; }
+        
+        public string OverarchingPresetName { get; set; }
 
     }
 }

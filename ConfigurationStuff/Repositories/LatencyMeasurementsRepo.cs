@@ -41,12 +41,33 @@ public class LatencyMeasurementsRepo :  RepositoryAbstract<LatencyMeasurements>,
             {
                 TestType = x.TestType,
                 Latency = x.Latency,
+                ClientType = x.ClientType, 
+                StressLevel = x.StressLevel
             })
             .ToListAsync();
 
         if (latencies.Count == 0)
         {
             return new List<LatencyMeasurementInformation>();
+        }
+        
+        return latencies;
+    }
+
+    public async Task<List<LatencyMeasurementInformation>> GetLatencyMeasurementsViaSessionRunId(List<string> sessionRunIds)
+    {
+        List<LatencyMeasurementInformation> latencies = new List<LatencyMeasurementInformation>();
+        
+        foreach (var sessionRunId in sessionRunIds)
+        {
+           List<LatencyMeasurementInformation> batch = await  GetLatencyMeasurementsViaSessionRunId(sessionRunId);
+           
+           latencies.AddRange(batch);
+        }
+
+        if (latencies.Count == 0)
+        {
+            return new List<LatencyMeasurementInformation>();   
         }
         
         return latencies;

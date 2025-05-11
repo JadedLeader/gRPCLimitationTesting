@@ -4,6 +4,7 @@ using ConfigurationStuff.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ConfigurationStuff.Migrations
 {
     [DbContext(typeof(DataContexts))]
-    partial class DataContextsModelSnapshot : ModelSnapshot
+    [Migration("20250511171423_AddingOverarchingPresetNamesToSessionRunsTable")]
+    partial class AddingOverarchingPresetNamesToSessionRunsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -145,10 +148,6 @@ namespace ConfigurationStuff.Migrations
                     b.Property<Guid>("MeasurementUnique")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ClientType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<double>("Latency")
                         .HasColumnType("float");

@@ -18,5 +18,11 @@ public class LatencyMeasurements
     [Required]
     public double Latency { get; set; }
     
+    [Required]
+    public string StressLevel { get; set; }
+    
+    [Required]
+    public string ClientType { get; set; }
+    
     public SessionRuns? SessionRuns { get; set; }
 }

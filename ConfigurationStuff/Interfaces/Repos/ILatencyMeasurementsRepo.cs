@@ -9,5 +9,7 @@ public interface ILatencyMeasurementsRepo
 
     public Task SaveAsync();
 
-    public Task<List<LatencyMeasurementInformation>> GetLatencyMeasurementsViaSessionRunId(string sessionRunId); 
+    public Task<List<LatencyMeasurementInformation>> GetLatencyMeasurementsViaSessionRunId(string sessionRunId);
+
+    public Task<List<LatencyMeasurementInformation>> GetLatencyMeasurementsViaSessionRunId(List<string> sessionRunIds);
 }

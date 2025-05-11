@@ -31,12 +31,11 @@ public class StressTestingPersistenceService : IStressTestingPersistenceService
 
         SessionRuns sessionRun = null;
         
-        while (!context.CancellationToken.IsCancellationRequested)
-        {
+       
             await foreach (var response in requestStream.ReadAllAsync())
             {
 
-                if (sessionRun == null)
+                if (sessionRun == null )
                 {
                     sessionRun = await AddToSessionsRuns(response);
                 }
@@ -45,7 +44,6 @@ public class StressTestingPersistenceService : IStressTestingPersistenceService
                 
             }
             
-        }
         
         return serverResponse;
         
@@ -69,6 +67,7 @@ public class StressTestingPersistenceService : IStressTestingPersistenceService
            serverResponse.SessionRunId = sessionRun.SessionsRunId.ToString();
            serverResponse.Success = true;
            serverResponse.Message = "";
+           serverResponse.OverarchingPresetName = sessionRun.OverarchingPresetName;
            
            await responseStream.WriteAsync(serverResponse);
        }
@@ -79,8 +78,6 @@ public class StressTestingPersistenceService : IStressTestingPersistenceService
     {
         List<LatencyMeasurementInformation> latencyMeasurements =
             await _latencyMeasurementsRepo.GetLatencyMeasurementsViaSessionRunId(request.SessionRunUnique);
-        
-        
         
         StreamLatencyMeasurementsResponse serverResponse = new StreamLatencyMeasurementsResponse();
 
@@ -105,6 +102,27 @@ public class StressTestingPersistenceService : IStressTestingPersistenceService
         }
     }
 
+    public async Task StreamMultipleLatencies(StreamSessionRunIdsRequest request, IServerStreamWriter<StreamSessionRunIdsResponse> responseStream, ServerCallContext context)
+    {
+        List<string> sessionRunIds = await _sessionRunsRepo.GetSessionRunIds(request.OverarchingPresetName);
+
+        List<LatencyMeasurementInformation> latencies = await _latencyMeasurementsRepo.GetLatencyMeasurementsViaSessionRunId(sessionRunIds);
+
+        foreach (var sessionRun in latencies)
+        {
+            StreamSessionRunIdsResponse serverResponse = new StreamSessionRunIdsResponse()
+            {
+                TestType = sessionRun.TestType,
+                Latency = sessionRun.Latency, 
+                ClientType = sessionRun.ClientType, 
+                StressLevel = sessionRun.StressLevel,
+               
+            }; 
+            
+            await responseStream.WriteAsync(serverResponse);
+        }
+    }
+
     private async Task<SessionRuns> AddToSessionsRuns(SaveSessionPointRequest saveSessionPoint)
     {
         
@@ -113,7 +131,8 @@ public class StressTestingPersistenceService : IStressTestingPersistenceService
             SessionsRunId = Guid.NewGuid(),
             SessionUnique = Guid.Parse(saveSessionPoint.SessionUnique),
             PresetName = saveSessionPoint.PresetName,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            OverarchingPresetName = saveSessionPoint.OverarchingPresetName
         };
         
         await _sessionRunsRepo.AddToDbAsync(sessionRun);
@@ -132,7 +151,9 @@ public class StressTestingPersistenceService : IStressTestingPersistenceService
             SessionUnique = Guid.Parse(saveSessionPoint.SessionUnique),
             TestType = saveSessionPoint.TestType.ToString(),
             Latency = saveSessionPoint.LatencyValue,
-            SessionRuns = sessionRun
+            SessionRuns = sessionRun, 
+            StressLevel = saveSessionPoint.StressLevel.ToString(),
+            ClientType = saveSessionPoint.ClientType.ToString()
         };
 
         await _latencyMeasurementsRepo.AddToDbAsync(newLatencyMeasurement);

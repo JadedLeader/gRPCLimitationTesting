@@ -24,6 +24,8 @@ public class StressTestingPersistenceService
 
     public event Action<StreamLatencyMeasurementsResponse> OnLatencyMeasurementsReceived;
     
+    public event Action<StreamSessionRunIdsResponse> OnSessionRunIdsReceived;
+    
     public StressTestingPersistenceService(ClientHelper clientHelper, GlobalSettings globalSettings)
     {
         _clientHelper = clientHelper;
@@ -45,12 +47,14 @@ public class StressTestingPersistenceService
 
         foreach (var delay in CollatedDelays)
         {
-            Log.Information($"SENDING DELAY VALUE {delay} to the backend of type {delay.TestType}");
+            Log.Information($"SENDING DELAY VALUE {delay} to the backend of type {delay.TestType} on stress level {delay.StressLevel}");
             
             await call.RequestStream.WriteAsync(delay);
         }
 
         await call.RequestStream.CompleteAsync();
+        
+        CollatedDelays.Clear();
 
     }
 
@@ -60,19 +64,24 @@ public class StressTestingPersistenceService
         
         foreach (var delay in delayValues)
         {
+            string presetLevel = stressLevel.ToString();
+            
             SaveSessionPointRequest newSavePoint = new SaveSessionPointRequest()
             {
                 SessionUnique = sessionUnique,
-                PresetName = presetName,
+                PresetName = presetName + $"{presetLevel}",
                 TestType = testType,
                 LatencyValue = delay,
                 StressLevel = stressLevel,
-                ClientType = clientType
+                ClientType = clientType, 
+                OverarchingPresetName = presetName
             }; 
             
             CollatedDelays.Add(newSavePoint);
         }
     }
+
+   
 
     public void StartReceivingSessionRuns()
     {
@@ -82,6 +91,11 @@ public class StressTestingPersistenceService
     public void StartReceivingLatencyMeasurements(string sessionRunUnique)
     {
         Task.Run(() => ReceivingTestTypesAndLatency(sessionRunUnique));
+    }
+
+    public void StartReceivingAllLatenciesFromOverarchingPreset(string overarchingPresetName)
+    {
+        Task.Run(() => RetrieveLatenciesFromOverarchingSession(overarchingPresetName));
     }
 
     private async Task ReceivingSessionRunPresetNames()
@@ -140,6 +154,31 @@ public class StressTestingPersistenceService
             var response = call.ResponseStream.Current;
 
             OnLatencyMeasurementsReceived?.Invoke(response);
+        }
+    }
+    
+    private async Task RetrieveLatenciesFromOverarchingSession(string overarchingPresetName)
+    {
+        var newChannel = GrpcChannel.ForAddress(_globalSettings.CurrentLocalHost,  new GrpcChannelOptions
+        {
+            MaxSendMessageSize = 100 * 1024 * 1024, 
+            MaxReceiveMessageSize = 100 * 1024 * 1024,
+        });
+        
+        StressTestingPersistence.StressTestingPersistenceClient newStressTestingClient = new StressTestingPersistence.StressTestingPersistenceClient(newChannel);
+
+        StreamSessionRunIdsRequest newRequest = new StreamSessionRunIdsRequest()
+        {
+            OverarchingPresetName = overarchingPresetName
+        };
+
+        var call = newStressTestingClient.StreamMultipleLatencies(newRequest);
+
+        while (await call.ResponseStream.MoveNext())
+        {
+            var response = call.ResponseStream.Current;
+            
+            OnSessionRunIdsReceived?.Invoke(response);
         }
     }
     

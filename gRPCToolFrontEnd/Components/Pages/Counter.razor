@@ -1,6 +1,7 @@
 ﻿@using System.Collections.Concurrent
 @using Grpc.Net.Client
 @using gRPCToolFrontEnd.Components.Layout
+@using gRPCToolFrontEnd.DataTypes.ChartDataTypes
 @using gRPCToolFrontEnd.LocalStorage
 @using gRPCToolFrontEnd.Services
 @using Serilog
@@ -28,19 +29,28 @@
     <MudGrid Class="d-flex justify-end align-center" Style="margin-bottom: 20px;">
         
         <MudItem>
-            <MudSelect T="string" Label="Saved Runs" MultiSelection="false" Value="@_savedPreset" ValueChanged="@LoadingSavedPresetLatency"  Style="margin-right: 20px; min-width: 200px;" 
-                       Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.Refresh" OnAdornmentClick="@RefreshSavedPresets">
-
-                @foreach (var savedPresets in _savedPresetNames)
+            <MudTreeView T="PresetItem" Dense="true" ExpandAll="false">
+                @foreach (var groups in _allPresets.GroupBy(p => p.Overarching))
                 {
-                    <MudSelectItem T="string" Value="@savedPresets.Value" >@savedPresets.Key</MudSelectItem>
+                    <MudTreeViewItem Text="@groups.Key"
+                                     Icon="@Icons.Material.Filled.Folder"
+                                     Expanded="false"
+                                     @onclick="(() => SaveOverarchingPresets(groups.Key)) ">
+                        
+                        @foreach (var leaf in groups)
+                        {
+                            <MudTreeViewItem Text="@leaf.PresetName"
+                                             Icon="@Icons.Material.Filled.Label"
+                                             OnClick="@(() => LoadingSavedPresetLatency(leaf.SessionRunId))"/>
+                        }
+                        
+                    </MudTreeViewItem>
                 }
-
-            </MudSelect>
+            </MudTreeView>
         </MudItem>
         
         <MudItem>
-            <MudTextField T="string" @bind-Value="_presetName" Immediate="true" Label="Input preset name: "></MudTextField>
+            <MudTextField T="string" @bind-Value="_presetName" Immediate="true" Label="Input Overarching Preset Name: "></MudTextField>
         </MudItem>
         
         <MudItem>
@@ -195,6 +205,10 @@
     };
 
     private Dictionary<string, string> _savedPresetNames = new();
+
+    private List<string> _overarchingPresetNames = new List<string>();
+
+    private readonly List<PresetItem> _allPresets = new();
 
     private string _savedPreset;
 
@@ -502,6 +516,8 @@
     private async Task LoadingSavedPresetLatency(string currentSavedPreset)
     {
         _savedPreset = currentSavedPreset;
+        
+        Log.Information($"Session run ID currently {_savedPreset}");
 
         GlobalSettings.CurrentSavedPresetName = _savedPreset;
         
@@ -519,6 +535,120 @@
         StressTestingPersistenceService.StartReceivingLatencyMeasurements(_savedPreset);
         
         
+    }
+
+    private async Task SaveOverarchingPresets(string OverarchingPresetName)
+    {
+        
+        GlobalSettings.OverarchingPresetName = OverarchingPresetName;
+
+        StressTestingPersistenceService.OnSessionRunIdsReceived -= HandleSessionRunIdsReceived;
+
+        StressTestingPersistenceService.OnSessionRunIdsReceived += HandleSessionRunIdsReceived;
+        
+        StressTestingPersistenceService.StartReceivingAllLatenciesFromOverarchingPreset(GlobalSettings.OverarchingPresetName);
+        
+        Log.Information($"OVERARCHING HAS BEEN SELECTED loading results ");
+    }
+
+    private async void HandleSessionRunIdsReceived(StreamSessionRunIdsResponse sessionRunIds)
+    {
+           await InvokeAsync(() =>
+           {
+                string testType  = sessionRunIds.TestType;
+                double latency  = sessionRunIds.Latency;
+                string clientType = sessionRunIds.ClientType;
+                string stressLevel = sessionRunIds.StressLevel;
+                
+                var one = new List<double> { latency };
+                
+                Log.Information($"Session run received type {testType} with client type : {clientType} and stress level : {stressLevel}");
+                
+                if (clientType == ClientType.SingleClient.ToString())
+                {
+                    if (stressLevel == StressLevel.Low.ToString())
+                    {
+                        if (testType == TestType.StreamingBatch.ToString())
+                            LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressStreamingBatch, one);
+                        else if (testType == TestType.StreamingSingle.ToString())
+                            LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressStreamingSingle, one);
+                        else if (testType == TestType.UnarySingle.ToString())
+                            LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressUnarySingle, one);
+                        else if (testType == TestType.UnaryBatch.ToString())
+                            LowStressStorage.CopyRequestToStorage(LowStressStorage.LowStressUnaryBatch, one);
+                    }
+                    else if (stressLevel == StressLevel.Medium.ToString())
+                    {
+                        if (testType == TestType.StreamingBatch.ToString())
+                            MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressStreamingBatch, one);
+                        else if (testType == TestType.StreamingSingle.ToString())
+                            MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressStreamingSingle, one);
+                        else if (testType == TestType.UnarySingle.ToString())
+                            MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressUnarySingle, one);
+                        else if (testType == TestType.UnaryBatch.ToString())
+                            MediumStressStorage.CopyRequestToStorage(MediumStressStorage.MediumStressUnaryBatch, one);
+                    }
+                    else if (stressLevel == StressLevel.High.ToString())
+                    {
+                        if (testType == TestType.StreamingBatch.ToString())
+                            HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressStreamingBatch, one);
+                        else if (testType == TestType.StreamingSingle.ToString())
+                            HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressStreamingSingle, one);
+                        else if (testType == TestType.UnarySingle.ToString())
+                            HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressUnarySingle, one);
+                        else if (testType == TestType.UnaryBatch.ToString())
+                            HighStressStorage.CopyRequestToStorage(HighStressStorage.HighStressUnaryBatch, one);
+                    }
+                }
+                else if (clientType == ClientType.MultiClient.ToString())
+                {
+                    if (stressLevel == StressLevel.Low.ToString())
+                    {
+                        if (testType == TestType.StreamingBatch.ToString())
+                            MultiClientLowStressStorage.CopyRequestToStorage(
+                                MultiClientLowStressStorage.LowStressStreamingBatch, one);
+                        else if (testType == TestType.StreamingSingle.ToString())
+                            MultiClientLowStressStorage.CopyRequestToStorage(
+                                MultiClientLowStressStorage.LowStressStreamingSingle, one);
+                        else if (testType == TestType.UnarySingle.ToString())
+                            MultiClientLowStressStorage.CopyRequestToStorage(
+                                MultiClientLowStressStorage.LowStressUnarySingle, one);
+                        else if (testType == TestType.UnaryBatch.ToString())
+                            MultiClientLowStressStorage.CopyRequestToStorage(
+                                MultiClientLowStressStorage.LowStressUnaryBatch, one);
+                    }
+                    else if (stressLevel == StressLevel.Medium.ToString())
+                    {
+                        if (testType == TestType.StreamingBatch.ToString())
+                            MultiClientMediumStressStorage.CopyRequestToStorage(
+                                MultiClientMediumStressStorage.MediumStressStreamingBatch, one);
+                        else if (testType == TestType.StreamingSingle.ToString())
+                            MultiClientMediumStressStorage.CopyRequestToStorage(
+                                MultiClientMediumStressStorage.MediumStressStreamingSingle, one);
+                        else if (testType == TestType.UnarySingle.ToString())
+                            MultiClientMediumStressStorage.CopyRequestToStorage(
+                                MultiClientMediumStressStorage.MediumStressUnarySingle, one);
+                        else if (testType == TestType.UnaryBatch.ToString())
+                            MultiClientMediumStressStorage.CopyRequestToStorage(
+                                MultiClientMediumStressStorage.MediumStressUnaryBatch, one);
+                    }
+                    else if (stressLevel == StressLevel.High.ToString())
+                    {
+                        if (testType == TestType.StreamingBatch.ToString())
+                            MultiClientHighStressStorage.CopyRequestToStorage(
+                                MultiClientHighStressStorage.HighStressStreamingBatch, one);
+                        else if (testType == TestType.StreamingSingle.ToString())
+                            MultiClientHighStressStorage.CopyRequestToStorage(
+                                MultiClientHighStressStorage.HighStressStreamingSingle, one);
+                        else if (testType == TestType.UnarySingle.ToString())
+                            MultiClientHighStressStorage.CopyRequestToStorage(
+                                MultiClientHighStressStorage.HighStressUnarySingle, one);
+                        else if (testType == TestType.UnaryBatch.ToString())
+                            MultiClientHighStressStorage.CopyRequestToStorage(
+                                MultiClientHighStressStorage.HighStressUnaryBatch, one);
+                    }
+                }
+           });
     }
 
     private async Task StressFlow(string stressLevelValue)
@@ -827,6 +957,18 @@
         await InvokeAsync(async () =>
         {
             _savedPresetNames.TryAdd(streamSessionRunResponse.PresetName, streamSessionRunResponse.SessionRunId);
+            
+            _overarchingPresetNames.Add(streamSessionRunResponse.OverarchingPresetName);
+
+            if (_allPresets.Any(p => p.SessionRunId == streamSessionRunResponse.SessionRunId))
+                return;
+            
+            _allPresets.Add(new PresetItem()
+            {
+                Overarching = streamSessionRunResponse.OverarchingPresetName, 
+                SessionRunId = streamSessionRunResponse.SessionRunId, 
+                PresetName = streamSessionRunResponse.PresetName
+            });
             
             StateHasChanged();
             

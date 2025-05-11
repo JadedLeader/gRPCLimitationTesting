@@ -36,4 +36,10 @@ public class StressTestingPersistenceImplementation : StressTestingPersistence.S
     {
         await _stressTestingPersistenceService.StreamLatencyMeasurements(request, responseStream, context);
     }
+
+    public override async Task StreamMultipleLatencies(StreamSessionRunIdsRequest request, IServerStreamWriter<StreamSessionRunIdsResponse> responseStream,
+        ServerCallContext context)
+    {
+        await _stressTestingPersistenceService.StreamMultipleLatencies(request, responseStream, context);
+    }
 }

@@ -7,6 +7,7 @@ service StressTestingPersistence
   rpc SaveSession(stream SaveSessionPointRequest) returns (SaveSessionPointResponse);
   rpc StreamSessionRuns(StreamSessionRunRequest) returns (stream StreamSessionRunResponse);
   rpc StreamLatencyMeasurements(StreamLatencyMeasurementsRequest) returns (stream StreamLatencyMeasurementsResponse);
+  rpc StreamMultipleLatencies(StreamSessionRunIdsRequest) returns (stream StreamSessionRunIdsResponse);
 }
 
 message SaveSessionPointRequest
@@ -17,6 +18,7 @@ message SaveSessionPointRequest
   double latencyValue = 4;
   StressLevel stressLevel = 5;
   ClientType clientType = 6;
+  string OverarchingPresetName = 7;
 }
 
 message SaveSessionPointResponse
@@ -36,6 +38,7 @@ message StreamSessionRunResponse
   string sessionRunId = 2;
   bool success = 3; 
   string message = 4;
+  string overarchingPresetName = 5;
 }
 
 message StreamLatencyMeasurementsRequest
@@ -50,6 +53,19 @@ message StreamLatencyMeasurementsResponse
   double Latency = 2;
   bool success = 3;
   string message = 4;
+}
+
+message StreamSessionRunIdsRequest
+{ 
+  string OverarchingPresetName = 1;
+}
+
+message StreamSessionRunIdsResponse
+{ 
+  string TestType = 1; 
+  double Latency = 2;
+  string ClientType = 3;
+  string StressLevel = 4;
 }
 
 enum TestType

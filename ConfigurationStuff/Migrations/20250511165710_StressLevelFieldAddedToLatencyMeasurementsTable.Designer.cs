@@ -4,6 +4,7 @@ using ConfigurationStuff.DbContexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ConfigurationStuff.Migrations
 {
     [DbContext(typeof(DataContexts))]
-    partial class DataContextsModelSnapshot : ModelSnapshot
+    [Migration("20250511165710_StressLevelFieldAddedToLatencyMeasurementsTable")]
+    partial class StressLevelFieldAddedToLatencyMeasurementsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -146,10 +149,6 @@ namespace ConfigurationStuff.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("ClientType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<double>("Latency")
                         .HasColumnType("float");
 
@@ -199,10 +198,6 @@ namespace ConfigurationStuff.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("OverarchingPresetName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PresetName")
                         .IsRequired()

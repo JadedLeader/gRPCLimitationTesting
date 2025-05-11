@@ -10,4 +10,6 @@ public interface ISessionRunsRepo
     public Task SaveAsync();
 
     public Task<List<SessionRunInformation>> GetSessionRunsViaSesionUnique(Guid sessionUnique);
+
+    public Task<List<string>> GetSessionRunIds(string overarchingPresetName);
 }
