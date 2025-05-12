@@ -30,6 +30,8 @@
 - MudBlazor
 - Blazored local storage
 
-## Installation Guide:
+## Installation and build guide
+
+
 
 
