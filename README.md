@@ -32,6 +32,18 @@
 
 ## Installation and build guide
 
+Follow these steps to get **only** the `gRPCStressTestingService` and `gRPCToolFrontEnd` projects running locally.
+
+### 1. Prerequisites
+- [.NET 8.0 SDK (or later)](https://dotnet.microsoft.com/download)  
+- [Git](https://git-scm.com/downloads)  
+- A local SQL Server instance (LocalDB, Express, or full SQL Server)  
+- (Optional) JetBrains Rider or Visual Studio 2022+
+
+### 2. Clone the Repository
+```bash
+git clone https://github.com/JadedLeader/gRPCLimitationTesting.git
+cd gRPCLimitationTesting
 
 
 
