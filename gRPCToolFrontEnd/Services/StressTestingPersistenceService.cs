@@ -14,11 +14,6 @@ public class StressTestingPersistenceService
     private readonly GlobalSettings _globalSettings;
 
     public List<SaveSessionPointRequest> CollatedDelays = new();
-
-    public List<double> UnarySingle = new();
-    public List<double> UnaryBatch = new();
-    public List<double> StreamingSingle = new();
-    public List<double> StreamingBatch = new();
     
     public event Action<StreamSessionRunResponse> OnSessionRunResponse;
 

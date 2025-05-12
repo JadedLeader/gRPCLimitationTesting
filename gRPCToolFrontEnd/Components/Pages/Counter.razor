@@ -25,167 +25,186 @@
 
 <PageTitle>Real-Time display</PageTitle>
 
-<MudItem>
-    <MudGrid Class="d-flex justify-end align-center" Style="margin-bottom: 20px;">
-        
-        <MudItem>
-            <MudTreeView T="PresetItem" Dense="true" ExpandAll="false">
+<MudDrawerContainer>
+    
+          <MudDrawer @bind-Open="_drawerOpen"
+                     Variant="DrawerVariant.Persistent"
+                     Anchor="Anchor.Start"
+                     Elevation="1"
+                     Width="280px"
+                     ClipMode="DrawerClipMode.Never"
+                     Class="sidebar">
+
+            <MudToolbar Dense="true" Class="px-2">
+              <MudText Typo="Typo.h6">Saved Presets</MudText>
+            </MudToolbar>
+
+            <div class="preset-list px-2">
+              <MudTreeView T="PresetItem" Dense="true" ExpandAll="false">
                 @foreach (var groups in _allPresets.GroupBy(p => p.Overarching))
                 {
-                    <MudTreeViewItem Text="@groups.Key"
-                                     Icon="@Icons.Material.Filled.Folder"
-                                     Expanded="false"
-                                     @onclick="(() => SaveOverarchingPresets(groups.Key)) ">
-                        
-                        @foreach (var leaf in groups)
-                        {
-                            <MudTreeViewItem Text="@leaf.PresetName"
-                                             Icon="@Icons.Material.Filled.Label"
-                                             OnClick="@(() => LoadingSavedPresetLatency(leaf.SessionRunId))"/>
-                        }
-                        
-                    </MudTreeViewItem>
-                }
-            </MudTreeView>
-        </MudItem>
-        
-        <MudItem>
-            <MudTextField T="string" @bind-Value="_presetName" Immediate="true" Label="Input Overarching Preset Name: "></MudTextField>
-        </MudItem>
-        
-        <MudItem>
-            <MudSwitch T="bool" Value="_switchModes" ValueChanged="@TestingStateChanged" Color="Color.Primary">Mode: @(_switchModes ? "Single-Client" : "Multi-client")</MudSwitch>
-        </MudItem>
-        
-        <MudItem>
-            <MudTooltip Text="This button allows for the saving of graph results, based on the currently selected stress preset">
-                <MudButton @onclick="@SaveResults">Save Graphed Results</MudButton>
-            </MudTooltip>
-        </MudItem>
-
-        <MudItem>
-            <MudTooltip Text="This button allows for the clearance of request results, removing all plots on the below graphs">
-                <MudButton @onclick="@ClearRequestResults">Clear Request Results</MudButton>
-            </MudTooltip>
-        </MudItem>
-
-        @if (GlobalSettings.SingleClientChannels > 0 || GlobalSettings.MultiClientChannels > 0)
-        {
-            <MudItem>
-                <MudSelect T="string" Label="Stress levels" MultiSelection="false" Value="@_StressLevelValue" ValueChanged="@StressFlow" Style="margin-right: 20px; min-width: 200px;">
-
-                    @foreach (var settings in StressLevels)
+                  <MudTreeViewItem Text="@groups.Key"
+                                   Icon="@Icons.Material.Filled.Folder"
+                                   Expanded="false"
+                                   @onclick="() => SaveOverarchingPresets(groups.Key)">
+                    @foreach (var leaf in groups)
                     {
-                        <MudSelectItem T="string" Value="@settings">@settings</MudSelectItem>
+                      <MudTreeViewItem Text="@leaf.PresetName"
+                                       Icon="@Icons.Material.Filled.Label"
+                                       OnClick="() => LoadingSavedPresetLatency(leaf.SessionRunId)" />
                     }
+                  </MudTreeViewItem>
+                }
+              </MudTreeView>
+            </div>
 
+            <div class="px-2 mb-4">
+              <MudTextField T="string"
+                            @bind-Value="_presetName"
+                            Immediate="true"
+                            Label="Overarching Preset Name"
+                            FullWidth="true" />
+
+              <MudSwitch T="bool"
+                         @bind-Checked="_switchModes"
+                         Color="Color.Primary"
+                         Class="mt-4"
+                         ValueChanged="@TestingStateChanged">
+                Mode: @(_switchModes ? "Single-Client" : "Multi-client")
+              </MudSwitch>
+
+              <MudButton Variant="Variant.Filled"
+                         OnClick="SaveResults"
+                         Class="mt-4 mb-2"
+                         FullWidth="true">
+                Save Graphed Results
+              </MudButton>
+
+              <MudButton Variant="Variant.Outlined"
+                         OnClick="ClearRequestResults"
+                         Class="mb-4"
+                         FullWidth="true">
+                Clear Request Results
+              </MudButton>
+
+              @if (GlobalSettings.SingleClientChannels > 0 || GlobalSettings.MultiClientChannels > 0)
+              {
+                <MudSelect T="string"
+                           Label="Stress levels"
+                           Value="@_StressLevelValue"
+                           ValueChanged="@StressFlow"
+                           FullWidth="true">
+                  @foreach (var lvl in StressLevels)
+                  {
+                      <MudSelectItem T="string" Value="@lvl">@lvl</MudSelectItem>
+                  }
+                    
                 </MudSelect>
-            </MudItem>
+              }
+              else
+              {
+                <MudAlert Severity="Severity.Error" Elevation="0" Class="mt-4">
+                  No channels declared — please generate channels to start testing.
+                </MudAlert>
+              }
 
-        }
+              <MudTextField T="int"
+                            @bind-Value="_AmountOfChannels"
+                            Immediate="true"
+                            Label="Number of channels"
+                            Class="mt-4 mb-2"
+                            FullWidth="true" />
 
-        @if (GlobalSettings.SingleClientChannels == 0 && GlobalSettings.MultiClientChannels == 0)
-        {
-            <MudItem>
-                <MudAlert Severity="Severity.Error" ContentAlignment="HorizontalAlignment.Center"> No channels declared, please generate channels to start the stress testing</MudAlert>
-            </MudItem>
-        }
+              <MudButton Variant="Variant.Filled"
+                         OnClick="GeneratingChannels"
+                         FullWidth="true">
+                  Generate Channels
+              </MudButton>
+            </div>
+          </MudDrawer>
 
-        <MudItem>
-            <MudTextField @bind-Value="@_AmountOfChannels" T="int" Label="Number of channels" Style="margin-right: 20px; min-width: 200px;" Immediate="true"></MudTextField>
-        </MudItem>
+          <!-- MAIN CONTENT: toolbar + charts -->
+          <MudMainContent>
+            <MudToolBar Dense="true" Class="px-2">
+              <!-- this chevron always lives at the left edge of your graphs -->
+              <MudIconButton Icon="@(_drawerOpen 
+                                      ? Icons.Material.Filled.ChevronLeft 
+                                      : Icons.Material.Filled.ChevronRight)"
+                             OnClick="ToggleDrawer"
+                             Edge="Edge.Start"
+                             Color="Color.Inherit" />
+              <MudText Typo="Typo.h6">Real-Time display</MudText>
+            </MudToolBar>
 
-        <MudItem>
-            <MudTooltip Text="This button allows for the generation of channels, used within the request process ">
-                <MudButton Style="margin-right: 20px; min-width: 200px;" @onclick="@GeneratingChannels">Generate channels</MudButton>
-            </MudTooltip>
-        </MudItem>
+            <MudGrid Spacing="1" Class="pa-4">
+              <MudItem xs="12" sm="6">
+                <MudPaper Class="MyMudPaper my-paper-with-bottom-padding" Style="height:400px">
+                  <MudText Align="Align.Center">Streaming batch chart</MudText>
+                  <MudChart ChartType="ChartType.Line"
+                            Labels="@_labels"
+                            ChartSeries="@_series"
+                            ChartOptions="@_options"
+                            Style="height:100%;width:100%;" />
+                </MudPaper>
+              </MudItem>
 
-    </MudGrid>
-</MudItem>
+              <MudItem xs="12" sm="6">
+                <MudPaper Class="MyMudPaper my-paper-with-bottom-padding" Style="height:400px">
+                  <MudText Align="Align.Center">Streaming unary chart</MudText>
+                  <MudChart ChartType="ChartType.Line"
+                            Labels="@_StreamingSingleLabels"
+                            ChartSeries="@_series2"
+                            ChartOptions="@_options"
+                            Style="height:100%;width:100%;" />
+                </MudPaper>
+              </MudItem>
 
-<MudGrid Spacing="1" Class="pa-4">
+              <MudItem xs="12" sm="6">
+                <MudPaper Class="MyMudPaper my-paper-with-bottom-padding" Style="height:400px">
+                  <MudText Align="Align.Center">Unary single chart</MudText>
+                  <MudChart ChartType="ChartType.Line"
+                            Labels="@_UnarySingleLabels"
+                            ChartSeries="@_series3"
+                            ChartOptions="@_options"
+                            Style="height:100%;width:100%;" />
+                </MudPaper>
+              </MudItem>
 
-    <MudItem xs="12" sm="6" md="6">
-        <MudPaper Class="MyMudPaper my-paper-with-bottom-padding" Style="height: 400px; width: 100%;">
+              <MudItem xs="12" sm="6">
+                <MudPaper Class="MyMudPaper my-paper-with-bottom-padding" Style="height:400px">
+                  <MudText Align="Align.Center">Unary batch chart</MudText>
+                  <MudChart ChartType="ChartType.Line"
+                            Labels="@_UnaryBatchLabels"
+                            ChartSeries="@_series4"
+                            ChartOptions="@_options"
+                            Style="height:100%;width:100%;" />
+                </MudPaper>
+              </MudItem>
+            </MudGrid>
+          </MudMainContent>
 
-            <MudText Align="Align.Center"> Streaming batch chart </MudText>
-
-            <MudChart ChartType="ChartType.Line"
-                      Labels="@_labels"
-                      ChartSeries="@_series"
-                      ChartOptions="@_options"
-                      Style="height: 100%; width: 100%;" />
-
-        </MudPaper>
-
-
-    </MudItem>
-
-
-    <MudItem xs="12" sm="6" md="6">
-        <MudPaper Class="MyMudPaper my-paper-with-bottom-padding" Style="height: 400px; width: 100%;">
-
-            
-
-            <MudText Align="Align.Center"> Streaming unary chart </MudText>
-
-            <MudChart ChartType="ChartType.Line"
-                      Labels="@_StreamingSingleLabels"
-                      ChartOptions="@_options"
-                      ChartSeries="@_series2"
-                      Style="height: 100%; width: 100%;" />
-        </MudPaper>
-    </MudItem>
-
-
-    <MudItem xs="12" sm="6" md="6">
-        <MudPaper Class="MyMudPaper my-paper-with-bottom-padding" Style="height: 400px; width: 100%;">
-
-           
-
-            <MudText Align="Align.Center"> Unary single chart </MudText>
-
-            <MudChart ChartType="ChartType.Line"
-                      Labels="@_UnarySingleLabels"
-                      ChartOptions="@_options"
-                      ChartSeries="@_series3"
-                      Style="height: 100%; width: 100%;" />
-        </MudPaper>
-    </MudItem>
-
-
-    <MudItem xs="12" sm="6" md="6">
-        <MudPaper Class="MyMudPaper my-paper-with-bottom-padding" Style="height: 400px; width: 100%;">
-
-     
-
-            <MudText Align="Align.Center"> Unary batch chart </MudText>
-
-            <MudChart ChartType="ChartType.Line"
-                      Labels="@_UnaryBatchLabels"
-                      ChartOptions="@_options"
-                      ChartSeries="@_series4"
-                      Style="height: 100%; width: 100%;" />
-        </MudPaper>
-    </MudItem>
-</MudGrid>
+</MudDrawerContainer>
 
 <style>
-
-    .MyMudPaper {
-        background: rgba(0, 0, 0, 0.6);
-        border-radius: 12px;
-        padding: 20px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
-    }
-
-    .my-paper-with-bottom-padding {
-        padding-bottom: 40px;
-        overflow: visible;
-    }
-
+          .sidebar {
+              background: #121212;;
+          }
+          .preset-list {
+            max-height: 50vh;
+            overflow-y: auto;
+            margin-bottom: 16px;
+          }
+          .MyMudPaper {
+            background: rgba(0,0,0,0.6);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+          }
+          .my-paper-with-bottom-padding {
+            padding-bottom: 40px;
+            overflow: visible;
+          }
 </style>
 
 @implements IDisposable
@@ -276,6 +295,13 @@
     private List<double> _streamingSingleDelays = new();
     private List<double> _UnarySingleDelays = new();
     private List<double> _UnaryBatchDelays = new();
+    
+    private bool _drawerOpen = false;
+
+    void ToggleDrawer()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -373,16 +399,16 @@
             Log.Information($"Saving Multi-client low stress results");
 
             MultiClientLowStressStorage.CopyRequestToStorage(MultiClientLowStressStorage.LowStressUnaryBatch, _UnaryBatchDelays);
-           // await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _UnaryBatchDelays, TestType.UnaryBatch, StressLevel.Low, ClientType.MultiClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.UnaryBatch, _UnaryBatchDelays, _presetName, StressLevel.Low, ClientType.MultiClient);
             
             MultiClientLowStressStorage.CopyRequestToStorage(MultiClientLowStressStorage.LowStressUnarySingle, _UnarySingleDelays);
-           // await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _UnarySingleDelays, TestType.UnarySingle, StressLevel.Low, ClientType.MultiClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.UnarySingle, _UnarySingleDelays, _presetName, StressLevel.Low, ClientType.MultiClient);
             
             MultiClientLowStressStorage.CopyRequestToStorage(MultiClientLowStressStorage.LowStressStreamingSingle, _streamingSingleDelays);
-           // await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _streamingSingleDelays, TestType.StreamingSingle, StressLevel.Low, ClientType.MultiClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.StreamingSingle, _streamingSingleDelays, _presetName, StressLevel.Low, ClientType.MultiClient);
             
             MultiClientLowStressStorage.CopyRequestToStorage(MultiClientLowStressStorage.LowStressStreamingBatch, _delays);
-          //  await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _delays, TestType.StreamingBatch, StressLevel.Low, ClientType.MultiClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.StreamingBatch, _delays, _presetName, StressLevel.Low, ClientType.MultiClient);
 
         }
         else if (GlobalSettings.StressTestingPreset == "Medium stress")
@@ -390,37 +416,39 @@
             Log.Information($"Saving Multi-client medium stress results");
 
             MultiClientMediumStressStorage.CopyRequestToStorage(MultiClientMediumStressStorage.MediumStressUnaryBatch, _UnaryBatchDelays);
-          //  await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _UnaryBatchDelays, TestType.UnaryBatch, StressLevel.Medium, ClientType.MultiClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.UnaryBatch, _UnaryBatchDelays, _presetName, StressLevel.Medium, ClientType.MultiClient);
             
             MultiClientMediumStressStorage.CopyRequestToStorage(MultiClientMediumStressStorage.MediumStressUnarySingle, _UnarySingleDelays);
-          //  await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _UnarySingleDelays, TestType.UnarySingle, StressLevel.Medium, ClientType.MultiClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.UnarySingle, _UnarySingleDelays, _presetName, StressLevel.Medium, ClientType.MultiClient);
             
             MultiClientMediumStressStorage.CopyRequestToStorage(MultiClientMediumStressStorage.MediumStressStreamingSingle, _streamingSingleDelays);
-           // await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _streamingSingleDelays, TestType.StreamingSingle, StressLevel.Medium, ClientType.MultiClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.StreamingSingle, _streamingSingleDelays, _presetName, StressLevel.Medium, ClientType.MultiClient);
             
             MultiClientMediumStressStorage.CopyRequestToStorage(MultiClientMediumStressStorage.MediumStressStreamingBatch, _delays);
-           // await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _delays, TestType.StreamingBatch, StressLevel.Medium, ClientType.MultiClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.StreamingBatch, _delays, _presetName, StressLevel.Medium, ClientType.MultiClient);
         }
         else if (GlobalSettings.StressTestingPreset == "High stress")
         {
             Log.Information($"Saving Multi-client high stress results");
 
             MultiClientHighStressStorage.CopyRequestToStorage(MultiClientHighStressStorage.HighStressUnaryBatch, _UnaryBatchDelays);
-           // await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _UnaryBatchDelays, TestType.UnaryBatch, StressLevel.High, ClientType.MultiClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.UnaryBatch, _UnaryBatchDelays, _presetName, StressLevel.High, ClientType.MultiClient);
             
             MultiClientHighStressStorage.CopyRequestToStorage(MultiClientHighStressStorage.HighStressUnarySingle, _UnarySingleDelays);
-          //  await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _UnarySingleDelays, TestType.UnarySingle, StressLevel.High, ClientType.MultiClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.UnarySingle, _UnarySingleDelays, _presetName, StressLevel.High, ClientType.MultiClient);
             
             MultiClientHighStressStorage.CopyRequestToStorage(MultiClientHighStressStorage.HighStressStreamingSingle, _streamingSingleDelays);
-          //  await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _streamingSingleDelays, TestType.StreamingSingle, StressLevel.High, ClientType.MultiClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.StreamingSingle, _streamingSingleDelays, _presetName, StressLevel.High, ClientType.MultiClient);
             
             MultiClientHighStressStorage.CopyRequestToStorage(MultiClientHighStressStorage.HighStressStreamingBatch, _delays);
-           // await StressTestingPersistenceService.DelayPersistenceTransporation(_presetName, _delays, TestType.StreamingBatch, StressLevel.High, ClientType.MultiClient);
+            await StressTestingPersistenceService.CollateAllDelayTypes(TestType.StreamingBatch, _delays, _presetName, StressLevel.High, ClientType.MultiClient);
         }
         else
         {
             Log.Warning($"No stress level preset is currently set in the global settings");
         }
+        
+        await StressTestingPersistenceService.DelayPersistenceTransporation();
     }
 
     private async Task SaveSingleClientResults()
@@ -654,6 +682,8 @@
     private async Task StressFlow(string stressLevelValue)
     {
 
+        await ClearRequestResults();
+        
         _StressLevelValue = stressLevelValue;
 
         GlobalSettings.StressTestingPreset = _StressLevelValue;
