@@ -45,5 +45,24 @@ Follow these steps to get **only** the `gRPCStressTestingService` and `gRPCToolF
 git clone https://github.com/JadedLeader/gRPCLimitationTesting.git
 cd gRPCLimitationTesting
 
+### 3. Configure Database Connection (User Secrets)
+
+Each project needs a connection string under `ConnectionStrings:DbConnection`. We’ll store it in user-secrets so it doesn’t get checked into source control.
+
+###a) gRPCStressTestingService
+```bash
+cd gRPCStressTestingService
+dotnet user-secrets init
+dotnet user-secrets set "ConnectionStrings:DbConnection" \
+  "Server=(localdb)\\mssqllocaldb;Database=GrpcStressTestDb;Trusted_Connection=True;"
+
+### b) gRPCToolFrontEnd
+```bash
+cd ../gRPCToolFrontEnd
+dotnet user-secrets init
+dotnet user-secrets set "ConnectionStrings:DbConnection" \
+  "Server=(localdb)\\mssqllocaldb;Database=GrpcStressTestDb;Trusted_Connection=True;"
+
+
 
 
