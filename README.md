@@ -30,6 +30,39 @@
 - MudBlazor
 - Blazored local storage
 
-## Installation Guide:
+## Installation and build guide
+
+Follow these steps to get **only** the `gRPCStressTestingService` and `gRPCToolFrontEnd` projects running locally.
+
+### 1. Prerequisites
+- [.NET 8.0 SDK (or later)](https://dotnet.microsoft.com/download)  
+- [Git](https://git-scm.com/downloads)  
+- A local SQL Server instance (LocalDB, Express, or full SQL Server)  
+- (Optional) JetBrains Rider or Visual Studio 2022+
+
+### 2. Clone the Repository
+```bash
+git clone https://github.com/JadedLeader/gRPCLimitationTesting.git
+cd gRPCLimitationTesting
+
+### 3. Configure Database Connection (User Secrets)
+
+Each project needs a connection string under `ConnectionStrings:DbConnection`. We’ll store it in user-secrets so it doesn’t get checked into source control.
+
+###a) gRPCStressTestingService
+```bash
+cd gRPCStressTestingService
+dotnet user-secrets init
+dotnet user-secrets set "ConnectionStrings:DbConnection" \
+  "Server=(localdb)\\mssqllocaldb;Database=GrpcStressTestDb;Trusted_Connection=True;"
+
+### b) gRPCToolFrontEnd
+```bash
+cd ../gRPCToolFrontEnd
+dotnet user-secrets init
+dotnet user-secrets set "ConnectionStrings:DbConnection" \
+  "Server=(localdb)\\mssqllocaldb;Database=GrpcStressTestDb;Trusted_Connection=True;"
+
+
 
 
