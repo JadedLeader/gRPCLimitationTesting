@@ -35,25 +35,26 @@
                      ClipMode="DrawerClipMode.Never"
                      Class="sidebar">
 
-            <MudToolbar Dense="true" Class="px-2">
-              <MudText Typo="Typo.h6">Saved Presets</MudText>
-            </MudToolbar>
+         
+              <MudText Typo="Typo.h6" Align="Align.Left">Saved Presets</MudText>
+           
 
             <div class="preset-list px-2">
-              <MudTreeView T="PresetItem" Dense="true" ExpandAll="false">
+              <MudTreeView T="PresetItem" Dense="false" ExpandAll="false" >
                 @foreach (var groups in _allPresets.GroupBy(p => p.Overarching))
                 {
-                  <MudTreeViewItem Text="@groups.Key"
-                                   Icon="@Icons.Material.Filled.Folder"
-                                   Expanded="false"
-                                   @onclick="() => SaveOverarchingPresets(groups.Key)">
-                    @foreach (var leaf in groups)
-                    {
-                      <MudTreeViewItem Text="@leaf.PresetName"
-                                       Icon="@Icons.Material.Filled.Label"
-                                       OnClick="() => LoadingSavedPresetLatency(leaf.SessionRunId)" />
-                    }
-                  </MudTreeViewItem>
+                    <MudTreeViewItem Text="@groups.Key"
+                                     Icon="@Icons.Material.Filled.Folder"
+                                     Expanded="false"
+                                     @onclick="() => SaveOverarchingPresets(groups.Key)">
+                        
+                        @foreach (var leaf in groups.OrderBy(x => x.PresetName))
+                        {
+                            <MudTreeViewItem Text="@leaf.PresetName"
+                                             Icon="@Icons.Material.Filled.Label"
+                                             OnClick="() => LoadingSavedPresetLatency(leaf.SessionRunId)"/>
+                        }
+                    </MudTreeViewItem>
                 }
               </MudTreeView>
             </div>
@@ -189,11 +190,13 @@
           .sidebar {
               background: #121212;;
           }
+          
           .preset-list {
             max-height: 50vh;
             overflow-y: auto;
             margin-bottom: 16px;
           }
+          
           .MyMudPaper {
             background: rgba(0,0,0,0.6);
             border-radius: 12px;
@@ -201,6 +204,7 @@
             border: 1px solid rgba(255,255,255,0.1);
             box-shadow: 0 4px 12px rgba(0,0,0,0.8);
           }
+          
           .my-paper-with-bottom-padding {
             padding-bottom: 40px;
             overflow: visible;
@@ -518,9 +522,7 @@
     {
 
         Log.Information($"Clearing request results received");
-
-        await AdminService.ClearChannelResults(_AddressSpace);
-
+        
         _chart1.Data = new double[] { };
         _chart2.Data = new double[] { };
         _chart3.Data = new double[] { };
@@ -986,7 +988,10 @@
 
         await InvokeAsync(async () =>
         {
-            _savedPresetNames.TryAdd(streamSessionRunResponse.PresetName, streamSessionRunResponse.SessionRunId);
+            string overarching = streamSessionRunResponse.OverarchingPresetName;
+            string trimmedPresetName = TrimPrefix(streamSessionRunResponse.PresetName, overarching);
+            
+            _savedPresetNames.TryAdd(trimmedPresetName, streamSessionRunResponse.SessionRunId);
             
             _overarchingPresetNames.Add(streamSessionRunResponse.OverarchingPresetName);
 
@@ -997,13 +1002,18 @@
             {
                 Overarching = streamSessionRunResponse.OverarchingPresetName, 
                 SessionRunId = streamSessionRunResponse.SessionRunId, 
-                PresetName = streamSessionRunResponse.PresetName
+                PresetName = trimmedPresetName
             });
             
             StateHasChanged();
             
         });
 
+    }
+
+    private string TrimPrefix(string full, string prefix)
+    {
+        return full.StartsWith(prefix, StringComparison.Ordinal) ? full.Substring(prefix.Length) : full;
     }
 
     private void RefreshSavedPresets()
