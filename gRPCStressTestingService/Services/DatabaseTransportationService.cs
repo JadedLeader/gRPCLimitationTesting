@@ -12,18 +12,15 @@ namespace gRPCStressTestingService.Services
     {
         private readonly RequestResponseTimeStorage _timeStorage;
 
-        private readonly IDelayCalcRepo _delayCalcRepo;
-
         private readonly IClientInstanceRepo _clientInstanceRepo;
 
         private readonly IUtilitiesService _utilitiesService;
 
         private readonly DelayCalcStorage _delayCalcStorage;
-        public DatabaseTransportationService(RequestResponseTimeStorage timeStorage, IDelayCalcRepo delayCalcRepo, IClientInstanceRepo clientInstanceRepo, IUtilitiesService utilitiesService,
+        public DatabaseTransportationService(RequestResponseTimeStorage timeStorage,IClientInstanceRepo clientInstanceRepo, IUtilitiesService utilitiesService,
             DelayCalcStorage delayCalcStorage)
         {
             _timeStorage = timeStorage;
-            _delayCalcRepo = delayCalcRepo;
             _clientInstanceRepo = clientInstanceRepo;
             _utilitiesService = utilitiesService;
             _delayCalcStorage = delayCalcStorage;
@@ -183,13 +180,7 @@ namespace gRPCStressTestingService.Services
 
             return delayCalc;
         }
-
-        private async Task AddToDbAndSave(DelayCalc delayInstance)
-        {
-            await _delayCalcRepo.AddToDbAsync(delayInstance);
-
-            await _delayCalcRepo.SaveAsync();
-        }
+        
 
     }
 }

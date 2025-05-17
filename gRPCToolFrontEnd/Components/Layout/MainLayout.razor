@@ -1,4 +1,8 @@
-﻿@inherits LayoutComponentBase
+﻿@using gRPCToolFrontEnd.LocalStorage
+@using Serilog
+@inherits LayoutComponentBase
+@inject GlobalSettings GlobalSettings
+
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode" />
 <MudPopoverProvider />
@@ -14,11 +18,26 @@
                   overflow: hidden;">
 
     <MudAppBar Elevation="1" Style="background: #121212;">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())"/>
+        
         <MudText Typo="Typo.h5" Class="ml-3">Stress Testing Service</MudText>
-        <MudSpacer />
-        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle" />
-        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+        
+        <MudSpacer/>
+        
+    
+            
+            <MudSwitch T="bool"
+                       @bind-Checked="_switchModes"
+                       Color="Color.Primary"
+                       ValueChanged="@TestingStateChanged">
+                Mode: @(_switchModes ? "Single-Client" : "Multi-client")
+            </MudSwitch>
+        
+        <MudIconButton Icon="@(DarkLightModeButtonIcon)" Color="Color.Inherit" OnClick="@DarkModeToggle"/>
+        
+        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End"/>
+        
     </MudAppBar>
 
     <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2" Style="background: #121212;">
@@ -26,7 +45,9 @@
     </MudDrawer>
 
     <MudMainContent>
-        @Body
+        <CascadingValue Value="_switchModes" Name="IsSingleClientTesting">
+            @Body
+        </CascadingValue>
     </MudMainContent>
 
 
@@ -55,11 +76,24 @@
             LayoutProperties = new LayoutProperties()
         };
     }
-
+    
+    private bool _switchModes = false;
 
     private void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
+    }
+    
+    private Task TestingStateChanged(bool value)
+    {
+
+        _switchModes = value;
+
+        if (value == true ? GlobalSettings.IsSingleClientTesting = true : GlobalSettings.IsSingleClientTesting = false) ;
+
+        Log.Information(GlobalSettings.IsSingleClientTesting ? $"Single client testing is active" : $"Multi-client testing is active");
+
+        return Task.CompletedTask;
     }
 
     private void DarkModeToggle()

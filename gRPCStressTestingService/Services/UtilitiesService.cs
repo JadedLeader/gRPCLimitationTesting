@@ -15,8 +15,6 @@ namespace gRPCStressTestingService.Services
 {
     public class UtilitiesService : IUtilitiesService
     {
-
-        private readonly IDelayCalcRepo _delayCalcRepo;
         private readonly ThroughputStorage _throughputStorage;
         private readonly DelayCalcStorage _delayCalcStorage;
 
@@ -25,55 +23,12 @@ namespace gRPCStressTestingService.Services
         private DateTime _lastFetchedTimeUnarySingle = DateTime.MinValue;
         private DateTime _lastFetchedTimeUnaryBatch = DateTime.MinValue;
 
-        public UtilitiesService(IDelayCalcRepo delayCalcRepo, ThroughputStorage throughputStorage, DelayCalcStorage delayCalcStorage)
+        public UtilitiesService( ThroughputStorage throughputStorage, DelayCalcStorage delayCalcStorage)
         {
-            _delayCalcRepo = delayCalcRepo;
             _throughputStorage = throughputStorage;
             _delayCalcStorage = delayCalcStorage;
         }
         
-        public async Task GetClientsWithMessages(GetClientsWithMessagesRequest request, IServerStreamWriter<GetClientsWithMessagesResponse> responseStream, ServerCallContext context)
-        {
-            
-            while(!context.CancellationToken.IsCancellationRequested)
-            {
-                string? sessionUnique = context.RequestHeaders.GetValue("session-unique");
-
-                var getNewDelays = await _delayCalcRepo.GetNewDelays(Guid.Parse(sessionUnique));
-
-                if(getNewDelays == null)
-                {
-                    Log.Information($"No new delays");
-                }
-
-                Log.Information($"this is the count on the new delays grabbed {getNewDelays.Count} ");
-
-                if(getNewDelays.Any())
-                {
-                    foreach(var kvp in getNewDelays)
-                    {
-                        foreach(var calc in kvp.Value)
-                        {
-                            var serverResponse = new GetClientsWithMessagesResponse 
-                            {
-                                ClientUnique = calc.ClientUnique.ToString(),
-                                MessageId = calc.messageId.ToString(),
-                                RequestType = calc.RequestType,
-                                CommunicationType = calc.CommunicationType,
-                                DataIterations = calc.DataIterations,
-                                Datacontent = calc.DataContent,
-                                Delay = calc.Delay.ToString(),
-
-                            };
-
-                            await responseStream.WriteAsync(serverResponse);
-                        }
-                    }
-                }
-
-            }
-
-        }
 
         public async Task GetstreamingBatchDelays(GetStreamingBatchDelaysRequest request, IServerStreamWriter<GetStreamingBatchDelaysResponse> responseStream, ServerCallContext context)
         {

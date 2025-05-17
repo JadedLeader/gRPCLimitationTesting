@@ -60,6 +60,11 @@
 
 @code {
     
+    [CascadingParameter(Name = "IsSingleClientTesting")]
+    public bool IsSingleClientTesting { get; set; }
+    
+    private bool _prevMode;
+    
     private List<ChartSeries> LowStressSeries = new List<ChartSeries>()
     {
         new ChartSeries()
@@ -253,6 +258,32 @@
         }
 
         return chartSeriesToReturn;
+    }
+    
+    protected override async Task OnParametersSetAsync()
+    {
+       
+        if (IsSingleClientTesting != _prevMode)
+        {
+            _prevMode = IsSingleClientTesting;
+            await ReloadAllSeries(); 
+        }
+    }
+    
+    private async Task ReloadAllSeries()
+    {
+        if (IsSingleClientTesting)
+        {
+            await PopulateLowStressSeriesSingleClient();
+            await PopulateMediumStressSeriesSingleClient();
+            await PopulateHighStressSeriesSingleClient();
+        }
+        else
+        {
+            await PopulateLowStressSeriesMultiClient();
+            await PopulateMediumStressSeriesMultiClient();
+            await PopulateHighStressSeriesMultiClient();
+        }
     }
 
 }

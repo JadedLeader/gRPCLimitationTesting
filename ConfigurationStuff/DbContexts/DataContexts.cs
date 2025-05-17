@@ -12,7 +12,6 @@ namespace ConfigurationStuff.DbContexts
         {
             _config = config;
 
-            //Console.WriteLine($"DB CONTEXT INSTANCE CREATED : {this.GetHashCode()}");
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -38,26 +37,18 @@ namespace ConfigurationStuff.DbContexts
             var delayCalc  = modelBuilder.Entity<DelayCalc>();
 
             clientInstance
-            .HasOne<Session>() // Specify the principal entity
-            .WithMany(s => s.ClientInstance) // Specify the navigation property
-            .HasForeignKey(ci => ci.SessionUnique) // Specify the foreign key
+            .HasOne<Session>() 
+            .WithMany(s => s.ClientInstance) 
+            .HasForeignKey(ci => ci.SessionUnique)
             .OnDelete(DeleteBehavior.Cascade);
 
-            /*   account
-                   .HasOne(a => a.Session)
-                   .WithOne(s => s.Account)
-                   .HasForeignKey<Session>(s => s.AccountUnique); */
 
             clientInstance.Property(a => a.ClientUnique).ValueGeneratedNever();
             clientInstance.Property(a => a.SessionUnique).ValueGeneratedNever();
             clientInstance.Property(e => e.RowVersion)
                 .IsRowVersion()
                 .IsConcurrencyToken();
-
-            //key 
-
-
-            //props 
+            
 
         }
 
@@ -65,7 +56,6 @@ namespace ConfigurationStuff.DbContexts
         public DbSet<AuthToken> AuthToken { get; set; }
         public DbSet<ClientInstance> ClientInstance { get; set; }
         public DbSet<Session> Session { get; set; }
-        public DbSet<DelayCalc> DelayCalc { get; set; }
         
         public DbSet<SessionRuns> SessionRuns { get; set; }
         

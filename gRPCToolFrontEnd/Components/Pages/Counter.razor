@@ -66,14 +66,6 @@
                             Label="Overarching Preset Name"
                             FullWidth="true" />
 
-              <MudSwitch T="bool"
-                         @bind-Checked="_switchModes"
-                         Color="Color.Primary"
-                         Class="mt-4"
-                         ValueChanged="@TestingStateChanged">
-                Mode: @(_switchModes ? "Single-Client" : "Multi-client")
-              </MudSwitch>
-
               <MudButton Variant="Variant.Filled"
                          OnClick="SaveResults"
                          Class="mt-4 mb-2"
@@ -123,11 +115,10 @@
               </MudButton>
             </div>
           </MudDrawer>
-
-          <!-- MAIN CONTENT: toolbar + charts -->
+          
           <MudMainContent>
             <MudToolBar Dense="true" Class="px-2">
-              <!-- this chevron always lives at the left edge of your graphs -->
+       
               <MudIconButton Icon="@(_drawerOpen 
                                       ? Icons.Material.Filled.ChevronLeft 
                                       : Icons.Material.Filled.ChevronRight)"
@@ -214,8 +205,7 @@
 @implements IDisposable
 
 @code {
-
-    private bool _switchModes = false;
+    
     private int _AmountOfChannels = 0;
 
     private string _AddressSpace = "https://localhost:5000";
@@ -313,8 +303,6 @@
 
         _StressLevelValue = GlobalSettings.StressTestingPreset;
         _AmountOfChannels = GlobalSettings.SingleClientChannels;
-        
-        _switchModes = GlobalSettings.IsSingleClientTesting;
 
         _series.Add(_chart1);
         _series2.Add(_chart2);
@@ -360,18 +348,6 @@
         StressTestingPersistenceService.StartReceivingSessionRuns();
         
         await base.OnInitializedAsync();
-    }
-
-    private Task TestingStateChanged(bool value)
-    {
-
-        _switchModes = value;
-
-        if (value == true ? GlobalSettings.IsSingleClientTesting = true : GlobalSettings.IsSingleClientTesting = false) ;
-
-        Log.Information(GlobalSettings.IsSingleClientTesting ? $"Single client testing is active" : $"Multi-client testing is active");
-
-        return Task.CompletedTask;
     }
 
     private async Task SaveResults()

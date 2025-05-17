@@ -19,19 +19,17 @@ namespace gRPCStressTestingService.Services
         private readonly RequestResponseTimeStorage _timeStorage;
         private readonly ClientStorage _storage;
         private readonly ObjectCreation _objectCreation;
-        private readonly delayCalcRepo _delayCalcRepo;
         private readonly DelayCalculation _delayCalculations;
         private readonly DatabaseTransportationService _dbTransportationService;
         private readonly IClientInstanceRepo _clientInstanceRepo;
         private readonly ThroughputStorage _throughputStorage;
         public UnaryService(ClientStorage storage, RequestResponseTimeStorage timeStorage, ObjectCreation objectCreation, 
-            delayCalcRepo delayCalcRepo, DelayCalculation delayCalculations, DatabaseTransportationService databaseTransportationService,
+             DelayCalculation delayCalculations, DatabaseTransportationService databaseTransportationService,
             IClientInstanceRepo clientInstanceRepo, ThroughputStorage throughputStorage)
         {
             _storage = storage;
             _timeStorage = timeStorage;
             _objectCreation = objectCreation;
-            _delayCalcRepo = delayCalcRepo;
             _delayCalculations = delayCalculations;
             _dbTransportationService = databaseTransportationService;
             _clientInstanceRepo = clientInstanceRepo;

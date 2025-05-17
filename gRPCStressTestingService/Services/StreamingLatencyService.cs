@@ -13,17 +13,17 @@ namespace gRPCStressTestingService.Services
     public class StreamingLatencyService : IStreamingLatencyService
     {
         private readonly RequestResponseTimeStorage _responseTimeStorage;
-        private readonly IDelayCalcRepo _delayCalcRepo;
+
         private readonly DelayCalculation _delayCalculation;
         private readonly DatabaseTransportationService _dbTransportationService;
         private readonly IClientInstanceRepo _clientInstanceRepo;
         private readonly ThroughputStorage _throughputStorage;
 
-        public StreamingLatencyService(RequestResponseTimeStorage responseTimeStorage, delayCalcRepo delayCalcRepo, DelayCalculation delayCalculation,
+        public StreamingLatencyService(RequestResponseTimeStorage responseTimeStorage, DelayCalculation delayCalculation,
             DatabaseTransportationService databaseTransportationService, IClientInstanceRepo clientInstanceRepo, ThroughputStorage throughputStorage)
         {
             _responseTimeStorage = responseTimeStorage;
-            _delayCalcRepo = delayCalcRepo;
+     
             _delayCalculation = delayCalculation;
             _dbTransportationService = databaseTransportationService;
             _clientInstanceRepo = clientInstanceRepo;

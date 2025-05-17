@@ -3,32 +3,121 @@
 @inject NavigationManager NavManager
 @inject AccountsService AccountService
 
-<HeadContent>
-    <link href="/Style/LoginPage.css" rel="stylesheet" />
-</HeadContent>
+<div class="auth-page">
+  <MudGrid Justify="Justify.Center" AlignItems="AlignItems.Center">
+    <MudItem xs="12" sm="8" md="6" lg="4">
+      <MudForm @ref="form" Class="MyMudForm">
 
-<MudGrid Justify="Justify.Center" Spacing="4">
-    <MudItem xs="12" sm="7">
-        <MudForm @ref="form" Class="MyMudForm">
-            <MudText Class="MyMudText">Account Creation</MudText>
+        <MudText Typo="Typo.h4">Account Creation</MudText>
 
-            <!-- Corrected binding -->
-            <MudTextField @bind-Value="@Username"  Class="MyMudTextField" T="string" Label="Username" Required="true" RequiredError="User name is required!" HelperText="Input desired username above" Margin="Margin.Dense"></MudTextField>
-            <MudTextField @bind-Value="@Password"  Class="MyMudTextField" T="string" Label="Password" HelperText="Input desired password above:" InputType="InputType.Password" Required="true" RequiredError="Password is required!" Margin="Margin.Dense"></MudTextField>
+        <MudTextField
+          Variant="Variant.Outlined"
+          Adornment="Adornment.Start"
+          AdornmentIcon="@Icons.Material.Filled.Person"
+          Clearable="true"
+          @bind-Value="Username"
+          Label="Username"
+          Required="true"
+          RequiredError="Username is required!"
+          HelperText="Pick a username"
+          Margin="Margin.Dense"
+          Class="mb-3"
+          T="string" />
 
+        <MudTextField
+          Variant="Variant.Outlined"
+          Adornment="Adornment.Start"
+          AdornmentIcon="@Icons.Material.Filled.Lock"
+          Clearable="true"
+          @bind-Value="Password"
+          Label="Password"
+          InputType="InputType.Password"
+          Required="true"
+          RequiredError="Password is required!"
+          HelperText="Choose a strong password"
+          Margin="Margin.Dense"
+          Class="mb-4"
+          T="string" />
 
-            <MudPaper Class="pa-4 mt-4">
-                <MudButton Class="MyLoginMudButton" Variant="Variant.Filled" @onclick="@RedirectToLoginPage" DropShadow="false">Login</MudButton>
-                <MudButton Variant="Variant.Filled" DropShadow="false" Class="mx-2 MyRegisterMudButton" @onclick="@CreateAccount">Create Account</MudButton>
-            </MudPaper>
+        <MudButton
+          Variant="Variant.Filled"
+          Color="Color.Primary"
+          OnClick="CreateAccount">
+          Create Account
+        </MudButton>
 
-        </MudForm>
+        <MudLink
+          Color="Color.Secondary"
+          Class="d-block text-center mt-2"
+          OnClick="RedirectToLoginPage">
+          Already have an account? Log in
+        </MudLink>
+
+      </MudForm>
     </MudItem>
-</MudGrid>
+  </MudGrid>
+</div>
 
 
+<style>
+    html, body { height:100%; margin:0; }
+  
+    .auth-page {
+      height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: url('/Images/3d-rendering-abstract-black-white-waves.png')
+                  center/cover no-repeat;
+    }
 
-<body class="MyCustomBody"></body>
+    /* glassmorphism form – same as Login */
+    .MyMudForm {
+      max-width:650px;
+      width:100%;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border:1px solid rgba(255,255,255,0.15);
+      padding:3rem 2.5rem;
+      border-radius:12px;
+      box-shadow:0 8px 32px rgba(0,0,0,0.5);
+      font-family:'Montserrat',sans-serif;
+      color:#fff;
+    }
+
+    /* spacing & heading tweaks */
+    .MyMudForm .mb-4 { margin-bottom:1.5rem!important; }
+    .MyMudForm .mb-3 { margin-bottom:1rem!important; }
+    .MyMudForm .mud-typography.h4 {
+      font-size:2rem;
+      letter-spacing:0.5px;
+      margin-bottom:1.5rem;
+      color:#fff;
+    }
+
+    /* labels / helper / error text */
+    .MyMudForm label,
+    .MyMudForm .mud-form-helper-text,
+    .MyMudForm .mud-form-error {
+      color:#fff!important;
+    }
+
+    /* outlined inputs + icons */
+    .MyMudForm .mud-input-root {
+      --mud-palette-text-primary: #fff;
+      --mud-palette-background-surface: rgba(255,255,255,0.05);
+      --mud-palette-action-disabled: rgba(255,255,255,0.3);
+    }
+    .MyMudForm .mud-input-slot input { color:#fff; }
+    .MyMudForm .mud-input-adornment .mud-icon-root { color:#fff; }
+
+    /* full-width primary button */
+    .MyMudForm .mud-button-filled.mud-primary-filled {
+      width:100%;
+      font-weight:500;
+    }
+  </style>
 
 @code {
     private string Username;

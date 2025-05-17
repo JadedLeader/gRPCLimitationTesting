@@ -19,10 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-	  
-    <Content Include="Components\Pages\ChannelGenerationPage.razor.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="Components\Pages\Counter.razor.css" />
 	  <None Include="DataSizes\**\*">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -68,9 +64,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Update="Components\Pages\ChannelGenerationPage.razor">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
 	  <Content Update="wwwroot\Style\LoginPage.css">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>

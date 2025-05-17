@@ -93,7 +93,6 @@ namespace gRPCStressTestingService
             builder.Services.AddScoped<IThroughputService, ThroughputService>();
 
             builder.Services.AddScoped<ObjectCreation>();
-            builder.Services.AddScoped<delayCalcRepo>();
 
            // builder.Services.AddHostedService<ThroughputReporter>();
          

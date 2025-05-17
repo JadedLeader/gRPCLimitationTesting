@@ -19,10 +19,9 @@ namespace gRPCStressTestingService.Services
         private readonly IAuthTokenRepo _authTokenRepo;
         private readonly ISessionRepo _sessionRepo;
         private readonly IClientInstanceRepo _clientInstanceRepo;
-        private readonly IDelayCalcRepo _delayCalcRepo;
         private readonly DelayCalcStorage _delayCalcStorage;
         public AdminService( ClientStorage clientStorage, IAccountRepo accountRepo, IAuthTokenRepo authTokenRepo, ISessionRepo sessionRepo, 
-            IClientInstanceRepo clientRepo, IDelayCalcRepo delayCalcRepo, DelayCalcStorage delayCalcStorage)
+            IClientInstanceRepo clientRepo, DelayCalcStorage delayCalcStorage)
         {
             
             _clientStorage = clientStorage;
@@ -30,7 +29,6 @@ namespace gRPCStressTestingService.Services
             _authTokenRepo = authTokenRepo;
             _sessionRepo = sessionRepo;
             _clientInstanceRepo = clientRepo;
-            _delayCalcRepo = delayCalcRepo;
             _delayCalcStorage = delayCalcStorage;
         }
 
@@ -186,20 +184,7 @@ namespace gRPCStressTestingService.Services
 
             return serverResponse;
         }
-
-        public async Task<WipeDelayCalcResponse> ClearDelayCalc(WipeDelayCalcRequest request, ServerCallContext context)
-        {
-            await _delayCalcRepo.EmptyDelayCalcTable();
-
-
-            WipeDelayCalcResponse serverResponse = new WipeDelayCalcResponse
-            {
-                Finished = true
-            };
-
-            return serverResponse;
-        }
-
+        
         public async Task<ClearServerSideListResponse> ClearServerSideDelayLists(ClearServerSideListRequest request, ServerCallContext context)
         {
 

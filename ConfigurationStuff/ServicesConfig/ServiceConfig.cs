@@ -54,7 +54,6 @@ namespace ConfigurationStuff.ServicesConfig
             services.AddScoped<IAuthTokenRepo, AuthTokenRepo>();
             services.AddScoped<IClientInstanceRepo, ClientInstanceRepo>();
             services.AddScoped<ISessionRepo, SessionRepo>();
-            services.AddScoped<IDelayCalcRepo, delayCalcRepo>();
             services.AddScoped<IDataQueries, DataQueries>();
             services.AddScoped<ISessionRunsRepo, SessionRunsRepo>(); 
             services.AddScoped<ILatencyMeasurementsRepo, LatencyMeasurementsRepo>();
