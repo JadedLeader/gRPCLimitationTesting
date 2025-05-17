@@ -9,19 +9,14 @@
 
 ## Usage: 
 - **Investigating how the different variations of communication can handle varying loads of data**
-   - h
-- **Investigating how port exhaustion can effect gRPC, delving into ephemeral ports**
-   - h
-- **Investigating how network constrained environments can effect the overall performance of gRPC communication flows**
-   - h
-- **Investigating how channels work, focusing on how clients interact with channels**
-   - h
-   
+- **Investigating how port exhaustion can effect gRPC, looking atephemeral ports**
+- **Investigating how network constrained environments can effect the overall performance of gRPC communication flows using clumsy**
+- **Investigating how channels work, focusing on how clients interact with channels and their various flows**
 
 ## Technologies: 
 - C#
 - gRPC
-- EF core
+- EFcore
 - Serilog
 - JWT
 - SSMS
@@ -37,31 +32,24 @@ Follow these steps to get **only** the `gRPCStressTestingService` and `gRPCToolF
 ### 1. Prerequisites
 - [.NET 8.0 SDK (or later)](https://dotnet.microsoft.com/download)  
 - [Git](https://git-scm.com/downloads)  
-- A local SQL Server instance (LocalDB, Express, or full SQL Server)  
+- A local SQL Server instance (SSMS)  
 - (Optional) JetBrains Rider or Visual Studio 2022+
 
 ### 2. Clone the Repository
-```bash
+
 git clone https://github.com/JadedLeader/gRPCLimitationTesting.git
-cd gRPCLimitationTesting
 
 ### 3. Configure Database Connection (User Secrets)
 
-Each project needs a connection string under `ConnectionStrings:DbConnection`. We’ll store it in user-secrets so it doesn’t get checked into source control.
+Each project needs a connection string under `ConnectionStrings:DbConnection`. This is stored in user secrets to not get pushed to source control
 
-###a) gRPCStressTestingService
-```bash
-cd gRPCStressTestingService
-dotnet user-secrets init
-dotnet user-secrets set "ConnectionStrings:DbConnection" \
+Example: 
+"ConnectionStrings:DbConnection" \
   "Server=(localdb)\\mssqllocaldb;Database=GrpcStressTestDb;Trusted_Connection=True;"
 
-### b) gRPCToolFrontEnd
-```bash
-cd ../gRPCToolFrontEnd
-dotnet user-secrets init
-dotnet user-secrets set "ConnectionStrings:DbConnection" \
-  "Server=(localdb)\\mssqllocaldb;Database=GrpcStressTestDb;Trusted_Connection=True;"
+###4. Run both the gRPCStressTestingService and the gRPCToolFrontEnd 
+
+As long as everything is setup correctly, everything should work accordingly
 
 
 
