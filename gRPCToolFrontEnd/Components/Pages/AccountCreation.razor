@@ -8,10 +8,9 @@
     <MudItem xs="12" sm="8" md="6" lg="4">
       <MudForm @ref="form" Class="MyMudForm">
 
-        <MudText Typo="Typo.h4">Account Creation</MudText>
+        <MudText Align="Align.Left" Typo="Typo.h4">Account Creation</MudText>
 
         <MudTextField
-          Variant="Variant.Outlined"
           Adornment="Adornment.Start"
           AdornmentIcon="@Icons.Material.Filled.Person"
           Clearable="true"
@@ -20,12 +19,12 @@
           Required="true"
           RequiredError="Username is required!"
           HelperText="Pick a username"
+          HelperTextOnFocus="true"
           Margin="Margin.Dense"
           Class="mb-3"
           T="string" />
 
         <MudTextField
-          Variant="Variant.Outlined"
           Adornment="Adornment.Start"
           AdornmentIcon="@Icons.Material.Filled.Lock"
           Clearable="true"
@@ -35,6 +34,7 @@
           Required="true"
           RequiredError="Password is required!"
           HelperText="Choose a strong password"
+          HelperTextOnFocus="true"
           Margin="Margin.Dense"
           Class="mb-4"
           T="string" />
@@ -58,66 +58,70 @@
   </MudGrid>
 </div>
 
-
 <style>
-    html, body { height:100%; margin:0; }
+  html, body { height:100%; margin:0; }
+
+  .auth-page {
+    height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: url('/Images/3d-rendering-abstract-black-white-waves.png')
+                center/cover no-repeat;
+  }
+
+  .MyMudForm {
+    max-width:650px;
+    width:100%;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border:1px solid rgba(255,255,255,0.15);
+    padding:3rem 2.5rem;
+    border-radius:12px;
+    box-shadow:0 8px 32px rgba(0,0,0,0.5);
+    font-family:'Montserrat',sans-serif;
+    color:#fff;
+  }
+
+  .MyMudForm .mb-4 { margin-bottom:1.5rem!important; }
+  .MyMudForm .mb-3 { margin-bottom:1rem!important; }
+
+  .MyMudForm .mud-typography.h4 {
+    font-size:2rem;
+    letter-spacing:0.5px;
+    margin-bottom:1.5rem;
+    color:#fff;
+  }
+
+  .MyMudForm label,
+  .MyMudForm .mud-form-helper-text,
+  .MyMudForm .mud-form-error {
+    color:#fff!important;
+  }
+
+  .MyMudForm .mud-input-root {
+    --mud-palette-text-primary: #fff;
+    --mud-palette-background-surface: rgba(255,255,255,0.05);
+    --mud-palette-action-disabled: rgba(255,255,255,0.3);
+  }
+  .MyMudForm .mud-input-slot input { color:#fff; }
+  .MyMudForm .mud-input-adornment .mud-icon-root { color:#fff; }
+
+  .MyMudForm .mud-button-filled.mud-primary-filled {
+    width:100%;
+    font-weight:500;
+  }
+
   
-    .auth-page {
-      height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background: url('/Images/3d-rendering-abstract-black-white-waves.png')
-                  center/cover no-repeat;
-    }
-
-    /* glassmorphism form – same as Login */
-    .MyMudForm {
-      max-width:650px;
-      width:100%;
-      background: rgba(0,0,0,0.4);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border:1px solid rgba(255,255,255,0.15);
-      padding:3rem 2.5rem;
-      border-radius:12px;
-      box-shadow:0 8px 32px rgba(0,0,0,0.5);
-      font-family:'Montserrat',sans-serif;
-      color:#fff;
-    }
-
-    /* spacing & heading tweaks */
-    .MyMudForm .mb-4 { margin-bottom:1.5rem!important; }
-    .MyMudForm .mb-3 { margin-bottom:1rem!important; }
-    .MyMudForm .mud-typography.h4 {
-      font-size:2rem;
-      letter-spacing:0.5px;
-      margin-bottom:1.5rem;
-      color:#fff;
-    }
-
-    /* labels / helper / error text */
-    .MyMudForm label,
-    .MyMudForm .mud-form-helper-text,
-    .MyMudForm .mud-form-error {
-      color:#fff!important;
-    }
-
-    /* outlined inputs + icons */
-    .MyMudForm .mud-input-root {
-      --mud-palette-text-primary: #fff;
-      --mud-palette-background-surface: rgba(255,255,255,0.05);
-      --mud-palette-action-disabled: rgba(255,255,255,0.3);
-    }
-    .MyMudForm .mud-input-slot input { color:#fff; }
-    .MyMudForm .mud-input-adornment .mud-icon-root { color:#fff; }
-
-    /* full-width primary button */
-    .MyMudForm .mud-button-filled.mud-primary-filled {
-      width:100%;
-      font-weight:500;
-    }
-  </style>
+  .MyMudForm 
+    .mud-input-root.mud-input-outlined 
+    .mud-input-slot {
+      border:1px solid rgba(255,255,255,0.2) !important;
+      background-color: rgba(255,255,255,0.1) !important;
+  }
+  
+</style>
 
 @code {
     private string Username;

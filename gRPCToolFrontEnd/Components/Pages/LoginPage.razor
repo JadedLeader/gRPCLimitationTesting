@@ -10,11 +10,12 @@
 <div class="login-page">
     <MudGrid Justify="Justify.Center" AlignItems="AlignItems.Center">
         <MudItem xs="12" sm="8" md="6" lg="4">
+            
             <MudForm @ref="form" Class="MyMudForm">
-                <MudText Typo="Typo.h4">Login</MudText>
+                
+                <MudText Align="Align.Left" Typo="Typo.h4">Login</MudText>
 
                 <MudTextField
-                    Variant="Variant.Outlined"
                     Adornment="Adornment.Start"
                     AdornmentIcon="@Icons.Material.Filled.Person"
                     Clearable="true"
@@ -23,12 +24,12 @@
                     Required="true"
                     RequiredError="Username is required!"
                     HelperText="Enter your username"
+                    HelperTextOnFocus="true"
                     Margin="Margin.Dense"
                     Class="mb-3"
-                    T="string" />
+                    T="string"/>
 
                 <MudTextField
-                    Variant="Variant.Outlined"
                     Adornment="Adornment.Start"
                     AdornmentIcon="@Icons.Material.Filled.Lock"
                     Clearable="true"
@@ -38,9 +39,10 @@
                     Required="true"
                     RequiredError="Password is required!"
                     HelperText="Enter your password"
+                    HelperTextOnFocus="true"
                     Margin="Margin.Dense"
                     Class="mb-4"
-                    T="string" />
+                    T="string"/>
 
                 <MudLink Color="Color.Secondary"
                          Class="d-block mb-4 text-right"
